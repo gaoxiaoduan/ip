@@ -311,7 +311,7 @@ a {
   position: relative;
   display: flex;
   justify-content: center;
-  padding-top: 15px;
+  padding-top: 16px;
   color: var(--body);
   font-size: 12px;
   font-family:
@@ -623,7 +623,7 @@ a {
   align-items: flex-end;
   justify-content: space-between;
   margin-top: auto;
-  padding-top: 18px;
+  padding-top: 16px;
   border-top: 1px solid var(--hairline);
 }
 
@@ -739,7 +739,7 @@ a {
 }
 
 .principle-grid article + article {
-  padding-left: 30px;
+  padding-left: 32px;
   border-left: 1px solid var(--hairline);
 }
 
@@ -946,7 +946,7 @@ a {
   }
 
   .principle-grid article:nth-child(2) {
-    padding-left: 30px;
+    padding-left: 32px;
     border-left: 1px solid var(--hairline);
   }
 
@@ -1086,8 +1086,8 @@ a {
   }
 
   .hero-content {
-    padding-top: 94px;
-    padding-bottom: 70px;
+    padding-top: 96px;
+    padding-bottom: 72px;
   }
 
   .hero h1 {
