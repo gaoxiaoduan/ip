@@ -4,8 +4,9 @@
   color: #171717;
   background: #fafafa;
   font-family:
-    Geist, Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
+  font-feature-settings: "ss01", "ss02";
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   --ink: #171717;
@@ -174,7 +175,7 @@ a {
   color: var(--ink);
   font-size: 12px;
   font-family:
-    "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
 }
 
 .header-status > span {
@@ -187,6 +188,11 @@ a {
 
 .header-status > span.is-running {
   animation: status-pulse 1.35s ease-in-out infinite;
+}
+
+.mobile-menu-button,
+.mobile-menu {
+  display: none;
 }
 
 .hero {
@@ -204,41 +210,11 @@ a {
   z-index: -1;
   top: 32px;
   left: 50%;
-  width: min(1080px, 100vw);
-  height: 510px;
-  overflow: hidden;
+  width: min(1080px, 100%);
+  height: auto;
+  overflow: visible;
   opacity: 0.9;
   transform: translateX(-50%);
-}
-
-.hero-mesh::before {
-  position: absolute;
-  inset: 42px 8% 30px;
-  content: "";
-  background:
-    radial-gradient(circle at 16% 58%, #007cf0 0 9%, transparent 31%),
-    radial-gradient(circle at 38% 36%, #00dfd8 0 9%, transparent 31%),
-    radial-gradient(circle at 60% 55%, #7928ca 0 11%, transparent 34%),
-    radial-gradient(circle at 77% 38%, #ff0080 0 9%, transparent 30%),
-    radial-gradient(circle at 88% 70%, #f9cb28 0 8%, transparent 30%),
-    radial-gradient(circle at 66% 76%, #ff4d4d 0 8%, transparent 28%);
-  filter: blur(58px) saturate(116%);
-}
-
-.hero-mesh::after {
-  position: absolute;
-  inset: 0;
-  content: "";
-  opacity: 0.7;
-  background:
-    linear-gradient(rgb(255 255 255 / 56%), rgb(255 255 255 / 92%)),
-    linear-gradient(90deg, rgb(23 23 23 / 6%) 1px, transparent 1px),
-    linear-gradient(rgb(23 23 23 / 6%) 1px, transparent 1px);
-  background-size:
-    100% 100%,
-    40px 40px,
-    40px 40px;
-  mask-image: linear-gradient(to bottom, transparent 0, #000 16%, #000 78%, transparent 100%);
 }
 
 .hero-content {
@@ -264,8 +240,8 @@ a {
     0 1px 1px rgb(0 0 0 / 3%),
     0 2px 6px rgb(0 0 0 / 4%);
   font-family:
-    "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
-  font-size: 11px;
+    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+  font-size: 12px;
   font-weight: 400;
   letter-spacing: 0;
   backdrop-filter: blur(12px);
@@ -275,10 +251,10 @@ a {
   max-width: 760px;
   margin: 26px 0 20px;
   color: var(--ink);
-  font-size: clamp(44px, 6.2vw, 72px);
+  font-size: 48px;
   font-weight: 600;
-  line-height: 0.98;
-  letter-spacing: -0.062em;
+  line-height: 48px;
+  letter-spacing: -2.4px;
 }
 
 .hero-content > p {
@@ -338,7 +314,7 @@ a {
   color: var(--body);
   font-size: 12px;
   font-family:
-    "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
 }
 
 .path-node {
@@ -372,20 +348,20 @@ a {
 .mono-label,
 .field-label {
   color: var(--mute);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 16px;
   font-family:
-    "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
-  letter-spacing: 0.02em;
+    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+  letter-spacing: 0;
 }
 
 .section-heading h2,
 .privacy-copy h2 {
   margin: 8px 0 0;
-  font-size: 36px;
+  font-size: 32px;
   font-weight: 600;
-  line-height: 42px;
-  letter-spacing: -1.6px;
+  line-height: 40px;
+  letter-spacing: -1.28px;
 }
 
 .section-heading > p {
@@ -413,10 +389,10 @@ a {
 
 .comparison-banner h3 {
   margin: 2px 0 3px;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
-  line-height: 26px;
-  letter-spacing: -0.45px;
+  line-height: 28px;
+  letter-spacing: -0.6px;
 }
 
 .comparison-banner p {
@@ -494,10 +470,10 @@ a {
 
 .result-card__header h3 {
   margin: 5px 0 0;
-  font-size: 19px;
+  font-size: 20px;
   font-weight: 600;
-  line-height: 26px;
-  letter-spacing: -0.55px;
+  line-height: 28px;
+  letter-spacing: -0.6px;
 }
 
 .state-dot {
@@ -509,7 +485,7 @@ a {
   font-size: 11px;
   line-height: 20px;
   font-family:
-    "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
 }
 
 .state-dot::before {
@@ -594,7 +570,7 @@ a {
   font-size: clamp(20px, 2vw, 28px);
   line-height: 36px;
   font-family:
-    "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
   letter-spacing: -1px;
   text-overflow: ellipsis;
 }
@@ -685,7 +661,7 @@ a {
   color: var(--mute);
   font-size: 10px;
   font-family:
-    "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
 }
 
 .fallback-note {
@@ -716,7 +692,7 @@ a {
   background: #ffefcf;
   place-items: center;
   font-family:
-    "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
 }
 
 .unreachable-state h4 {
@@ -780,10 +756,10 @@ a {
 
 .principle-grid h3 {
   margin: 56px 0 8px;
-  font-size: 19px;
+  font-size: 20px;
   font-weight: 600;
-  line-height: 27px;
-  letter-spacing: -0.55px;
+  line-height: 28px;
+  letter-spacing: -0.6px;
 }
 
 .principle-grid p {
@@ -857,10 +833,7 @@ a {
 }
 
 .privacy-copy h2 {
-  margin-top: 12px;
-  font-size: 43px;
-  line-height: 48px;
-  letter-spacing: -2px;
+  margin-top: 8px;
 }
 
 .privacy-copy p {
@@ -893,7 +866,7 @@ a {
   color: #fff;
   font-size: 13px;
   font-family:
-    "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
 }
 
 .site-footer {
@@ -953,9 +926,9 @@ a {
   }
 }
 
-@media (max-width: 960px) {
+@media (min-width: 600px) and (max-width: 959px) {
   .results-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .result-card {
@@ -963,15 +936,21 @@ a {
   }
 
   .principle-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .principle-grid article {
     min-height: 0;
-    padding: 26px 0 32px;
+    padding: 28px 30px 36px 0;
   }
 
-  .principle-grid article + article {
+  .principle-grid article:nth-child(2) {
+    padding-left: 30px;
+    border-left: 1px solid var(--hairline);
+  }
+
+  .principle-grid article:nth-child(3) {
+    grid-column: 1 / -1;
     padding-left: 0;
     border-top: 1px solid var(--hairline);
     border-left: 0;
@@ -987,29 +966,118 @@ a {
   }
 }
 
-@media (max-width: 720px) {
+@media (min-width: 600px) and (max-width: 760px) {
+  .site-header {
+    grid-template-columns: 1fr auto;
+  }
+
+  .desktop-navigation {
+    justify-self: end;
+  }
+
+  .header-status {
+    display: none;
+  }
+}
+
+@media (max-width: 599px) {
   .site-header {
     grid-template-columns: 1fr auto;
     height: 60px;
     padding: 0 16px;
   }
 
-  .site-header nav {
+  .site-header .desktop-navigation,
+  .header-status {
     display: none;
   }
 
-  .header-status {
-    min-height: 44px;
-    padding-right: 0;
+  .mobile-menu-button {
+    position: relative;
+    display: grid;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+    place-items: center;
   }
 
-  .header-status {
-    font-size: 0;
+  .mobile-menu-button:hover {
+    background: var(--canvas-soft-2);
   }
 
-  .header-status > span {
-    width: 8px;
-    height: 8px;
+  .mobile-menu-button span {
+    position: absolute;
+    width: 19px;
+    height: 1.5px;
+    background: var(--ink);
+    transition: transform 160ms ease;
+  }
+
+  .mobile-menu-button span:first-child {
+    transform: translateY(-4px);
+  }
+
+  .mobile-menu-button span:last-child {
+    transform: translateY(4px);
+  }
+
+  .mobile-menu-button[aria-expanded="true"] span:first-child {
+    transform: rotate(45deg);
+  }
+
+  .mobile-menu-button[aria-expanded="true"] span:last-child {
+    transform: rotate(-45deg);
+  }
+
+  .mobile-menu {
+    position: fixed;
+    z-index: 29;
+    inset: 60px 0 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 42px 20px 24px;
+    background: rgb(255 255 255 / 98%);
+    backdrop-filter: blur(20px);
+  }
+
+  .mobile-menu nav {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .mobile-menu nav a {
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    align-items: center;
+    min-height: 72px;
+    border-bottom: 1px solid var(--hairline);
+    font-size: 24px;
+    font-weight: 600;
+    line-height: 32px;
+    letter-spacing: -0.96px;
+  }
+
+  .mobile-menu nav a:first-child {
+    border-top: 1px solid var(--hairline);
+  }
+
+  .mobile-menu nav a span,
+  .mobile-menu > p {
+    color: var(--mute);
+    font-family:
+      "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+
+  .mobile-menu > p {
+    margin: 0;
   }
 
   .hero {
@@ -1023,9 +1091,9 @@ a {
 
   .hero h1 {
     margin-top: 24px;
-    font-size: clamp(42px, 13.5vw, 58px);
-    line-height: 1;
-    letter-spacing: -0.058em;
+    font-size: 48px;
+    line-height: 48px;
+    letter-spacing: -2.4px;
   }
 
   .hero-content > p {
@@ -1036,6 +1104,35 @@ a {
 
   .path-rail {
     width: calc(100% - 32px);
+  }
+
+  .path-rail__item {
+    padding-right: 4px;
+    padding-left: 4px;
+    font-size: 9px;
+    line-height: 14px;
+    text-align: center;
+  }
+
+  .results-grid,
+  .principle-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .principle-grid article {
+    min-height: 0;
+    padding: 26px 0 32px;
+  }
+
+  .principle-grid article + article {
+    grid-column: auto;
+    padding-left: 0;
+    border-top: 1px solid var(--hairline);
+    border-left: 0;
+  }
+
+  .principle-grid h3 {
+    margin-top: 32px;
   }
 
   .results-section,
@@ -1054,9 +1151,9 @@ a {
 
   .section-heading h2,
   .privacy-copy h2 {
-    font-size: 31px;
-    line-height: 38px;
-    letter-spacing: -1.3px;
+    font-size: 32px;
+    line-height: 40px;
+    letter-spacing: -1.28px;
   }
 
   .comparison-banner {
@@ -1078,6 +1175,8 @@ a {
   }
 
   .privacy-section {
+    grid-template-columns: 1fr;
+    gap: 56px;
     min-height: 540px;
     padding-top: 80px;
     padding-bottom: 80px;

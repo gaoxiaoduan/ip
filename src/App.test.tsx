@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { StrictMode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -27,6 +27,17 @@ const responseFor = (input: RequestInfo | URL) => {
       region: "California",
       city: "Los Angeles",
       organization: "Example Network",
+    });
+  }
+
+  if (url.includes("api.ip.sb")) {
+    return Response.json({
+      ip: "203.0.113.42",
+      country: "日本",
+      country_code: "JP",
+      region: "Tokyo",
+      city: "Tokyo",
+      organization: "Example Transit",
     });
   }
 
@@ -83,5 +94,34 @@ describe("App", () => {
     await waitFor(() => {
       expect(fetcher).toHaveBeenCalledTimes(3);
     });
+  });
+
+  it("可通过移动端菜单访问所有页内入口", async () => {
+    const fetcher = vi.fn<typeof fetch>(async (input) => responseFor(input));
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+
+    render(<App />);
+
+    await user.click(screen.getByRole("button", { name: "打开导航" }));
+
+    const navigation = screen.getByRole("navigation", {
+      name: "移动端导航",
+    });
+    expect(navigation).toBeInTheDocument();
+    expect(navigation).toHaveTextContent("检测结果");
+    expect(navigation).toHaveTextContent("检测说明");
+    expect(navigation).toHaveTextContent("隐私边界");
+
+    await user.click(
+      within(navigation).getByRole("link", {
+        name: "隐私边界",
+      }),
+    );
+    expect(
+      screen.queryByRole("navigation", {
+        name: "移动端导航",
+      }),
+    ).not.toBeInTheDocument();
   });
 });

@@ -1,8 +1,4 @@
-import type {
-  DetectionEndpoint,
-  DetectionPath,
-  OutletObservation,
-} from "@/lib/detection";
+import type { DetectionPath, OutletObservation } from "@/lib/detection";
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -61,6 +57,7 @@ const parseIpipJson = (payload: unknown) => {
   return observation({
     ip: data.ip,
     country: location[0],
+    countryCode: location[0] === "中国" ? "CN" : undefined,
     region: location[1],
     city: location[2],
     organization: location[4],
@@ -81,6 +78,7 @@ const parseIpipText = (payload: unknown) => {
   return observation({
     ip,
     country: parts[0],
+    countryCode: parts[0] === "中国" ? "CN" : undefined,
     region: parts[1],
     city: parts[2],
     organization: parts.at(-1),
@@ -156,19 +154,13 @@ const parseIpSb = (payload: unknown) => {
   });
 };
 
-const endpoint = (
-  config: Omit<DetectionEndpoint, "source"> & {
-    source: DetectionEndpoint["source"];
-  },
-): DetectionEndpoint => config;
-
 export const DETECTION_PATHS = [
   {
     id: "domestic",
     label: "国内网站路径",
     description: "观察访问中国大陆常见网站时，对方看到的公网出口。",
     endpoints: [
-      endpoint({
+      {
         id: "ipip-json",
         label: "IPIP JSON",
         url: "https://myip.ipip.net/json",
@@ -179,8 +171,8 @@ export const DETECTION_PATHS = [
         redundancy: "primary",
         responseType: "json",
         parse: parseIpipJson,
-      }),
-      endpoint({
+      },
+      {
         id: "ipip-text",
         label: "IPIP 兼容接口",
         url: "https://myip.ipip.net",
@@ -191,7 +183,7 @@ export const DETECTION_PATHS = [
         redundancy: "compatible-fallback",
         responseType: "text",
         parse: parseIpipText,
-      }),
+      },
     ],
   },
   {
@@ -199,7 +191,7 @@ export const DETECTION_PATHS = [
     label: "普通海外网站路径",
     description: "观察访问通常可以直接访问的海外网站时的公网出口。",
     endpoints: [
-      endpoint({
+      {
         id: "cloudflare-worker",
         label: "本站检测端点",
         url: "/api/observe",
@@ -210,8 +202,8 @@ export const DETECTION_PATHS = [
         redundancy: "primary",
         responseType: "json",
         parse: parseWorkerObservation,
-      }),
-      endpoint({
+      },
+      {
         id: "ipwho",
         label: "IPWhois",
         url: "https://ipwho.is/",
@@ -222,7 +214,7 @@ export const DETECTION_PATHS = [
         redundancy: "independent-fallback",
         responseType: "json",
         parse: parseIpWho,
-      }),
+      },
     ],
   },
   {
@@ -231,19 +223,7 @@ export const DETECTION_PATHS = [
     description:
       "使用可能受访问策略影响的海外第三方端点，提供代表性出口结果。",
     endpoints: [
-      endpoint({
-        id: "ipapi",
-        label: "IPapi",
-        url: "https://ipapi.co/json/",
-        source: {
-          label: "IPapi",
-          url: "https://ipapi.co/",
-        },
-        redundancy: "primary",
-        responseType: "json",
-        parse: parseIpApi,
-      }),
-      endpoint({
+      {
         id: "ip-sb",
         label: "IP.SB",
         url: "https://api.ip.sb/geoip",
@@ -251,10 +231,22 @@ export const DETECTION_PATHS = [
           label: "IP.SB",
           url: "https://ip.sb/",
         },
-        redundancy: "independent-fallback",
+        redundancy: "primary",
         responseType: "json",
         parse: parseIpSb,
-      }),
+      },
+      {
+        id: "ipapi",
+        label: "IPapi",
+        url: "https://ipapi.co/json/",
+        source: {
+          label: "IPapi",
+          url: "https://ipapi.co/",
+        },
+        redundancy: "independent-fallback",
+        responseType: "json",
+        parse: parseIpApi,
+      },
     ],
   },
 ] as const satisfies readonly DetectionPath[];

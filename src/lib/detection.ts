@@ -108,12 +108,26 @@ export function compareOutletObservations(
     };
   }
 
-  const uniqueIps = new Set(
-    observations.map((observation) => observation.ip.trim().toLowerCase()),
+  const normalize = (value: string) => value.trim().toLocaleLowerCase();
+  const hasConflictingValues = (
+    values: readonly (string | undefined)[],
+  ) =>
+    new Set(
+      values.flatMap((value) => (value ? [normalize(value)] : [])),
+    ).size > 1;
+  const countryValues = observations.map(
+    (observation) => observation.countryCode ?? observation.country,
   );
+  const hasDifferentOutletInformation =
+    hasConflictingValues(observations.map((observation) => observation.ip)) ||
+    hasConflictingValues(countryValues) ||
+    hasConflictingValues(
+      observations.map((observation) => observation.region),
+    ) ||
+    hasConflictingValues(observations.map((observation) => observation.city));
 
   return {
-    kind: uniqueIps.size === 1 ? "same" : "different",
+    kind: hasDifferentOutletInformation ? "different" : "same",
     successfulPathCount: observations.length,
   };
 }

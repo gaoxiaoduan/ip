@@ -103,6 +103,28 @@ describe("compareOutletObservations", () => {
       successfulPathCount: 2,
     });
   });
+
+  it("相同 IP 的归属地冲突时仍报告出口差异", () => {
+    expect(
+      compareOutletObservations([
+        {
+          ip: "198.51.100.10",
+          country: "中国",
+          countryCode: "CN",
+          region: "浙江",
+        },
+        {
+          ip: "198.51.100.10",
+          country: "中国",
+          countryCode: "CN",
+          region: "江苏",
+        },
+      ]),
+    ).toEqual({
+      kind: "different",
+      successfulPathCount: 2,
+    });
+  });
 });
 
 describe("国内网站路径", () => {
