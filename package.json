@@ -3,20 +3,27 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "packageManager": "pnpm@10.33.0",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "workerd"
+    ]
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b",
     "lint": "oxlint --deny-warnings src worker vite.config.ts vitest.config.ts vitest.worker.config.ts",
-    "test": "npm run test:app && npm run test:worker",
+    "test": "pnpm run test:app && pnpm run test:worker",
     "test:app": "vitest run --config vitest.config.ts",
     "test:worker": "vitest run --config vitest.worker.config.ts",
     "test:watch": "vitest --config vitest.config.ts",
     "test:worker:watch": "vitest --config vitest.worker.config.ts",
     "preview": "vite preview",
-    "deploy": "npm run build && wrangler deploy",
+    "deploy": "pnpm run build && wrangler deploy",
     "cf-typegen": "wrangler types",
-    "check": "npm run typecheck && npm run lint && npm run test && npm run build"
+    "check": "pnpm run typecheck && pnpm run lint && pnpm run test && pnpm run build"
   },
   "dependencies": {
     "@fontsource/inter": "^5.3.0",

@@ -12,23 +12,23 @@
 
 ## 本地开发
 
-需要 Node.js 20.19+ 或 22.12+。
+需要 Node.js 20.19+ 或 22.12+，以及 pnpm 10。
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 ```
 
 常用检查：
 
 ```bash
-npm run typecheck
-npm run lint
-npm test
-npm run build
+pnpm run typecheck
+pnpm run lint
+pnpm test
+pnpm run build
 ```
 
-`npm test` 会分别在 jsdom 中运行 React 测试，并通过 Cloudflare 官方测试池在 workerd 中运行 Worker 测试。
+`pnpm test` 会分别在 jsdom 中运行 React 测试，并通过 Cloudflare 官方测试池在 workerd 中运行 Worker 测试。
 
 ## Cloudflare Worker
 
@@ -37,14 +37,14 @@ Vite 开发服务器通过 Cloudflare Vite 插件同时运行 React SPA 与 Work
 修改 Worker 配置后重新生成类型：
 
 ```bash
-npm run cf-typegen
+pnpm run cf-typegen
 ```
 
 部署前先构建：
 
 ```bash
-npm run build
-npm run deploy
+pnpm run build
+pnpm run deploy
 ```
 
 生产自定义域名按 ADR 配置为 `ip.33338888.xyz`。部署命令会修改 Cloudflare 上的 Worker，因此请在已经登录正确账户并确认目标 Zone 后执行。
