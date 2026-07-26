@@ -28,6 +28,8 @@ npm test
 npm run build
 ```
 
+`npm test` 会分别在 jsdom 中运行 React 测试，并通过 Cloudflare 官方测试池在 workerd 中运行 Worker 测试。
+
 ## Cloudflare Worker
 
 Vite 开发服务器通过 Cloudflare Vite 插件同时运行 React SPA 与 Worker。Worker 配置位于 `wrangler.jsonc`，`/api/*` 优先交给 Worker，其他导航请求使用 SPA 回退。

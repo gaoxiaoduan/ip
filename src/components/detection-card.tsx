@@ -65,35 +65,27 @@ interface DetectionCardProps {
   onCopy: (ip: string) => Promise<void>;
 }
 
-export function DetectionCard({
-  path,
+const STATE_LABELS: Record<PathState["status"], string> = {
+  idle: "等待",
+  loading: "检测中",
+  success: "已返回",
+  unreachable: "不可达",
+};
+
+type DetectionStateBodyProps = Pick<
+  DetectionCardProps,
+  "state" | "copiedIp" | "onCopy"
+>;
+
+const DetectionStateBody = ({
   state,
   copiedIp,
   onCopy,
-}: DetectionCardProps) {
-  const titleId = `${path.id}-title`;
-
-  return (
-    <article className="result-card" aria-labelledby={titleId}>
-      <header className="result-card__header">
-        <div>
-          <span className="mono-label">{PATH_MARKS[path.id]}</span>
-          <h3 id={titleId}>{path.label}</h3>
-        </div>
-        <span className={`state-dot state-dot--${state.status}`}>
-          {state.status === "success"
-            ? "已返回"
-            : state.status === "unreachable"
-              ? "不可达"
-              : state.status === "loading"
-                ? "检测中"
-                : "等待"}
-        </span>
-      </header>
-
-      <p className="result-card__description">{path.description}</p>
-
-      {state.status === "loading" || state.status === "idle" ? (
+}: DetectionStateBodyProps) => {
+  switch (state.status) {
+    case "idle":
+    case "loading":
+      return (
         <div className="result-card__loading" aria-live="polite">
           <span className="sr-only">
             {state.status === "loading" ? "正在检测" : "等待检测"}
@@ -102,9 +94,10 @@ export function DetectionCard({
           <span className="skeleton skeleton--location" aria-hidden="true" />
           <span className="skeleton skeleton--meta" aria-hidden="true" />
         </div>
-      ) : null}
+      );
 
-      {state.status === "success" ? (
+    case "success":
+      return (
         <>
           <div className="result-card__observation">
             <span className="field-label">公网出口</span>
@@ -165,9 +158,10 @@ export function DetectionCard({
             </p>
           ) : null}
         </>
-      ) : null}
+      );
 
-      {state.status === "unreachable" ? (
+    case "unreachable":
+      return (
         <div className="unreachable-state">
           <span className="unreachable-state__glyph" aria-hidden="true">
             !
@@ -180,7 +174,36 @@ export function DetectionCard({
             </p>
           </div>
         </div>
-      ) : null}
+      );
+  }
+};
+
+export function DetectionCard({
+  path,
+  state,
+  copiedIp,
+  onCopy,
+}: DetectionCardProps) {
+  const titleId = `${path.id}-title`;
+
+  return (
+    <article className="result-card" aria-labelledby={titleId}>
+      <header className="result-card__header">
+        <div>
+          <span className="mono-label">{PATH_MARKS[path.id]}</span>
+          <h3 id={titleId}>{path.label}</h3>
+        </div>
+        <span className={`state-dot state-dot--${state.status}`}>
+          {STATE_LABELS[state.status]}
+        </span>
+      </header>
+
+      <p className="result-card__description">{path.description}</p>
+      <DetectionStateBody
+        state={state}
+        copiedIp={copiedIp}
+        onCopy={onCopy}
+      />
     </article>
   );
 }

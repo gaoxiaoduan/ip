@@ -1,3 +1,8 @@
+import { env } from "cloudflare:workers";
+import {
+  createExecutionContext,
+  waitOnExecutionContext,
+} from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 
 import worker from "./index";
@@ -20,7 +25,9 @@ describe("GET /api/observe", () => {
       },
     });
 
-    const response = await worker.fetch(request);
+    const ctx = createExecutionContext();
+    const response = await worker.fetch(request, env, ctx);
+    await waitOnExecutionContext(ctx);
 
     expect(response.status).toBe(200);
     expect(response.headers.get("Cache-Control")).toBe("no-store, max-age=0");
