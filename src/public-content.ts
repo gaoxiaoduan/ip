@@ -241,6 +241,14 @@ const pageSections = (page: PublicPage) =>
     )
     .join("");
 
+const relatedReading = (page: PublicPage) =>
+  PUBLIC_PAGES.filter((otherPage) => otherPage.path !== page.path)
+    .map(
+      (otherPage) =>
+        `<li><a href="${otherPage.path}">${otherPage.title}</a></li>`,
+    )
+    .join("");
+
 const jsonLd = (page: PublicPage) =>
   JSON.stringify({
     "@context": "https://schema.org",
@@ -258,7 +266,7 @@ const jsonLd = (page: PublicPage) =>
   }).replace(/</g, "\\u003c");
 
 const footer = () =>
-  `<footer class="public-footer"><div class="public-footer-inner"><span>IP 出口检测 · 只比较当前页面的出口观测</span><a href="https://github.com/gaoxiaoduan/ip/issues/new">通过 GitHub Issue 纠正内容</a></div></footer>`;
+  `<footer class="public-footer"><div class="public-footer-inner"><span>IP 出口检测 · 只比较当前页面的出口观测 · 更新于 ${PUBLIC_CONTENT_UPDATED_AT}</span><a href="https://github.com/gaoxiaoduan/ip/issues/new">通过 GitHub Issue 纠正内容</a></div></footer>`;
 
 export const renderPublicPage = (page: PublicPage) => `<!doctype html>
 <html lang="zh-CN">
@@ -281,7 +289,7 @@ export const renderPublicPage = (page: PublicPage) => `<!doctype html>
       <nav class="public-nav" aria-label="站点导航"><a class="public-brand" href="/">IP 出口检测</a><a href="/methodology">检测方法与隐私边界</a></nav>
       <main>
         <header class="public-hero"><div class="public-hero-inner"><span class="public-label">${page.eyebrow}</span><h1>${page.title}</h1><p>${page.intro}</p><div class="public-actions"><a class="public-action" href="/#results">开始本次检测</a><a class="public-action public-action--quiet" href="/guides/ip-differences">阅读相关说明</a></div></div></header>
-        <article class="public-article">${pageSections(page)}<section class="public-sources"><h2>技术来源</h2><ul>${sourceList(page.sources)}</ul></section></article>
+        <article class="public-article">${pageSections(page)}<section class="public-sources"><h2>继续阅读</h2><ul>${relatedReading(page)}</ul></section><section class="public-sources"><h2>技术来源</h2><ul>${sourceList(page.sources)}</ul></section></article>
       </main>
       ${footer()}
     </div>
@@ -301,7 +309,7 @@ export const renderHomeFallback = () => `<div class="public-shell">
   ${publicPageStyle}
   <main>
     <header class="public-hero"><div class="public-hero-inner"><span class="public-label">BROWSER-DIRECT / SESSION-ONLY</span><h1>一次看清，网站看到你从哪里来。</h1><p>同时比较国内网站路径、普通海外网站路径与受限海外服务路径实际观察到的公网出口。只描述出口差异，不替你判断网络配置。</p><div class="public-actions"><a class="public-action" href="#results">开始本次检测</a></div></div></header>
-    <article class="public-article"><section class="public-section" id="results"><h2>一次检测，三条路径</h2><div><p>浏览器直接访问不同目的网络类别的检测端点。至少两条成功路径才可以比较；出口差异只是本次访问路径的观测事实。</p></div></section><section class="public-section"><h2>把观测和判断分开</h2><div><p>出口结果代表检测端点对本次请求观察到的公网 IP 和归属地。它不代表设备全部流量、精确位置，也不构成代理配置或网络故障的诊断。</p></div></section><section class="public-section"><h2>继续了解</h2><div><p><a href="/guides/ip-differences">为什么不同网站会看到不同的出口 IP？</a></p><p><a href="/guides/ip-mismatch">国内和海外看到的 IP 不一致，该怎么理解？</a></p><p><a href="/guides/traffic-split-observation">三条检测路径，观察的是什么？</a></p><p><a href="/methodology">检测方法与隐私边界</a></p></div></section></article>
+    <article class="public-article"><section class="public-section" id="results"><h2>三条路径，一次对照</h2><div><p>浏览器直接访问不同目的网络类别的检测端点。每张路径卡片都会标明本次实际采用的数据来源和返回时间。</p><p>国内网站路径用于观察访问中国大陆常见网站时的出口结果；普通海外网站路径用于观察一般跨境访问；受限海外服务路径只提供可能受访问策略影响的代表性观测，不等同于任何指定服务。</p></div></section><section class="public-section"><h2>结果如何比较</h2><div><p>至少两条成功路径才可以比较。若成功路径观察到不同的公网 IP 或出口归属地，页面会显示出口差异；成功路径不足两条时，页面会显示数据不足。</p><p>每条路径只会在主检测端点失败后尝试备用端点。不可达不证明没有公网出口，也不证明服务被封锁。</p></div></section><section class="public-section"><h2>把观测和判断分开</h2><div><p>浏览器直连：出口结果来自检测端点，本站不会代替访客转发请求。检测会话只停留在当前页面，刷新或关闭后结果消失，不形成账户历史。</p><p>出口差异不是诊断结论。页面只比较各检测端点看到的出口结果，不据此判断代理配置正常、异常或是否生效。</p></div></section><section class="public-section"><h2>隐私边界</h2><div><p>出口归属地来自各检测端点自己的 IP 地理数据库，可能存在差异。它不代表设备的精确物理位置，也不代表设备全部网络流量。</p><p>项目不需要账户、不保存个人检测结果，也不请求额外定位。</p></div></section><section class="public-section"><h2>继续了解</h2><div><p><a href="/guides/ip-differences">为什么不同网站会看到不同的出口 IP？</a></p><p><a href="/guides/ip-mismatch">国内和海外看到的 IP 不一致，该怎么理解？</a></p><p><a href="/guides/traffic-split-observation">三条检测路径，观察的是什么？</a></p><p><a href="/methodology">检测方法与隐私边界</a></p></div></section></article>
   </main>
   ${footer()}
 </div>`;

@@ -26,12 +26,19 @@ const publicPages = [
   ["methodology/index.html", "检测方法与隐私边界", "/methodology"],
 ];
 
-for (const [relativePath, heading] of publicPages) {
+for (const [relativePath, heading, pathname] of publicPages) {
   const html = await readBuiltFile(relativePath);
 
   assert.match(html, new RegExp(heading));
   assert.match(html, /rel="canonical"/);
   assert.match(html, /application\/ld\+json/);
+  assert.match(html, /更新于 2026-07-29/);
+
+  for (const [, , linkedPath] of publicPages) {
+    if (linkedPath !== pathname) {
+      assert.match(html, new RegExp(`href="${linkedPath}"`));
+    }
+  }
 }
 
 const sitemap = await readBuiltFile("sitemap.xml");

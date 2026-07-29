@@ -19,7 +19,7 @@ type DetectionCompletedEvent = {
 
 type OptimizationEvent = DetectionStartedEvent | DetectionCompletedEvent;
 
-const searchHostnames = ["google.", "bing.com", "baidu.com"];
+const searchHostnames = ["bing.com", "baidu.com"];
 const answerEngineHostnames = [
   "chatgpt.com",
   "perplexity.ai",
@@ -48,6 +48,12 @@ const matchesHostname = (hostname: string, patterns: readonly string[]) =>
     (pattern) => hostname === pattern || hostname.endsWith(`.${pattern}`),
   );
 
+const isGoogleHostname = (hostname: string) =>
+  hostname === "google.com" ||
+  hostname.startsWith("google.") ||
+  hostname.endsWith(".google.com") ||
+  hostname.includes(".google.");
+
 const classifySource = (referrer: string, currentOrigin: string): SourceCategory => {
   if (!referrer) {
     return "direct";
@@ -59,7 +65,10 @@ const classifySource = (referrer: string, currentOrigin: string): SourceCategory
       return "unknown";
     }
 
-    if (matchesHostname(source.hostname, searchHostnames)) {
+    if (
+      isGoogleHostname(source.hostname) ||
+      matchesHostname(source.hostname, searchHostnames)
+    ) {
       return "search";
     }
 

@@ -352,7 +352,7 @@ export default function App() {
           <span>IP 出口检测</span>
         </div>
         <p className="text-xs text-mute">
-          一个只在当前页面比较公网出口的轻量工具。
+          一个只在当前页面比较公网出口的轻量工具。更新于 2026-07-29。
         </p>
         <a
           className="justify-self-start text-xs text-mute hover:text-ink sm:justify-self-end"

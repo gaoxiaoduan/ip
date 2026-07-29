@@ -54,6 +54,7 @@ const responseFor = (input: RequestInfo | URL) => {
 describe("App", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   it("自动展示三条检测路径，并允许访客重新检测", async () => {
@@ -126,6 +127,26 @@ describe("App", () => {
         outcome: "comparable",
       },
     ]);
+  });
+
+  it("将 Google Referer 在浏览器本地归为搜索来源", async () => {
+    const fetcher = vi.fn<typeof fetch>(async (input) => responseFor(input));
+    vi.stubGlobal("fetch", fetcher);
+    vi.spyOn(document, "referrer", "get").mockReturnValue(
+      "https://www.google.co.jp/search?q=ip",
+    );
+
+    render(<App />);
+
+    await screen.findByText("观察到出口差异");
+
+    const analyticsRequests = fetcher.mock.calls.filter(
+      ([input]) => input === "/api/analytics",
+    );
+    expect(JSON.parse(String(analyticsRequests[0]?.[1]?.body))).toMatchObject({
+      event: "detection_started",
+      sourceCategory: "search",
+    });
   });
 
   it("可通过移动端菜单访问所有页内入口", async () => {
