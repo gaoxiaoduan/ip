@@ -8,6 +8,11 @@ import {
   type SuccessfulDetection,
 } from "@/lib/detection";
 import { DETECTION_PATHS } from "@/lib/endpoints";
+import {
+  createDetectionCompletedEvent,
+  createDetectionStartedEvent,
+  trackOptimizationEvent,
+} from "@/lib/optimization-events";
 
 type PendingState = {
   status: "idle" | "loading";
@@ -36,20 +41,34 @@ export function useDetectionSession() {
     sessionRef.current = session;
     setCopiedIp(null);
     setPathStates(createPathStates("loading"));
+    trackOptimizationEvent(createDetectionStartedEvent());
 
-    await Promise.all(
+    const results = await Promise.all(
       DETECTION_PATHS.map(async (path) => {
         const result = await runDetectionPath(path);
 
-        if (!mountedRef.current || sessionRef.current !== session) {
-          return;
+        if (mountedRef.current && sessionRef.current === session) {
+          setPathStates((current) => ({
+            ...current,
+            [path.id]: result,
+          }));
         }
 
-        setPathStates((current) => ({
-          ...current,
-          [path.id]: result,
-        }));
+        return result;
       }),
+    );
+
+    const comparison = compareOutletObservations(
+      results
+        .filter(
+          (result): result is SuccessfulDetection => result.status === "success",
+        )
+        .map((result) => result.observation),
+    );
+    trackOptimizationEvent(
+      createDetectionCompletedEvent(
+        comparison.kind === "insufficient" ? "insufficient" : "comparable",
+      ),
     );
   }, []);
 

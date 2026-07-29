@@ -76,7 +76,9 @@ describe("App", () => {
     await user.click(screen.getByRole("button", { name: "重新检测" }));
 
     await waitFor(() => {
-      expect(fetcher).toHaveBeenCalledTimes(6);
+      expect(
+        fetcher.mock.calls.filter(([input]) => input !== "/api/analytics"),
+      ).toHaveLength(6);
     });
   });
 
@@ -92,8 +94,38 @@ describe("App", () => {
 
     expect(await screen.findByText("112.10.247.224")).toBeInTheDocument();
     await waitFor(() => {
-      expect(fetcher).toHaveBeenCalledTimes(3);
+      expect(
+        fetcher.mock.calls.filter(([input]) => input !== "/api/analytics"),
+      ).toHaveLength(3);
     });
+  });
+
+  it("检测会话只发送匿名的开始与完成聚合事件", async () => {
+    const fetcher = vi.fn<typeof fetch>(async (input) => responseFor(input));
+    vi.stubGlobal("fetch", fetcher);
+
+    render(<App />);
+
+    await screen.findByText("观察到出口差异");
+
+    const analyticsRequests = fetcher.mock.calls.filter(
+      ([input]) => input === "/api/analytics",
+    );
+
+    expect(analyticsRequests).toHaveLength(2);
+    expect(analyticsRequests.map(([, init]) => JSON.parse(String(init?.body)))).toEqual([
+      {
+        event: "detection_started",
+        pageType: "home",
+        sourceCategory: "direct",
+      },
+      {
+        event: "detection_completed",
+        pageType: "home",
+        sourceCategory: "direct",
+        outcome: "comparable",
+      },
+    ]);
   });
 
   it("可通过移动端菜单访问所有页内入口", async () => {
@@ -134,5 +166,29 @@ describe("App", () => {
     expect(
       screen.getByRole("link", { name: "在 GitHub 查看项目（在新标签页打开）" }),
     ).toHaveAttribute("href", "https://github.com/gaoxiaoduan/ip");
+  });
+
+  it("提供四个可发现说明页的入口", async () => {
+    const fetcher = vi.fn<typeof fetch>(async (input) => responseFor(input));
+    vi.stubGlobal("fetch", fetcher);
+
+    render(<App />);
+
+    expect(
+      screen.getByRole("link", {
+        name: /为什么不同网站会看到不同的出口 IP？/,
+      }),
+    ).toHaveAttribute("href", "/guides/ip-differences");
+    expect(
+      screen.getByRole("link", {
+        name: /国内和海外看到的 IP 不一致，该怎么理解？/,
+      }),
+    ).toHaveAttribute("href", "/guides/ip-mismatch");
+    expect(
+      screen.getByRole("link", { name: /三条检测路径，观察的是什么？/ }),
+    ).toHaveAttribute("href", "/guides/traffic-split-observation");
+    expect(
+      screen.getByRole("link", { name: /检测方法与隐私边界/ }),
+    ).toHaveAttribute("href", "/methodology");
   });
 });

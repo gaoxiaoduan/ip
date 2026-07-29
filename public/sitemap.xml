@@ -2,6 +2,22 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://ip.33338888.xyz/</loc>
-    <changefreq>monthly</changefreq>
+    <lastmod>2026-07-29</lastmod>
+  </url>
+  <url>
+    <loc>https://ip.33338888.xyz/guides/ip-differences</loc>
+    <lastmod>2026-07-29</lastmod>
+  </url>
+  <url>
+    <loc>https://ip.33338888.xyz/guides/ip-mismatch</loc>
+    <lastmod>2026-07-29</lastmod>
+  </url>
+  <url>
+    <loc>https://ip.33338888.xyz/guides/traffic-split-observation</loc>
+    <lastmod>2026-07-29</lastmod>
+  </url>
+  <url>
+    <loc>https://ip.33338888.xyz/methodology</loc>
+    <lastmod>2026-07-29</lastmod>
   </url>
 </urlset>

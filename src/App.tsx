@@ -26,6 +26,33 @@ const PRINCIPLES = [
   },
 ] as const;
 
+const GUIDE_LINKS = [
+  {
+    href: "/guides/ip-differences",
+    label: "出口差异",
+    title: "为什么不同网站会看到不同的出口 IP？",
+    body: "从观测对象、可能原因和不能推出的结论开始读。",
+  },
+  {
+    href: "/guides/ip-mismatch",
+    label: "国内与海外",
+    title: "国内和海外看到的 IP 不一致，该怎么理解？",
+    body: "理解不一致、不可达和指定服务之间的边界。",
+  },
+  {
+    href: "/guides/traffic-split-observation",
+    label: "三条路径",
+    title: "三条检测路径，观察的是什么？",
+    body: "查看每类目的网络、主端点与备用规则。",
+  },
+  {
+    href: "/methodology",
+    label: "可复核方法",
+    title: "检测方法与隐私边界",
+    body: "核对端点、匿名度量、抓取政策和纠错渠道。",
+  },
+] as const;
+
 const SECTION_TITLE_CLASS =
   "mt-2 text-[32px] leading-10 font-semibold tracking-[-1.28px]";
 
@@ -156,6 +183,37 @@ export default function App() {
                 <span className="absolute -top-[5px] left-1/2 size-[9px] -translate-x-1/2 rounded-full border-2 border-canvas bg-ink shadow-[0_0_0_1px_rgb(23_23_23/22%)]" />
                 <span>{path.label}</span>
               </div>
+            ))}
+          </div>
+        </section>
+
+        <section
+          className="mx-auto w-[calc(100%-32px)] border-t border-hairline py-18 sm:w-[min(1200px,calc(100%-48px))] sm:py-24"
+          aria-labelledby="guides-title"
+        >
+          <SectionHeading
+            label="READING MAP"
+            title="从一次观测，走到可核对的理解。"
+            titleId="guides-title"
+            lede="四个说明页只解释这项工具的观测边界：不提供网络配置诊断，也不扩展为泛 IP 查询。"
+          />
+          <div className="grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-hairline bg-hairline sm:grid-cols-2">
+            {GUIDE_LINKS.map((guide) => (
+              <a
+                className="group min-h-48 bg-canvas p-6 transition-colors duration-[160ms] hover:bg-canvas-soft sm:p-8"
+                href={guide.href}
+                key={guide.href}
+              >
+                <span className="font-mono text-[11px] text-body">
+                  {guide.label}
+                </span>
+                <h3 className="mt-8 max-w-[19ch] text-xl font-semibold tracking-[-0.6px] group-hover:underline">
+                  {guide.title}
+                </h3>
+                <p className="mt-3 max-w-[36ch] text-[13px] leading-5 text-body">
+                  {guide.body}
+                </p>
+              </a>
             ))}
           </div>
         </section>

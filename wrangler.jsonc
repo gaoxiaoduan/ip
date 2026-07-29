@@ -2,12 +2,19 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "ip-exit-observer",
   "main": "./worker/index.ts",
-  "compatibility_date": "2026-07-26",
+  "compatibility_date": "2026-07-29",
   "compatibility_flags": ["nodejs_compat"],
   "assets": {
+    "html_handling": "drop-trailing-slash",
     "not_found_handling": "single-page-application",
     "run_worker_first": ["/api/*"]
   },
+  "analytics_engine_datasets": [
+    {
+      "binding": "OPTIMIZATION_EVENTS",
+      "dataset": "ip_exit_optimization_events"
+    }
+  ],
   "observability": {
     "enabled": true,
     "logs": {
