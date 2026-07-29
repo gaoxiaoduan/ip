@@ -74,65 +74,63 @@ export function SiteHeader({ isDetecting }: { isDetecting: boolean }) {
 
   return (
     <>
-      <header className="sticky top-0 z-30 grid h-[60px] grid-cols-[1fr_auto] items-center border-b border-[rgb(235_235_235/82%)] bg-[rgb(255_255_255/86%)] px-4 backdrop-blur-[18px] sm:h-16 sm:px-6 md:grid-cols-[1fr_auto_1fr]">
+      <header className="sticky top-0 z-30 grid h-[60px] grid-cols-[1fr_auto] items-center border-b border-[rgb(235_235_235/82%)] bg-[rgb(255_255_255/86%)] px-4 backdrop-blur-[18px] sm:h-16 sm:grid-cols-[1fr_auto_1fr] sm:px-6">
         <Brand />
-        <div className="flex items-center gap-1 sm:gap-2 md:col-span-2 md:grid md:grid-cols-[auto_1fr]">
-          <nav
-            className="hidden items-center gap-1 sm:flex md:justify-self-start"
-            aria-label="页面导航"
-          >
-            {NAVIGATION.map((item) => (
-              <a
-                className={cn(
-                  navItemClassName,
-                  "hover:bg-canvas-soft-2 hover:text-ink",
-                )}
-                href={item.href}
-                key={item.href}
-              >
-                {item.label}
-              </a>
-            ))}
-          </nav>
-          <div className="flex items-center gap-1 justify-self-end sm:gap-2">
-            <GithubLink />
+        <nav
+          className="hidden items-center gap-1 sm:flex sm:justify-self-center"
+          aria-label="页面导航"
+        >
+          {NAVIGATION.map((item) => (
             <a
               className={cn(
                 navItemClassName,
-                "hidden items-center gap-2 font-mono text-xs text-ink md:inline-flex",
+                "hover:bg-canvas-soft-2 hover:text-ink",
               )}
-              href="#results"
+              href={item.href}
+              key={item.href}
             >
-              <span
-                className={cn(
-                  "size-[7px] rounded-full bg-link shadow-[0_0_0_4px_rgb(0_112_243/9%)]",
-                  isDetecting && "animate-status-pulse",
-                )}
-              />
-              {isDetecting ? "检测进行中" : "查看本次结果"}
+              {item.label}
             </a>
-            <button
-              className="relative grid size-11 cursor-pointer place-items-center rounded-full hover:bg-canvas-soft-2 sm:hidden"
-              type="button"
-              aria-controls="mobile-navigation"
-              aria-expanded={mobileMenuOpen}
-              aria-label={mobileMenuOpen ? "关闭导航" : "打开导航"}
-              onClick={() => setMobileMenuOpen((open) => !open)}
-            >
-              <span
-                className={cn(
-                  "absolute h-[1.5px] w-[19px] bg-ink transition-transform duration-[160ms]",
-                  mobileMenuOpen ? "rotate-45" : "-translate-y-1",
-                )}
-              />
-              <span
-                className={cn(
-                  "absolute h-[1.5px] w-[19px] bg-ink transition-transform duration-[160ms]",
-                  mobileMenuOpen ? "-rotate-45" : "translate-y-1",
-                )}
-              />
-            </button>
-          </div>
+          ))}
+        </nav>
+        <div className="flex items-center gap-1 justify-self-end sm:gap-2">
+          <GithubLink />
+          <a
+            className={cn(
+              navItemClassName,
+              "hidden items-center gap-2 font-mono text-xs text-ink md:inline-flex",
+            )}
+            href="#results"
+          >
+            <span
+              className={cn(
+                "size-[7px] rounded-full bg-link shadow-[0_0_0_4px_rgb(0_112_243/9%)]",
+                isDetecting && "animate-status-pulse",
+              )}
+            />
+            {isDetecting ? "检测进行中" : "查看本次结果"}
+          </a>
+          <button
+            className="relative grid size-11 cursor-pointer place-items-center rounded-full hover:bg-canvas-soft-2 sm:hidden"
+            type="button"
+            aria-controls="mobile-navigation"
+            aria-expanded={mobileMenuOpen}
+            aria-label={mobileMenuOpen ? "关闭导航" : "打开导航"}
+            onClick={() => setMobileMenuOpen((open) => !open)}
+          >
+            <span
+              className={cn(
+                "absolute h-[1.5px] w-[19px] bg-ink transition-transform duration-[160ms]",
+                mobileMenuOpen ? "rotate-45" : "-translate-y-1",
+              )}
+            />
+            <span
+              className={cn(
+                "absolute h-[1.5px] w-[19px] bg-ink transition-transform duration-[160ms]",
+                mobileMenuOpen ? "-rotate-45" : "translate-y-1",
+              )}
+            />
+          </button>
         </div>
       </header>
 

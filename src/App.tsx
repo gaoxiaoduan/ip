@@ -133,7 +133,7 @@ export default function App() {
   } = useDetectionSession();
 
   return (
-    <div className="min-h-screen overflow-hidden">
+    <div className="min-h-screen overflow-x-clip">
       <SiteHeader isDetecting={isDetecting} />
 
       <main id="top">
@@ -219,7 +219,7 @@ export default function App() {
         </section>
 
         <section
-          className="mx-auto w-[calc(100%-32px)] py-18 sm:w-[min(1200px,calc(100%-48px))] sm:py-24"
+          className="mx-auto w-[calc(100%-32px)] scroll-mt-16 py-18 sm:w-[min(1200px,calc(100%-48px))] sm:py-24"
           id="results"
           aria-labelledby="results-title"
         >
@@ -263,7 +263,7 @@ export default function App() {
         </section>
 
         <section
-          className="mx-auto w-[calc(100%-32px)] pt-18 pb-18 sm:w-[min(1200px,calc(100%-48px))] sm:pt-14 sm:pb-28"
+          className="mx-auto w-[calc(100%-32px)] scroll-mt-16 pt-18 pb-18 sm:w-[min(1200px,calc(100%-48px))] sm:pt-14 sm:pb-28"
           id="method"
           aria-labelledby="method-title"
         >
@@ -299,7 +299,7 @@ export default function App() {
         </section>
 
         <section
-          className="relative grid min-h-[540px] grid-cols-1 items-end gap-14 overflow-hidden bg-ink px-[max(24px,calc((100vw-1200px)/2))] py-20 text-white sm:min-h-[470px] sm:py-26 lg:grid-cols-[minmax(0,1.4fr)_minmax(300px,0.6fr)] lg:gap-20"
+          className="relative grid min-h-[540px] scroll-mt-16 grid-cols-1 items-end gap-14 overflow-hidden bg-ink px-[max(24px,calc((100vw-1200px)/2))] py-20 text-white sm:min-h-[470px] sm:py-26 lg:grid-cols-[minmax(0,1.4fr)_minmax(300px,0.6fr)] lg:gap-20"
           id="privacy"
           aria-labelledby="privacy-title"
         >
