@@ -1,5 +1,5 @@
 /*
-  Content-Security-Policy: default-src 'self'; connect-src 'self' https://myip.ipip.net https://ipwho.is https://ipapi.co https://api.ip.sb; img-src 'self' data:; style-src 'self'; script-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; connect-src 'self' https://myip.ipip.net https://ipwho.is https://ipapi.co https://api.ip.sb; font-src 'self' data:; img-src 'self' data:; style-src 'self'; script-src 'self' 'sha256-ek67xwXzB4dyXG8S3dgTwUi5604ZFItbm4ZllTBTsY8=' 'sha256-SWJPnTLXadz3lY2PqL/vNID2Wg6mZf3a18BBQnGpUzM=' 'sha256-YSW1NnKR1XERkfQwmk1YSWkZNQcI7cmUHOJNc7NT4Mw=' 'sha256-YwIMrxFgavSUXjKXwvNdPcyJ3lRHoxWVDJXss9iTib4=' 'sha256-zSxzzISa9gr1LcTKJ+59yrGZHuySdoxESvcIOkynrKQ='; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
   Permissions-Policy: camera=(), microphone=(), geolocation=()
   Referrer-Policy: no-referrer
   X-Content-Type-Options: nosniff

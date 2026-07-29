@@ -192,38 +192,6 @@ export const PUBLIC_PAGES: readonly PublicPage[] = [
   },
 ];
 
-const publicPageStyle = `
-  <style>
-    :root { color: #171717; background: #f7f8fa; font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    * { box-sizing: border-box; }
-    body { margin: 0; min-width: 320px; }
-    a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 3px; }
-    .public-shell { min-height: 100vh; }
-    .public-nav { display: flex; align-items: center; justify-content: space-between; gap: 1rem; max-width: 72rem; margin: 0 auto; padding: 1.2rem 1.5rem; }
-    .public-brand { font-size: .875rem; font-weight: 700; letter-spacing: -.02em; text-decoration: none; }
-    .public-nav a { font-size: .8125rem; color: #555; }
-    .public-hero { border-top: 1px solid #e4e7eb; border-bottom: 1px solid #d9dee5; background: linear-gradient(135deg, #f9fbff 0%, #edf4ff 50%, #f6f1ff 100%); }
-    .public-hero-inner, .public-article { width: min(100% - 3rem, 52rem); margin: 0 auto; }
-    .public-hero-inner { padding: 5rem 0 4rem; }
-    .public-label { display: inline-flex; border: 1px solid #cbd6e6; border-radius: 999px; padding: .3rem .6rem; color: #345; font: .6875rem/1.1 "JetBrains Mono", ui-monospace, monospace; letter-spacing: .04em; }
-    h1 { max-width: 18ch; margin: 1rem 0; font-size: clamp(2.25rem, 7vw, 4.75rem); line-height: .98; letter-spacing: -.065em; }
-    .public-hero p { max-width: 43rem; margin: 0; color: #3f4650; font-size: 1.05rem; line-height: 1.7; }
-    .public-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.75rem; }
-    .public-action { display: inline-flex; align-items: center; min-height: 2.8rem; border-radius: .45rem; padding: .7rem 1rem; background: #171717; color: #fff; font-size: .875rem; font-weight: 600; text-decoration: none; }
-    .public-action--quiet { background: transparent; color: #171717; box-shadow: inset 0 0 0 1px #bfc7d2; }
-    .public-article { padding: 3.5rem 0 4.5rem; }
-    .public-section { display: grid; grid-template-columns: minmax(0, 13rem) minmax(0, 1fr); gap: 1.25rem 3rem; border-top: 1px solid #d9dee5; padding: 2rem 0; }
-    .public-section h2 { margin: 0; font-size: 1rem; letter-spacing: -.02em; }
-    .public-section p { margin: 0 0 1rem; color: #414852; font-size: .975rem; line-height: 1.8; }
-    .public-section p:last-child { margin-bottom: 0; }
-    .public-sources { margin: 1rem 0 0; padding: 1.5rem; border-radius: .5rem; background: #edf1f6; }
-    .public-sources h2 { margin: 0 0 .75rem; font-size: .875rem; }
-    .public-sources ul { margin: 0; padding-left: 1.1rem; color: #414852; font-size: .875rem; line-height: 1.8; }
-    .public-footer { border-top: 1px solid #d9dee5; color: #667085; }
-    .public-footer-inner { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; width: min(100% - 3rem, 72rem); margin: 0 auto; padding: 1.75rem 0; font-size: .75rem; }
-    @media (max-width: 680px) { .public-hero-inner { padding: 3.5rem 0 3rem; } .public-section { grid-template-columns: 1fr; gap: .75rem; } }
-  </style>`;
-
 const sourceList = (sources: readonly Source[]) =>
   sources
     .map(
@@ -280,9 +248,9 @@ export const renderPublicPage = (page: PublicPage) => `<!doctype html>
     <meta property="og:title" content="${page.title}｜IP 出口检测" />
     <meta property="og:description" content="${page.description}" />
     <link rel="canonical" href="${SITE_ORIGIN}${page.path}" />
+    <link rel="stylesheet" href="/public-content.css" />
     <script type="application/ld+json">${jsonLd(page)}</script>
     <title>${page.title}｜IP 出口检测</title>
-    ${publicPageStyle}
   </head>
   <body>
     <div class="public-shell">
@@ -306,7 +274,6 @@ const homeJsonLd = JSON.stringify({
 }).replace(/</g, "\\u003c");
 
 export const renderHomeFallback = () => `<div class="public-shell">
-  ${publicPageStyle}
   <main>
     <header class="public-hero"><div class="public-hero-inner"><span class="public-label">BROWSER-DIRECT / SESSION-ONLY</span><h1>一次看清，网站看到你从哪里来。</h1><p>同时比较国内网站路径、普通海外网站路径与受限海外服务路径实际观察到的公网出口。只描述出口差异，不替你判断网络配置。</p><div class="public-actions"><a class="public-action" href="#results">开始本次检测</a></div></div></header>
     <article class="public-article"><section class="public-section" id="results"><h2>三条路径，一次对照</h2><div><p>浏览器直接访问不同目的网络类别的检测端点。每张路径卡片都会标明本次实际采用的数据来源和返回时间。</p><p>国内网站路径用于观察访问中国大陆常见网站时的出口结果；普通海外网站路径用于观察一般跨境访问；受限海外服务路径只提供可能受访问策略影响的代表性观测，不等同于任何指定服务。</p></div></section><section class="public-section"><h2>结果如何比较</h2><div><p>至少两条成功路径才可以比较。若成功路径观察到不同的公网 IP 或出口归属地，页面会显示出口差异；成功路径不足两条时，页面会显示数据不足。</p><p>每条路径只会在主检测端点失败后尝试备用端点。不可达不证明没有公网出口，也不证明服务被封锁。</p></div></section><section class="public-section"><h2>把观测和判断分开</h2><div><p>浏览器直连：出口结果来自检测端点，本站不会代替访客转发请求。检测会话只停留在当前页面，刷新或关闭后结果消失，不形成账户历史。</p><p>出口差异不是诊断结论。页面只比较各检测端点看到的出口结果，不据此判断代理配置正常、异常或是否生效。</p></div></section><section class="public-section"><h2>隐私边界</h2><div><p>出口归属地来自各检测端点自己的 IP 地理数据库，可能存在差异。它不代表设备的精确物理位置，也不代表设备全部网络流量。</p><p>项目不需要账户、不保存个人检测结果，也不请求额外定位。</p></div></section><section class="public-section"><h2>继续了解</h2><div><p><a href="/guides/ip-differences">为什么不同网站会看到不同的出口 IP？</a></p><p><a href="/guides/ip-mismatch">国内和海外看到的 IP 不一致，该怎么理解？</a></p><p><a href="/guides/traffic-split-observation">三条检测路径，观察的是什么？</a></p><p><a href="/methodology">检测方法与隐私边界</a></p></div></section></article>

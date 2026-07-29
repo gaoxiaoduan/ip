@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -26,6 +27,14 @@ const publicPages = [
   ["methodology/index.html", "检测方法与隐私边界", "/methodology"],
 ];
 
+const builtHeaders = await readBuiltFile("_headers");
+const contentSecurityPolicy = builtHeaders.match(
+  /Content-Security-Policy: (.+)/,
+)?.[1];
+
+assert.ok(contentSecurityPolicy, "Content-Security-Policy header is required");
+assert.match(contentSecurityPolicy, /font-src 'self' data:/);
+
 for (const [relativePath, heading, pathname] of publicPages) {
   const html = await readBuiltFile(relativePath);
 
@@ -33,6 +42,21 @@ for (const [relativePath, heading, pathname] of publicPages) {
   assert.match(html, /rel="canonical"/);
   assert.match(html, /application\/ld\+json/);
   assert.match(html, /更新于 2026-07-29/);
+  assert.doesNotMatch(html, /<style>/);
+
+  if (pathname !== "/") {
+    assert.match(html, /<link rel="stylesheet" href="\/public-content\.css" \/>/);
+  }
+
+  for (const script of html.matchAll(
+    /<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/g,
+  )) {
+    const hash = createHash("sha256").update(script[1]).digest("base64");
+    assert.ok(
+      contentSecurityPolicy.includes(`'sha256-${hash}'`),
+      `${relativePath} contains an inline script not allowed by CSP`,
+    );
+  }
 
   for (const [, , linkedPath] of publicPages) {
     if (linkedPath !== pathname) {
@@ -40,6 +64,9 @@ for (const [relativePath, heading, pathname] of publicPages) {
     }
   }
 }
+
+const publicContentCss = await readBuiltFile("public-content.css");
+assert.match(publicContentCss, /\.public-hero/);
 
 const sitemap = await readBuiltFile("sitemap.xml");
 for (const [, , pathname] of publicPages) {
