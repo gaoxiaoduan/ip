@@ -20,6 +20,25 @@ const Brand = () => (
   </a>
 );
 
+const GithubLink = () => (
+  <a
+    className="grid size-9 place-items-center rounded-full text-body transition-colors duration-[160ms] hover:bg-canvas-soft-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-link"
+    href="https://github.com/gaoxiaoduan/ip"
+    target="_blank"
+    rel="noreferrer"
+    aria-label="在 GitHub 查看项目（在新标签页打开）"
+  >
+    <svg
+      className="size-[18px]"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <path d="M12 2C6.48 2 2 6.58 2 12.23c0 4.52 2.87 8.35 6.84 9.7.5.1.68-.22.68-.49 0-.24-.01-1.05-.01-1.91-2.78.62-3.37-1.2-3.37-1.2-.46-1.18-1.11-1.49-1.11-1.49-.91-.64.07-.63.07-.63 1 .08 1.53 1.06 1.53 1.06.9 1.57 2.35 1.12 2.92.86.09-.67.35-1.12.64-1.38-2.22-.26-4.56-1.14-4.56-5.06 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.72 0 0 .84-.28 2.75 1.05A9.3 9.3 0 0 1 12 6.36a9.3 9.3 0 0 1 2.5.35c1.91-1.33 2.75-1.05 2.75-1.05.55 1.42.2 2.46.1 2.72.64.72 1.03 1.63 1.03 2.75 0 3.93-2.35 4.79-4.58 5.05.36.32.68.93.68 1.87 0 1.35-.01 2.44-.01 2.77 0 .27.18.59.69.49A10.25 10.25 0 0 0 22 12.23C22 6.58 17.52 2 12 2Z" />
+    </svg>
+  </a>
+);
+
 export const BrandMark = () => (
   <span
     className={cn(
@@ -57,59 +76,64 @@ export function SiteHeader({ isDetecting }: { isDetecting: boolean }) {
     <>
       <header className="sticky top-0 z-30 grid h-[60px] grid-cols-[1fr_auto] items-center border-b border-[rgb(235_235_235/82%)] bg-[rgb(255_255_255/86%)] px-4 backdrop-blur-[18px] sm:h-16 sm:px-6 md:grid-cols-[1fr_auto_1fr]">
         <Brand />
-        <nav
-          className="hidden items-center gap-1 justify-self-end sm:flex md:justify-self-auto"
-          aria-label="页面导航"
-        >
-          {NAVIGATION.map((item) => (
+        <div className="flex items-center gap-1 sm:gap-2 md:col-span-2 md:grid md:grid-cols-[auto_1fr]">
+          <nav
+            className="hidden items-center gap-1 sm:flex md:justify-self-start"
+            aria-label="页面导航"
+          >
+            {NAVIGATION.map((item) => (
+              <a
+                className={cn(
+                  navItemClassName,
+                  "hover:bg-canvas-soft-2 hover:text-ink",
+                )}
+                href={item.href}
+                key={item.href}
+              >
+                {item.label}
+              </a>
+            ))}
+          </nav>
+          <div className="flex items-center gap-1 justify-self-end sm:gap-2">
+            <GithubLink />
             <a
               className={cn(
                 navItemClassName,
-                "hover:bg-canvas-soft-2 hover:text-ink",
+                "hidden items-center gap-2 font-mono text-xs text-ink md:inline-flex",
               )}
-              href={item.href}
-              key={item.href}
+              href="#results"
             >
-              {item.label}
+              <span
+                className={cn(
+                  "size-[7px] rounded-full bg-link shadow-[0_0_0_4px_rgb(0_112_243/9%)]",
+                  isDetecting && "animate-status-pulse",
+                )}
+              />
+              {isDetecting ? "检测进行中" : "查看本次结果"}
             </a>
-          ))}
-        </nav>
-        <a
-          className={cn(
-            navItemClassName,
-            "hidden items-center gap-2 justify-self-end font-mono text-xs text-ink md:inline-flex",
-          )}
-          href="#results"
-        >
-          <span
-            className={cn(
-              "size-[7px] rounded-full bg-link shadow-[0_0_0_4px_rgb(0_112_243/9%)]",
-              isDetecting && "animate-status-pulse",
-            )}
-          />
-          {isDetecting ? "检测进行中" : "查看本次结果"}
-        </a>
-        <button
-          className="relative grid size-11 cursor-pointer place-items-center rounded-full hover:bg-canvas-soft-2 sm:hidden"
-          type="button"
-          aria-controls="mobile-navigation"
-          aria-expanded={mobileMenuOpen}
-          aria-label={mobileMenuOpen ? "关闭导航" : "打开导航"}
-          onClick={() => setMobileMenuOpen((open) => !open)}
-        >
-          <span
-            className={cn(
-              "absolute h-[1.5px] w-[19px] bg-ink transition-transform duration-[160ms]",
-              mobileMenuOpen ? "rotate-45" : "-translate-y-1",
-            )}
-          />
-          <span
-            className={cn(
-              "absolute h-[1.5px] w-[19px] bg-ink transition-transform duration-[160ms]",
-              mobileMenuOpen ? "-rotate-45" : "translate-y-1",
-            )}
-          />
-        </button>
+            <button
+              className="relative grid size-11 cursor-pointer place-items-center rounded-full hover:bg-canvas-soft-2 sm:hidden"
+              type="button"
+              aria-controls="mobile-navigation"
+              aria-expanded={mobileMenuOpen}
+              aria-label={mobileMenuOpen ? "关闭导航" : "打开导航"}
+              onClick={() => setMobileMenuOpen((open) => !open)}
+            >
+              <span
+                className={cn(
+                  "absolute h-[1.5px] w-[19px] bg-ink transition-transform duration-[160ms]",
+                  mobileMenuOpen ? "rotate-45" : "-translate-y-1",
+                )}
+              />
+              <span
+                className={cn(
+                  "absolute h-[1.5px] w-[19px] bg-ink transition-transform duration-[160ms]",
+                  mobileMenuOpen ? "-rotate-45" : "translate-y-1",
+                )}
+              />
+            </button>
+          </div>
+        </div>
       </header>
 
       {mobileMenuOpen ? (

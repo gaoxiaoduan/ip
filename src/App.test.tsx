@@ -124,4 +124,15 @@ describe("App", () => {
       }),
     ).not.toBeInTheDocument();
   });
+
+  it("在页眉提供项目的 GitHub 链接", async () => {
+    const fetcher = vi.fn<typeof fetch>(async (input) => responseFor(input));
+    vi.stubGlobal("fetch", fetcher);
+
+    render(<App />);
+
+    expect(
+      screen.getByRole("link", { name: "在 GitHub 查看项目（在新标签页打开）" }),
+    ).toHaveAttribute("href", "https://github.com/gaoxiaoduan/ip");
+  });
 });
