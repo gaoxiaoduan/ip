@@ -240,6 +240,7 @@ export const renderPublicPage = (page: PublicPage) => `<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
+    <meta name="google-site-verification" content="dbkmP20PYh627D7oubVVvJBTt8mtJq1Ge1Id1blG6WI" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="${page.description}" />
     <meta name="theme-color" content="#f7f8fa" />
