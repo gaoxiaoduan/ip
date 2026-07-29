@@ -33,7 +33,15 @@ const contentSecurityPolicy = builtHeaders.match(
 )?.[1];
 
 assert.ok(contentSecurityPolicy, "Content-Security-Policy header is required");
+assert.match(
+  contentSecurityPolicy,
+  /connect-src[^;]*https:\/\/cloudflareinsights\.com/,
+);
 assert.match(contentSecurityPolicy, /font-src 'self' data:/);
+assert.match(
+  contentSecurityPolicy,
+  /script-src[^;]*https:\/\/static\.cloudflareinsights\.com/,
+);
 
 for (const [relativePath, heading, pathname] of publicPages) {
   const html = await readBuiltFile(relativePath);
