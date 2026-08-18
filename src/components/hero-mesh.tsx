@@ -1,9 +1,9 @@
 export function HeroMesh() {
   return (
     <svg
-      className="absolute top-8 left-1/2 -z-10 h-auto w-[min(1080px,100%)] -translate-x-1/2 overflow-visible opacity-90"
+      className="pointer-events-none absolute bottom-[-1px] left-1/2 z-0 h-auto min-w-[760px] w-[min(1280px,100vw)] -translate-x-1/2 overflow-visible opacity-[.82] sm:min-w-[900px] lg:min-w-0"
       viewBox="0 0 1080 510"
-      preserveAspectRatio="xMidYMid meet"
+      preserveAspectRatio="xMidYMax meet"
       aria-hidden="true"
     >
       <defs>

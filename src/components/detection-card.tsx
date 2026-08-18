@@ -95,6 +95,12 @@ const STATE_DOT_CLASSES: Record<PathState["status"], string> = {
   unreachable: "before:bg-warning",
 };
 
+const PATH_SIGNAL_CLASSES: Record<DetectionPathId, string> = {
+  domestic: "bg-link",
+  "ordinary-overseas": "bg-cyan",
+  "restricted-overseas": "bg-pink",
+};
+
 type DetectionStateBodyProps = Pick<
   DetectionCardProps,
   "state" | "copiedIp" | "onCopy"
@@ -125,14 +131,14 @@ const DetectionStateBody = ({
     case "success":
       return (
         <>
-          <div className="border-t border-hairline pt-4 pb-6">
+          <div className="border-t border-hairline pt-4 pb-5">
             <MonoLabel>公网出口</MonoLabel>
             <div className="mt-2 flex items-center justify-between gap-3">
-              <code className="overflow-hidden font-mono text-[clamp(20px,2vw,28px)] leading-9 tracking-[-1px] text-ellipsis text-ink max-sm:text-[23px]">
+              <code className="min-w-0 overflow-hidden break-all font-mono text-[clamp(20px,2vw,30px)] leading-9 tracking-[-0.03em] text-ellipsis text-ink">
                 {state.observation.ip}
               </code>
               <button
-                className="inline-flex h-[30px] min-w-[62px] cursor-pointer items-center gap-2 rounded-md border border-hairline bg-canvas px-2 text-[11px] text-body hover:bg-canvas-soft hover:text-ink"
+                className="inline-flex min-h-10 min-w-[62px] cursor-pointer items-center gap-2 rounded-md border border-hairline bg-canvas px-2.5 text-[11px] text-body hover:bg-canvas-soft hover:text-ink"
                 type="button"
                 onClick={() => void onCopy(state.observation.ip)}
                 aria-label={`复制 ${state.observation.ip}`}
@@ -152,6 +158,18 @@ const DetectionStateBody = ({
                   ? `${state.observation.network} · `
                   : ""}
                 {state.observation.organization}
+              </p>
+            ) : null}
+
+            {state.endpoint.redundancy === "compatible-fallback" ? (
+              <p className={FALLBACK_NOTE_CLASS}>
+                本次使用同一服务的兼容接口，不构成独立冗余。
+              </p>
+            ) : null}
+
+            {state.endpoint.redundancy === "independent-fallback" ? (
+              <p className={FALLBACK_NOTE_CLASS}>
+                主检测端点未返回有效结果，已使用独立备用检测端点。
               </p>
             ) : null}
           </div>
@@ -177,17 +195,6 @@ const DetectionStateBody = ({
             </div>
           </footer>
 
-          {state.endpoint.redundancy === "compatible-fallback" ? (
-            <p className={FALLBACK_NOTE_CLASS}>
-              本次使用同一服务的兼容接口，不构成独立冗余。
-            </p>
-          ) : null}
-
-          {state.endpoint.redundancy === "independent-fallback" ? (
-            <p className={FALLBACK_NOTE_CLASS}>
-              主检测端点未返回有效结果，已使用独立备用检测端点。
-            </p>
-          ) : null}
         </>
       );
 
@@ -222,14 +229,20 @@ export function DetectionCard({
 
   return (
     <article
-      className="flex min-h-[400px] flex-col rounded-xl bg-canvas px-5 py-6 shadow-[inset_0_0_0_1px_rgb(0_0_0/8%),0_2px_2px_rgb(0_0_0/3%),0_8px_16px_-8px_rgb(0_0_0/6%)] sm:min-h-[390px] sm:px-6 lg:min-h-[420px]"
+      className="flex min-h-[404px] flex-col rounded-[14px] border border-hairline bg-canvas p-5 max-sm:min-h-[392px] sm:min-h-[420px] sm:p-6"
       aria-labelledby={titleId}
     >
       <header className="flex items-start justify-between gap-4">
-        <div>
-          <MonoLabel>{PATH_MARKS[path.id]}</MonoLabel>
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span
+              className={cn("size-2 rounded-full", PATH_SIGNAL_CLASSES[path.id])}
+              aria-hidden="true"
+            />
+            <MonoLabel>{PATH_MARKS[path.id]}</MonoLabel>
+          </div>
           <h3
-            className="mt-1 text-xl font-semibold tracking-[-0.6px]"
+            className="mt-2 text-xl font-semibold tracking-[-0.03em]"
             id={titleId}
           >
             {path.label}
@@ -245,7 +258,7 @@ export function DetectionCard({
         </span>
       </header>
 
-      <p className="mt-3 mb-6 min-h-[42px] text-[13px] leading-5 text-body">
+      <p className="mt-3 mb-5 min-h-[42px] max-w-[38ch] text-[13px] leading-5 text-body max-sm:mt-2 max-sm:mb-4">
         {path.description}
       </p>
       <DetectionStateBody

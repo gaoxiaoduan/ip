@@ -124,6 +124,24 @@
     color: #f2f2f2;
     background: var(--color-ink);
   }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--color-canvas-soft);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    border: 3px solid var(--color-canvas-soft);
+    border-radius: 999px;
+    background: var(--color-hairline-strong);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-body);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
