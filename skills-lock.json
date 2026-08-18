@@ -1,6 +1,13 @@
 {
   "version": 1,
   "skills": {
+    "anti-ui-slop": {
+      "source": "uizze.com",
+      "sourceUrl": "https://uizze.com/",
+      "sourceType": "well-known",
+      "computedHash": "912fa42871e7981df32006c4bdcd6314215f58e7e6ddf94d51d53b594c0322a0",
+      "wellKnownDigest": "sha256:416f7d178891016ee9b41270fe5b7ee6c80a502278d2e3aac4bd06fdc4207fb5"
+    },
     "ask-matt": {
       "source": "mattpocock/skills",
       "sourceType": "github",
@@ -132,6 +139,27 @@
       "sourceType": "github",
       "skillPath": "skills/engineering/triage/SKILL.md",
       "computedHash": "7c923b6a677cfe689500721f08307e2a4c46797ff169dc55ef6c34a431a0d533"
+    },
+    "ui-design": {
+      "source": "uizze.com",
+      "sourceUrl": "https://uizze.com/",
+      "sourceType": "well-known",
+      "computedHash": "c163b0a641f0212e5a5d44c53210d0b7547570ecf34bcb8d881f8716f33f4332",
+      "wellKnownDigest": "sha256:9ba2f4aea4a6367ab830e95dd856448ca17409884596e3e2878b821aeec8b4e5"
+    },
+    "ui-radar": {
+      "source": "uizze.com",
+      "sourceUrl": "https://uizze.com/",
+      "sourceType": "well-known",
+      "computedHash": "34305420bba52f3fe7d1d3b2dd355b64ccf12de7411cbbf4557a1231e8ef8ddb",
+      "wellKnownDigest": "sha256:461cf4d25b9e74840cb6f20ab81751ec5352dbcb28dac8e3bce001602965279e"
+    },
+    "ui-slop-score": {
+      "source": "uizze.com",
+      "sourceUrl": "https://uizze.com/",
+      "sourceType": "well-known",
+      "computedHash": "0a5fc2ea99e52f2a44d2abb4e6f2f91de8e613dc8a53ae5f5c4155a7568e7cb8",
+      "wellKnownDigest": "sha256:bb43034d6b27055d6c2b7d525456a374a0e92015af6db2d51640cbccabccd275"
     },
     "vercel-react-best-practices": {
       "source": "vercel-labs/agent-skills",
