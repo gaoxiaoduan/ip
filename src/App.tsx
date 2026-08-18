@@ -71,7 +71,7 @@ const SectionHeading = ({
 }) => (
   <div
     className={cn(
-      "border-t border-hairline pt-4",
+      "pt-4",
       className,
     )}
   >
@@ -138,7 +138,7 @@ const PATH_SIGNAL_CLASSES = {
 
 const HeroPathList = () => (
   <aside className="w-full max-w-[430px] justify-self-end" aria-label="检测路径">
-    <div className="border border-[rgb(23_23_23/15%)] bg-[rgb(255_255_255/88%)] p-5 sm:p-6">
+    <div className="rounded-2xl border border-[rgb(23_23_23/8%)] bg-[rgb(255_255_255/88%)] p-5 sm:p-6">
       <div className="flex items-center justify-between gap-4">
         <MonoLabel className="tracking-[0.08em] text-body">
           OBSERVATION ROUTES
@@ -149,7 +149,7 @@ const HeroPathList = () => (
         </span>
       </div>
 
-      <ul className="mt-5 divide-y divide-[rgb(23_23_23/12%)] border-y border-[rgb(23_23_23/12%)]">
+      <ul className="mt-5 divide-y divide-[rgb(23_23_23/8%)] border-y border-[rgb(23_23_23/8%)]">
         {DETECTION_PATHS.map((path) => (
           <li className="flex gap-3 py-4" key={path.id}>
             <span
