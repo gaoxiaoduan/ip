@@ -7,7 +7,14 @@ type Source = {
 };
 
 export type PublicPage = {
-  path: "/guides/ip-differences" | "/guides/ip-mismatch" | "/guides/traffic-split-observation" | "/methodology";
+  path:
+    | "/guides/ip-differences"
+    | "/guides/ip-mismatch"
+    | "/guides/traffic-split-observation"
+    | "/methodology"
+    | "/connectivity"
+    | "/webrtc"
+    | "/speed-test";
   title: string;
   description: string;
   eyebrow: string;
@@ -190,6 +197,124 @@ export const PUBLIC_PAGES: readonly PublicPage[] = [
       },
     ],
   },
+  {
+    path: "/connectivity",
+    title: "网络连通性：固定网站 favicon 观测",
+    description:
+      "通过浏览器直接加载微信、哔哩哔哩、抖音、Cloudflare、GitHub、ChatGPT、Google 和 YouTube 的 HTTPS favicon，观察八个固定目标的资源请求状态与耗时。",
+    eyebrow: "网络连通性 / 固定目标",
+    intro:
+      "本页提供可直接启动的网络连通性工具。它只观察固定网站 favicon 资源请求是否完成，不把一次资源失败解释成 DNS、TCP、TLS、路由或代理配置原因。",
+    sections: [
+      {
+        title: "固定目标与分组",
+        paragraphs: [
+          "目标分为国内和国外两组：国内包含微信、哔哩哔哩和抖音；国外包含 Cloudflare、GitHub、ChatGPT、Google 和 YouTube。目标清单由项目维护，不接受临时添加、自定义 URL、端口或内网地址。",
+          "每个目标单独呈现已观察、未观察或无法判断，以及本次 favicon 请求的耗时。一个目标没有返回，不会吞掉其他目标的观测。",
+        ],
+      },
+      {
+        title: "为什么加载 favicon",
+        paragraphs: [
+          "浏览器直接通过 HTTPS 加载目标站点的 favicon，不需要目标网站提供可供本站读取的 CORS API。资源加载完成只说明本次浏览器请求观察到了该资源；资源加载失败或超时不能单独确定是哪一层网络原因。",
+        ],
+      },
+      {
+        title: "当前页面会话",
+        paragraphs: [
+          "工具默认等待，只有访客主动点击开始后才会请求目标。刷新、离开页面或关闭页面后，本轮结果不会保存，也不会进入匿名优化事件。",
+        ],
+      },
+    ],
+    sources: [
+      {
+        label: "MDN：HTMLImageElement",
+        href: "https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement",
+      },
+      {
+        label: "MDN：同源策略概览",
+        href: "https://developer.mozilla.org/zh-CN/docs/Web/Security/Same-origin_policy",
+      },
+    ],
+  },
+  {
+    path: "/webrtc",
+    title: "WebRTC 候选测试：查看浏览器连接证据",
+    description:
+      "通过四个独立 STUN 服务收集 WebRTC ICE 候选，展示公网、私有、本地与 mDNS 地址、候选类型和 SDP / ICE 诊断日志。",
+    eyebrow: "WebRTC / ICE 候选",
+    intro:
+      "本页提供可直接启动的 WebRTC 候选测试。页面呈现浏览器本轮向 STUN 连接提供的证据，并把 NAT 类型明确标为参考信息，不作泄露成功或代理失效的确定性判断。",
+    sections: [
+      {
+        title: "四个独立 STUN 连接",
+        paragraphs: [
+          "测试分别连接 stun.l.google.com:19302、stun.voip.blackberry.com:3478、global.stun.twilio.com:3478 和 stun.cloudflare.com:3478。每个服务有自己的状态、耗时、候选数量和诊断日志；单个服务不可用时，其他连接仍可以完成。",
+        ],
+      },
+      {
+        title: "候选地址如何阅读",
+        paragraphs: [
+          "候选按地址族区分 IPv4、IPv6 与 mDNS，并标记公网、私有、本地或 mDNS 范围；候选类型使用 host、srflx 或 relay。候选出现只说明本轮浏览器与服务共同提供了这类连接证据，不代表全部网络流量或任何安全结论。",
+        ],
+      },
+      {
+        title: "诊断日志只存在本轮",
+        paragraphs: [
+          "展开 SDP / ICE 诊断日志可以复核当前页面产生的连接细节。日志和候选地址不会写入 Cookie、localStorage、URL 参数或匿名优化事件；刷新或离开页面后即消失。",
+        ],
+      },
+    ],
+    sources: [
+      {
+        label: "MDN：RTCPeerConnection",
+        href: "https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection",
+      },
+      {
+        label: "MDN：RTCIceCandidate",
+        href: "https://developer.mozilla.org/en-US/docs/Web/API/RTCIceCandidate",
+      },
+    ],
+  },
+  {
+    path: "/speed-test",
+    title: "网速测试：下载、上传与延迟",
+    description:
+      "使用 Cloudflare edge 直接测量下载速度、上传速度、空闲延迟、抖动和本轮耗时，并提供低流量与精测两种档位。",
+    eyebrow: "网速测试 / 流量提示",
+    intro:
+      "本页提供可直接启动的网速测试。开始前先说明流量消耗，测试可以随时停止；结果只展示本轮测量数据，不把速度数字转换成网络好坏或代理配置评分。",
+    sections: [
+      {
+        title: "两个明确的测速档位",
+        paragraphs: [
+          "低流量档下载 10 MB、上传 5 MB，约消耗 15 MB，适合快速获得参考值；精测档下载 50 MB、上传 15 MB，约消耗 65 MB，适合愿意承担更多流量时获得更稳定的样本。",
+        ],
+      },
+      {
+        title: "指标只描述测量事实",
+        paragraphs: [
+          "页面展示下载速度、上传速度、空闲延迟、抖动和测试耗时。曲线只表示本轮采样轨迹，不是评分、等级或网络诊断；部分阶段失败时，未得到的数字保持为空。",
+        ],
+      },
+      {
+        title: "浏览器直连与当前会话",
+        paragraphs: [
+          "测速请求从当前浏览器直接发往 Cloudflare edge，不经过本站服务器代测。测试结果只保留在当前页面，刷新或离开后不会形成历史，也不会进入匿名优化事件。",
+        ],
+      },
+    ],
+    sources: [
+      {
+        label: "Cloudflare：Speed Test",
+        href: "https://speed.cloudflare.com/",
+      },
+      {
+        label: "MDN：ReadableStream",
+        href: "https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream",
+      },
+    ],
+  },
 ];
 
 const sourceList = (sources: readonly Source[]) =>
@@ -236,7 +361,30 @@ const jsonLd = (page: PublicPage) =>
 const footer = () =>
   `<footer class="public-footer"><div class="public-footer-inner"><span>IP 出口检测 · 只比较当前页面的出口观测 · 更新于 ${PUBLIC_CONTENT_UPDATED_AT}</span><a href="https://github.com/gaoxiaoduan/ip/issues/new">通过 GitHub Issue 纠正内容</a></div></footer>`;
 
-export const renderPublicPage = (page: PublicPage) => `<!doctype html>
+const INTERACTIVE_PUBLIC_PATHS = new Set<string>([
+  "/connectivity",
+  "/webrtc",
+  "/speed-test",
+] as const);
+
+const renderPublicPageContent = (page: PublicPage) => `<div class="public-shell">
+  <nav class="public-nav" aria-label="站点导航"><a class="public-brand" href="/">IP 出口检测</a><a href="/methodology">检测方法与隐私边界</a></nav>
+  <main>
+    <header class="public-hero"><div class="public-hero-inner"><span class="public-label">${page.eyebrow}</span><h1>${page.title}</h1><p>${page.intro}</p><div class="public-actions"><a class="public-action" href="/#results">开始本次检测</a><a class="public-action public-action--quiet" href="/guides/ip-differences">阅读相关说明</a></div></div></header>
+    <article class="public-article">${pageSections(page)}<section class="public-sources"><h2>继续阅读</h2><ul>${relatedReading(page)}</ul></section><section class="public-sources"><h2>技术来源</h2><ul>${sourceList(page.sources)}</ul></section></article>
+  </main>
+  ${footer()}
+</div>`;
+
+export const renderPublicPage = (
+  page: PublicPage,
+  scriptSrc = "/src/main.tsx",
+) => {
+  const appScript = INTERACTIVE_PUBLIC_PATHS.has(page.path)
+    ? `<script type="module" src="${scriptSrc}"></script>`
+    : "";
+
+  return `<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
@@ -254,16 +402,11 @@ export const renderPublicPage = (page: PublicPage) => `<!doctype html>
     <title>${page.title}｜IP 出口检测</title>
   </head>
   <body>
-    <div class="public-shell">
-      <nav class="public-nav" aria-label="站点导航"><a class="public-brand" href="/">IP 出口检测</a><a href="/methodology">检测方法与隐私边界</a></nav>
-      <main>
-        <header class="public-hero"><div class="public-hero-inner"><span class="public-label">${page.eyebrow}</span><h1>${page.title}</h1><p>${page.intro}</p><div class="public-actions"><a class="public-action" href="/#results">开始本次检测</a><a class="public-action public-action--quiet" href="/guides/ip-differences">阅读相关说明</a></div></div></header>
-        <article class="public-article">${pageSections(page)}<section class="public-sources"><h2>继续阅读</h2><ul>${relatedReading(page)}</ul></section><section class="public-sources"><h2>技术来源</h2><ul>${sourceList(page.sources)}</ul></section></article>
-      </main>
-      ${footer()}
-    </div>
+    <div id="root">${renderPublicPageContent(page)}</div>
+    ${appScript}
   </body>
 </html>`;
+};
 
 const homeJsonLd = JSON.stringify({
   "@context": "https://schema.org",
@@ -277,7 +420,14 @@ const homeJsonLd = JSON.stringify({
 export const renderHomeFallback = () => `<div class="public-shell">
   <main>
     <header class="public-hero"><div class="public-hero-inner"><span class="public-label">BROWSER-DIRECT / SESSION-ONLY</span><h1>一次看清，网站看到你从哪里来。</h1><p>同时比较国内网站路径、普通海外网站路径与受限海外服务路径实际观察到的公网出口。只描述出口差异，不替你判断网络配置。</p><div class="public-actions"><a class="public-action" href="#results">开始本次检测</a></div></div></header>
-    <article class="public-article"><section class="public-section" id="results"><h2>三条路径，一次对照</h2><div><p>浏览器直接访问不同目的网络类别的检测端点。每张路径卡片都会标明本次实际采用的数据来源和返回时间。</p><p>国内网站路径用于观察访问中国大陆常见网站时的出口结果；普通海外网站路径用于观察一般跨境访问；受限海外服务路径只提供可能受访问策略影响的代表性观测，不等同于任何指定服务。</p></div></section><section class="public-section"><h2>结果如何比较</h2><div><p>至少两条成功路径才可以比较。若成功路径观察到不同的公网 IP 或出口归属地，页面会显示出口差异；成功路径不足两条时，页面会显示数据不足。</p><p>每条路径只会在主检测端点失败后尝试备用端点。不可达不证明没有公网出口，也不证明服务被封锁。</p></div></section><section class="public-section"><h2>把观测和判断分开</h2><div><p>浏览器直连：出口结果来自检测端点，本站不会代替访客转发请求。检测会话只停留在当前页面，刷新或关闭后结果消失，不形成账户历史。</p><p>出口差异不是诊断结论。页面只比较各检测端点看到的出口结果，不据此判断代理配置正常、异常或是否生效。</p></div></section><section class="public-section"><h2>隐私边界</h2><div><p>出口归属地来自各检测端点自己的 IP 地理数据库，可能存在差异。它不代表设备的精确物理位置，也不代表设备全部网络流量。</p><p>项目不需要账户、不保存个人检测结果，也不请求额外定位。</p></div></section><section class="public-section"><h2>继续了解</h2><div><p><a href="/guides/ip-differences">为什么不同网站会看到不同的出口 IP？</a></p><p><a href="/guides/ip-mismatch">国内和海外看到的 IP 不一致，该怎么理解？</a></p><p><a href="/guides/traffic-split-observation">三条检测路径，观察的是什么？</a></p><p><a href="/methodology">检测方法与隐私边界</a></p></div></section></article>
+    <article class="public-article">
+      <section class="public-section" id="results"><h2>三条路径，一次对照</h2><div><p>浏览器直接访问不同目的网络类别的检测端点。每张路径卡片都会标明本次实际采用的数据来源和返回时间。</p><p>国内网站路径用于观察访问中国大陆常见网站时的出口结果；普通海外网站路径用于观察一般跨境访问；受限海外服务路径只提供可能受访问策略影响的代表性观测，不等同于任何指定服务。</p></div></section>
+      <section class="public-section"><h2>结果如何比较</h2><div><p>至少两条成功路径才可以比较。若成功路径观察到不同的公网 IP 或出口归属地，页面会显示出口差异；成功路径不足两条时，页面会显示数据不足。</p><p>每条路径只会在主检测端点失败后尝试备用端点。不可达不证明没有公网出口，也不证明服务被封锁。</p></div></section>
+      <section class="public-section"><h2>网络工具台</h2><div><p>首页下方提供三种可直接操作的新工具，默认等待，不会自动启动 WebRTC 或消耗测速流量。</p><p><a href="/connectivity">网络连通性</a>观察八个固定网站的 HTTPS favicon；<a href="/webrtc">WebRTC 候选测试</a>展示四个 STUN 服务的连接证据；<a href="/speed-test">网速测试</a>测量下载、上传、延迟和抖动。</p></div></section>
+      <section class="public-section"><h2>把观测和判断分开</h2><div><p>浏览器直连：出口结果来自检测端点，本站不会代替访客转发请求。检测会话只停留在当前页面，刷新或关闭后结果消失，不形成账户历史。</p><p>出口差异不是诊断结论。页面只比较各检测端点看到的出口结果，不据此判断代理配置正常、异常或是否生效。</p></div></section>
+      <section class="public-section"><h2>隐私边界</h2><div><p>出口归属地来自各检测端点自己的 IP 地理数据库，可能存在差异。它不代表设备的精确物理位置，也不代表设备全部网络流量。</p><p>项目不需要账户、不保存个人检测结果，也不请求额外定位。</p></div></section>
+      <section class="public-section"><h2>继续了解</h2><div><p><a href="/guides/ip-differences">为什么不同网站会看到不同的出口 IP？</a></p><p><a href="/guides/ip-mismatch">国内和海外看到的 IP 不一致，该怎么理解？</a></p><p><a href="/guides/traffic-split-observation">三条检测路径，观察的是什么？</a></p><p><a href="/methodology">检测方法与隐私边界</a></p></div></section>
+    </article>
   </main>
   ${footer()}
 </div>`;

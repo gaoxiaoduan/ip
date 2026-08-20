@@ -13,8 +13,8 @@ const BRAND_MARK_CLIP = "[clip-path:polygon(50%_4%,97%_88%,3%_88%)]";
 export const BRAND_CLASS =
   "inline-flex w-fit items-center gap-3 text-sm font-semibold tracking-[-0.28px]";
 
-const Brand = () => (
-  <a className={BRAND_CLASS} href="#top" aria-label="IP 出口检测首页">
+const Brand = ({ homeHref }: { homeHref: string }) => (
+  <a className={BRAND_CLASS} href={homeHref} aria-label="IP 出口检测首页">
     <BrandMark />
     <span>IP 出口检测</span>
   </a>
@@ -54,8 +54,20 @@ export const BrandMark = () => (
 const navItemClassName =
   "min-h-9 rounded-full px-3 py-2 text-sm leading-5 text-body transition-colors duration-[160ms]";
 
-export function SiteHeader({ isDetecting }: { isDetecting: boolean }) {
+export function SiteHeader({
+  brandHref,
+  homeHref,
+  isDetecting,
+}: {
+  readonly brandHref: string;
+  readonly homeHref: string;
+  readonly isDetecting: boolean;
+}) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigation = NAVIGATION.map((item) => ({
+    ...item,
+    href: `${homeHref}${item.href}`,
+  }));
 
   useEffect(() => {
     if (!mobileMenuOpen) {
@@ -75,12 +87,12 @@ export function SiteHeader({ isDetecting }: { isDetecting: boolean }) {
   return (
     <>
       <header className="sticky top-0 z-30 grid h-[60px] grid-cols-[1fr_auto] items-center border-b border-[rgb(235_235_235/82%)] bg-[rgb(255_255_255/86%)] px-4 backdrop-blur-[18px] sm:h-16 sm:grid-cols-[1fr_auto_1fr] sm:px-6">
-        <Brand />
+        <Brand homeHref={brandHref} />
         <nav
           className="hidden items-center gap-1 sm:flex sm:justify-self-center"
           aria-label="页面导航"
         >
-          {NAVIGATION.map((item) => (
+          {navigation.map((item) => (
             <a
               className={cn(
                 navItemClassName,
@@ -100,7 +112,7 @@ export function SiteHeader({ isDetecting }: { isDetecting: boolean }) {
               navItemClassName,
               "hidden items-center gap-2 font-mono text-xs text-ink md:inline-flex",
             )}
-            href="#results"
+            href={`${homeHref}#results`}
           >
             <span
               className={cn(
@@ -140,7 +152,7 @@ export function SiteHeader({ isDetecting }: { isDetecting: boolean }) {
           id="mobile-navigation"
         >
           <nav className="flex flex-col" aria-label="移动端导航">
-            {NAVIGATION.map((item, index) => (
+            {navigation.map((item, index) => (
               <a
                 className="grid min-h-[72px] grid-cols-[40px_1fr] items-center border-b border-hairline text-2xl leading-8 font-semibold tracking-[-0.96px] first:border-t"
                 href={item.href}

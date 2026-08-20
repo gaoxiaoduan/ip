@@ -3,8 +3,13 @@ import { Button } from "@/components/ui/button";
 import { DetectionCard } from "@/components/detection-card";
 import { HeroMesh } from "@/components/hero-mesh";
 import { MonoLabel } from "@/components/mono-label";
+import {
+  NetworkToolDesk,
+  type NetworkToolView,
+} from "@/components/network-tool-desk";
 import { BRAND_CLASS, BrandMark, SiteHeader } from "@/components/site-header";
 import { useDetectionSession } from "@/hooks/use-detection-session";
+import type { NetworkToolAdapterOverrides } from "@/hooks/use-network-tools";
 import { DETECTION_PATHS } from "@/lib/endpoints";
 import { cn } from "@/lib/utils";
 
@@ -178,7 +183,109 @@ const HeroPathList = () => (
   </aside>
 );
 
-export default function App() {
+interface AppProps {
+  readonly networkAdapters?: NetworkToolAdapterOverrides;
+}
+
+type IndependentToolView = Exclude<NetworkToolView, "all">;
+
+const TOOL_ROUTES: Readonly<Record<string, IndependentToolView>> = {
+  "/connectivity": "connectivity",
+  "/webrtc": "webrtc",
+  "/speed-test": "speed",
+};
+
+const currentToolRoute = (): IndependentToolView | null => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  const pathname = window.location.pathname.replace(/\/+$/, "") || "/";
+  return TOOL_ROUTES[pathname] ?? null;
+};
+
+const TOOL_PAGE_CONTENT: Record<
+  Exclude<NetworkToolView, "all">,
+  { title: string; description: string; note: string }
+> = {
+  connectivity: {
+    title: "网络连通性",
+    description:
+      "用固定网站的 HTTPS favicon 资源请求，观察当前浏览器能否完成到常用国内外网站的资源加载。每个目标单独返回观测状态和耗时。",
+    note: "目标清单固定维护，不接受临时网站、自定义地址或任意端口。",
+  },
+  webrtc: {
+    title: "WebRTC 候选测试",
+    description:
+      "建立四个独立 STUN 连接，收集浏览器本轮提供的 ICE 候选地址。页面区分公网、私有、本地和 mDNS 证据，并保留 SDP / ICE 诊断日志。",
+    note: "NAT 类型只作为参考；候选地址不被包装成泄露成功或代理配置结论。",
+  },
+  speed: {
+    title: "网速测试",
+    description:
+      "通过 Cloudflare edge 直接测量下载、上传、空闲延迟和抖动。开始前会明确提示流量消耗，结果只属于本轮页面会话。",
+    note: "低流量档约 15 MB，精测档约 65 MB；测速始终需要单独启动。",
+  },
+};
+
+const ToolPage = ({
+  networkAdapters,
+  view,
+}: AppProps & { view: Exclude<NetworkToolView, "all"> }) => {
+  const content = TOOL_PAGE_CONTENT[view];
+
+  return (
+    <div className="min-h-screen overflow-x-clip">
+      <SiteHeader brandHref="/" homeHref="/" isDetecting={false} />
+      <main id="top">
+        <section
+          className="border-b border-hairline bg-canvas px-4 py-16 sm:px-6 sm:py-24"
+          aria-labelledby="tool-page-title"
+        >
+          <div className="mx-auto w-full max-w-[1200px]">
+            <a
+              className="inline-flex min-h-9 items-center rounded-full px-2 text-xs text-body underline-offset-4 hover:text-ink hover:underline"
+              href="/#tools"
+            >
+              ← 返回网络工具台
+            </a>
+            <h1
+              className="mt-9 max-w-[12ch] text-[clamp(44px,6vw,68px)] leading-[0.98] font-semibold tracking-[-0.04em] text-ink"
+              id="tool-page-title"
+            >
+              {content.title}
+            </h1>
+            <p className="mt-7 max-w-[66ch] text-base leading-7 text-body sm:text-lg sm:leading-8">
+              {content.description}
+            </p>
+            <p className="mt-5 font-mono text-xs leading-5 text-mute">{content.note}</p>
+          </div>
+        </section>
+        <section className="bg-canvas-soft px-4 py-12 sm:px-6 sm:py-20">
+          <div className="mx-auto w-full max-w-[1200px]">
+            <NetworkToolDesk adapters={networkAdapters} view={view} />
+          </div>
+        </section>
+      </main>
+      <footer className="grid min-h-[148px] grid-cols-1 items-start gap-6 border-t border-hairline bg-canvas px-4 py-10 sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-6 sm:px-6 sm:py-8">
+        <a className={BRAND_CLASS} href="/" aria-label="IP 出口检测首页">
+          <BrandMark />
+          <span>IP 出口检测</span>
+        </a>
+        <p className="max-w-[40ch] text-xs leading-5 text-mute">
+          当前工具结果只存在本页，不保存个人检测历史。更新于 2026-07-29。
+        </p>
+        <a
+          className="justify-self-start text-xs text-mute hover:text-ink sm:justify-self-end"
+          href="#top"
+        >
+          回到顶部 ↑
+        </a>
+      </footer>
+    </div>
+  );
+};
+
+const HomePage = ({ networkAdapters }: AppProps) => {
   const {
     comparisonContent,
     copiedIp,
@@ -190,7 +297,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen overflow-x-clip">
-      <SiteHeader isDetecting={isDetecting} />
+      <SiteHeader brandHref="#top" homeHref="" isDetecting={isDetecting} />
 
       <main id="top">
         <section
@@ -295,6 +402,8 @@ export default function App() {
             </p>
           </div>
         </section>
+
+        <NetworkToolDesk adapters={networkAdapters} />
 
         <section
           className="bg-canvas px-4 py-18 sm:px-6 sm:py-28"
@@ -435,5 +544,15 @@ export default function App() {
         </a>
       </footer>
     </div>
+  );
+};
+
+export default function App({ networkAdapters }: AppProps = {}) {
+  const view = currentToolRoute();
+
+  return view ? (
+    <ToolPage networkAdapters={networkAdapters} view={view} />
+  ) : (
+    <HomePage networkAdapters={networkAdapters} />
   );
 }

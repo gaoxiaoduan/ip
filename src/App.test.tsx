@@ -4,6 +4,7 @@ import { StrictMode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import App from "@/App";
+import type { NetworkToolAdapterOverrides } from "@/hooks/use-network-tools";
 
 const responseFor = (input: RequestInfo | URL) => {
   const url = String(input);
@@ -51,8 +52,37 @@ const responseFor = (input: RequestInfo | URL) => {
   });
 };
 
+const createNetworkAdapters = (): NetworkToolAdapterOverrides => ({
+  connectivity: {
+    supported: true,
+    now: () => 100,
+    loadFavicon: vi.fn(async () => true),
+  },
+  webrtc: {
+    supported: false,
+    now: () => 100,
+    createConnection: () => {
+      throw new Error("WebRTC is unsupported in this test");
+    },
+  },
+  speed: {
+    supported: true,
+    now: () => 100,
+    measureLatency: vi.fn(async () => 12),
+    download: vi.fn(async (bytes, _signal, report) => {
+      report({ phase: "download", percent: 1, sampleMbps: 80 });
+      return { bytesTransferred: bytes };
+    }),
+    upload: vi.fn(async (bytes, _signal, report) => {
+      report({ phase: "upload", percent: 1, sampleMbps: 40 });
+      return { bytesTransferred: bytes };
+    }),
+  },
+});
+
 describe("App", () => {
   afterEach(() => {
+    window.history.replaceState({}, "", "/");
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
@@ -211,5 +241,103 @@ describe("App", () => {
     expect(
       screen.getByRole("link", { name: /检测方法与隐私边界/ }),
     ).toHaveAttribute("href", "/methodology");
+  });
+
+  it("首页新工具默认等待，开始全部只启动连通性和 WebRTC", async () => {
+    const fetcher = vi.fn<typeof fetch>(async (input) => responseFor(input));
+    vi.stubGlobal("fetch", fetcher);
+    const adapters = createNetworkAdapters();
+    const user = userEvent.setup();
+
+    render(<App networkAdapters={adapters} />);
+
+    expect(screen.getByRole("heading", { name: "网络工具台" })).toBeInTheDocument();
+    expect(screen.getByText("尚未开始测速")).toBeInTheDocument();
+    expect(screen.getByText("目标清单固定维护，不提供临时网站或自定义地址。")).toBeInTheDocument();
+    expect(adapters.speed?.measureLatency).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "开始全部检测" }));
+
+    await waitFor(() => {
+      expect(adapters.connectivity?.loadFavicon).toHaveBeenCalledTimes(8);
+    });
+    expect(adapters.speed?.measureLatency).not.toHaveBeenCalled();
+    expect(fetcher.mock.calls.filter(([input]) => input === "/api/analytics")).toHaveLength(2);
+  });
+
+  it("连通性独立页面本身可以完成固定目标检查", async () => {
+    window.history.pushState({}, "", "/connectivity");
+    const adapters = createNetworkAdapters();
+    const user = userEvent.setup();
+
+    render(<App networkAdapters={adapters} />);
+
+    expect(screen.getAllByRole("heading", { name: "网络连通性" })[0]).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "一次看清，网站看到你从哪里来。" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "开始检查" }));
+
+    await waitFor(() => {
+      expect(adapters.connectivity?.loadFavicon).toHaveBeenCalledTimes(8);
+    });
+    expect(screen.getAllByText("已观察").length).toBeGreaterThan(0);
+  });
+
+  it("测速页面提供档位、流量提示和本轮测量结果", async () => {
+    window.history.pushState({}, "", "/speed-test");
+    const adapters = createNetworkAdapters();
+    const user = userEvent.setup();
+
+    render(<App networkAdapters={adapters} />);
+
+    expect(screen.getByText(/约 15 MB 流量/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "开始测速" }));
+
+    await waitFor(() => {
+      expect(adapters.speed?.download).toHaveBeenCalledWith(
+        10_000_000,
+        expect.any(AbortSignal),
+        expect.any(Function),
+      );
+    });
+    expect(await screen.findByText("本轮测量完成")).toBeInTheDocument();
+    expect(screen.getByText("下载")).toBeInTheDocument();
+    expect(screen.getByText("空闲延迟")).toBeInTheDocument();
+  });
+
+  it("测速停止后仍展示本轮已经收集的部分结果", async () => {
+    window.history.pushState({}, "", "/speed-test");
+    let time = 0;
+    const speed = {
+      supported: true,
+      now: () => {
+        time += 50;
+        return time;
+      },
+      measureLatency: vi.fn(async () => 12),
+      download: vi.fn((_bytes: number, signal: AbortSignal, report: (progress: { phase: "download"; percent: number; sampleMbps?: number }) => void) => {
+        report({ phase: "download", percent: 0.25, sampleMbps: 72 });
+        return new Promise<{ bytesTransferred: number }>((_resolve, reject) => {
+          signal.addEventListener(
+            "abort",
+            () => reject(new DOMException("Aborted", "AbortError")),
+            { once: true },
+          );
+        });
+      }),
+      upload: vi.fn(),
+    };
+    const user = userEvent.setup();
+
+    render(<App networkAdapters={{ speed }} />);
+
+    await user.click(screen.getByRole("button", { name: "开始测速" }));
+    await waitFor(() => {
+      expect(speed.download).toHaveBeenCalled();
+    });
+    await user.click(screen.getByRole("button", { name: "停止测速" }));
+
+    expect(await screen.findByText("本轮已停止")).toBeInTheDocument();
+    expect(screen.getByText("耗时")).toBeInTheDocument();
   });
 });

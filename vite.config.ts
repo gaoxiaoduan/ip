@@ -1,5 +1,5 @@
 import path from "node:path";
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { cloudflare } from "@cloudflare/vite-plugin";
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
@@ -60,11 +60,21 @@ const prerenderPublicContent = (): Plugin => {
         return;
       }
 
+      const clientOutDir = path.join(path.dirname(outDir), "client");
+      const indexHtml = await readFile(path.join(clientOutDir, "index.html"), "utf8");
+      const appScriptMatch = indexHtml.match(
+        /<script type="module" crossorigin src="([^"]+)"><\/script>/,
+      );
+      if (!appScriptMatch?.[1]) {
+        throw new Error("Unable to locate the client entry script in index.html");
+      }
+      const appScript = appScriptMatch[1];
+
       await Promise.all(
         PUBLIC_PAGES.map(async (page) => {
-          const outputPath = path.join(outDir, page.path, "index.html");
+          const outputPath = path.join(clientOutDir, page.path, "index.html");
           await mkdir(path.dirname(outputPath), { recursive: true });
-          await writeFile(outputPath, renderPublicPage(page), "utf8");
+          await writeFile(outputPath, renderPublicPage(page, appScript), "utf8");
         }),
       );
     },
