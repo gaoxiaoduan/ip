@@ -199,30 +199,30 @@ export const PUBLIC_PAGES: readonly PublicPage[] = [
   },
   {
     path: "/connectivity",
-    title: "网络连通性：固定网站 favicon 观测",
+    title: "网络连通性：固定网站资源请求",
     description:
-      "通过浏览器直接加载微信、哔哩哔哩、抖音、Cloudflare、GitHub、ChatGPT、Google 和 YouTube 的 HTTPS favicon，观察八个固定目标的资源请求状态与耗时。",
-    eyebrow: "网络连通性 / 固定目标",
+      "通过浏览器直接请求微信、哔哩哔哩、抖音、Cloudflare、GitHub、ChatGPT、Google 和 YouTube 的资源，显示八个固定网站的请求状态与耗时。",
+    eyebrow: "网络连通性 / 固定网站",
     intro:
-      "本页提供可直接启动的网络连通性工具。它只观察固定网站 favicon 资源请求是否完成，不把一次资源失败解释成 DNS、TCP、TLS、路由或代理配置原因。",
+      "本页提供可直接启动的网络连通性工具。它只显示固定网站的资源请求是否完成和耗时，不根据一次失败判断网络设置或具体原因。",
     sections: [
       {
-        title: "固定目标与分组",
+        title: "网站与分组",
         paragraphs: [
-          "目标分为国内和国外两组：国内包含微信、哔哩哔哩和抖音；国外包含 Cloudflare、GitHub、ChatGPT、Google 和 YouTube。目标清单由项目维护，不接受临时添加、自定义 URL、端口或内网地址。",
-          "每个目标单独呈现已观察、未观察或无法判断，以及本次 favicon 请求的耗时。一个目标没有返回，不会吞掉其他目标的观测。",
+          "网站分为国内和国外两组：国内包含微信、哔哩哔哩和抖音；国外包含 Cloudflare、GitHub、ChatGPT、Google 和 YouTube。网站清单固定，不提供临时添加的网站。",
+          "每个网站单独显示资源请求是否完成，以及本次请求的耗时。一个网站没有返回，不会影响其他网站的结果。",
         ],
       },
       {
-        title: "为什么加载 favicon",
+        title: "为什么请求资源",
         paragraphs: [
-          "浏览器直接通过 HTTPS 加载目标站点的 favicon，不需要目标网站提供可供本站读取的 CORS API。资源加载完成只说明本次浏览器请求观察到了该资源；资源加载失败或超时不能单独确定是哪一层网络原因。",
+          "浏览器直接请求这些网站的资源。资源加载完成只说明这一次请求成功；资源加载失败或超时，不能单独确定具体原因。",
         ],
       },
       {
         title: "当前页面会话",
         paragraphs: [
-          "工具默认等待，只有访客主动点击开始后才会请求目标。刷新、离开页面或关闭页面后，本轮结果不会保存，也不会进入匿名优化事件。",
+          "工具默认等待，只有访客主动点击开始后才会请求这些网站。刷新、离开页面或关闭页面后，本轮结果不会保存，也不会进入匿名优化事件。",
         ],
       },
     ],
@@ -423,7 +423,7 @@ export const renderHomeFallback = () => `<div class="public-shell">
     <article class="public-article">
       <section class="public-section" id="results"><h2>三条路径，一次对照</h2><div><p>浏览器直接访问不同目的网络类别的检测端点。每张路径卡片都会标明本次实际采用的数据来源和返回时间。</p><p>国内网站路径用于观察访问中国大陆常见网站时的出口结果；普通海外网站路径用于观察一般跨境访问；受限海外服务路径只提供可能受访问策略影响的代表性观测，不等同于任何指定服务。</p></div></section>
       <section class="public-section"><h2>结果如何比较</h2><div><p>至少两条成功路径才可以比较。若成功路径观察到不同的公网 IP 或出口归属地，页面会显示出口差异；成功路径不足两条时，页面会显示数据不足。</p><p>每条路径只会在主检测端点失败后尝试备用端点。不可达不证明没有公网出口，也不证明服务被封锁。</p></div></section>
-      <section class="public-section"><h2>网络工具台</h2><div><p>首页下方提供三种可直接操作的新工具，默认等待，不会自动启动 WebRTC 或消耗测速流量。</p><p><a href="/connectivity">网络连通性</a>观察八个固定网站的 HTTPS favicon；<a href="/webrtc">WebRTC 候选测试</a>展示四个 STUN 服务的连接证据；<a href="/speed-test">网速测试</a>测量下载、上传、延迟和抖动。</p></div></section>
+      <section class="public-section"><h2>网络工具台</h2><div><p>首页下方提供三种可直接操作的新工具，默认等待，不会自动启动 WebRTC 或消耗测速流量。</p><p><a href="/connectivity">网络连通性</a>显示八个固定网站的资源请求；<a href="/webrtc">WebRTC 候选测试</a>展示四个 STUN 服务的连接证据；<a href="/speed-test">网速测试</a>测量下载、上传、延迟和抖动。</p></div></section>
       <section class="public-section"><h2>把观测和判断分开</h2><div><p>浏览器直连：出口结果来自检测端点，本站不会代替访客转发请求。检测会话只停留在当前页面，刷新或关闭后结果消失，不形成账户历史。</p><p>出口差异不是诊断结论。页面只比较各检测端点看到的出口结果，不据此判断代理配置正常、异常或是否生效。</p></div></section>
       <section class="public-section"><h2>隐私边界</h2><div><p>出口归属地来自各检测端点自己的 IP 地理数据库，可能存在差异。它不代表设备的精确物理位置，也不代表设备全部网络流量。</p><p>项目不需要账户、不保存个人检测结果，也不请求额外定位。</p></div></section>
       <section class="public-section"><h2>继续了解</h2><div><p><a href="/guides/ip-differences">为什么不同网站会看到不同的出口 IP？</a></p><p><a href="/guides/ip-mismatch">国内和海外看到的 IP 不一致，该怎么理解？</a></p><p><a href="/guides/traffic-split-observation">三条检测路径，观察的是什么？</a></p><p><a href="/methodology">检测方法与隐私边界</a></p></div></section>

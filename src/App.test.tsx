@@ -56,7 +56,7 @@ const createNetworkAdapters = (): NetworkToolAdapterOverrides => ({
   connectivity: {
     supported: true,
     now: () => 100,
-    loadFavicon: vi.fn(async () => true),
+    loadResource: vi.fn(async () => true),
   },
   webrtc: {
     supported: false,
@@ -253,13 +253,13 @@ describe("App", () => {
 
     expect(screen.getByRole("heading", { name: "网络工具台" })).toBeInTheDocument();
     expect(screen.getByText("尚未开始测速")).toBeInTheDocument();
-    expect(screen.getByText("目标清单固定维护，不提供临时网站或自定义地址。")).toBeInTheDocument();
+    expect(screen.getByText("网站清单固定，不提供临时添加的网站。")).toBeInTheDocument();
     expect(adapters.speed?.measureLatency).not.toHaveBeenCalled();
 
     await user.click(screen.getByRole("button", { name: "开始全部检测" }));
 
     await waitFor(() => {
-      expect(adapters.connectivity?.loadFavicon).toHaveBeenCalledTimes(8);
+      expect(adapters.connectivity?.loadResource).toHaveBeenCalledTimes(8);
     });
     expect(adapters.speed?.measureLatency).not.toHaveBeenCalled();
     expect(fetcher.mock.calls.filter(([input]) => input === "/api/analytics")).toHaveLength(2);
@@ -278,9 +278,9 @@ describe("App", () => {
     await user.click(screen.getByRole("button", { name: "开始检查" }));
 
     await waitFor(() => {
-      expect(adapters.connectivity?.loadFavicon).toHaveBeenCalledTimes(8);
+      expect(adapters.connectivity?.loadResource).toHaveBeenCalledTimes(8);
     });
-    expect(screen.getAllByText("已观察").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("已加载").length).toBeGreaterThan(0);
   });
 
   it("测速页面提供档位、流量提示和本轮测量结果", async () => {

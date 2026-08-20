@@ -25,7 +25,7 @@ const publicPages = [
     "/guides/traffic-split-observation",
   ],
   ["methodology/index.html", "检测方法与隐私边界", "/methodology"],
-  ["connectivity/index.html", "网络连通性：固定网站 favicon 观测", "/connectivity"],
+  ["connectivity/index.html", "网络连通性：固定网站资源请求", "/connectivity"],
   ["webrtc/index.html", "WebRTC 候选测试：查看浏览器连接证据", "/webrtc"],
   ["speed-test/index.html", "网速测试：下载、上传与延迟", "/speed-test"],
 ];

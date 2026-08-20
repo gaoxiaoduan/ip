@@ -2,12 +2,14 @@ export type ToolObservationStatus = "observed" | "unobserved" | "undetermined";
 export type ToolRunStatus = "complete" | "stopped" | "undetermined";
 
 export type ConnectivityGroup = "domestic" | "international";
+export type ConnectivityRequestType = "image" | "page";
 
 export interface ConnectivityTarget {
   readonly id: string;
   readonly label: string;
   readonly group: ConnectivityGroup;
-  readonly faviconUrl: string;
+  readonly resourceUrl: string;
+  readonly requestType: ConnectivityRequestType;
 }
 
 export const CONNECTIVITY_TARGETS = [
@@ -15,49 +17,57 @@ export const CONNECTIVITY_TARGETS = [
     id: "wechat",
     label: "微信",
     group: "domestic",
-    faviconUrl: "https://weixin.qq.com/favicon.ico",
+    resourceUrl: "https://weixin.qq.com/",
+    requestType: "page",
   },
   {
     id: "bilibili",
     label: "哔哩哔哩",
     group: "domestic",
-    faviconUrl: "https://www.bilibili.com/favicon.ico",
+    resourceUrl: "https://www.bilibili.com/favicon.ico",
+    requestType: "image",
   },
   {
     id: "douyin",
     label: "抖音",
     group: "domestic",
-    faviconUrl: "https://www.douyin.com/favicon.ico",
+    resourceUrl: "https://www.douyin.com/favicon.ico",
+    requestType: "image",
   },
   {
     id: "cloudflare",
     label: "Cloudflare",
     group: "international",
-    faviconUrl: "https://www.cloudflare.com/favicon.ico",
+    resourceUrl: "https://www.cloudflare.com/favicon.ico",
+    requestType: "image",
   },
   {
     id: "github",
     label: "GitHub",
     group: "international",
-    faviconUrl: "https://github.com/favicon.ico",
+    resourceUrl: "https://github.com/favicon.ico",
+    requestType: "image",
   },
   {
     id: "chatgpt",
     label: "ChatGPT",
     group: "international",
-    faviconUrl: "https://chatgpt.com/favicon.ico",
+    resourceUrl: "https://chatgpt.com/favicon.ico",
+    requestType: "image",
   },
   {
     id: "google",
     label: "Google",
     group: "international",
-    faviconUrl: "https://www.google.com/favicon.ico",
+    resourceUrl: "https://www.google.com/favicon.ico",
+    requestType: "image",
   },
   {
     id: "youtube",
     label: "YouTube",
     group: "international",
-    faviconUrl: "https://www.youtube.com/favicon.ico",
+    resourceUrl: "https://www.youtube.com/favicon.ico",
+    requestType: "image",
   },
 ] as const satisfies readonly ConnectivityTarget[];
 
@@ -71,7 +81,7 @@ export interface ConnectivityObservation {
 export interface ConnectivityAdapter {
   readonly supported: boolean;
   readonly now: () => number;
-  readonly loadFavicon: (
+  readonly loadResource: (
     target: ConnectivityTarget,
     signal: AbortSignal,
   ) => Promise<boolean>;
@@ -162,9 +172,22 @@ const browserNow = () =>
   typeof performance === "undefined" ? Date.now() : performance.now();
 
 export const createBrowserConnectivityAdapter = (): ConnectivityAdapter => ({
-  supported: typeof globalThis.Image === "function",
+  supported:
+    typeof globalThis.Image === "function" &&
+    typeof globalThis.fetch === "function",
   now: browserNow,
-  loadFavicon: (target, signal) => {
+  loadResource: (target, signal) => {
+    if (target.requestType === "page") {
+      return globalThis
+        .fetch(target.resourceUrl, {
+          cache: "no-store",
+          mode: "no-cors",
+          referrerPolicy: "no-referrer",
+          signal,
+        })
+        .then(() => true);
+    }
+
     if (typeof globalThis.Image !== "function") {
       return Promise.reject(new Error("Image is not available"));
     }
@@ -196,7 +219,7 @@ export const createBrowserConnectivityAdapter = (): ConnectivityAdapter => ({
       image.referrerPolicy = "no-referrer";
       image.decoding = "async";
       signal.addEventListener("abort", onAbort, { once: true });
-      image.src = target.faviconUrl;
+      image.src = target.resourceUrl;
     });
   },
 });
@@ -233,7 +256,7 @@ export async function runConnectivityTest(
 
       try {
         const loaded = await runAbortable(
-          (signal) => adapter.loadFavicon(target, signal),
+          (signal) => adapter.loadResource(target, signal),
           { signal: options.signal, timeoutMs },
         );
         const observation = connectivityObservation(

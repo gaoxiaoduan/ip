@@ -32,13 +32,13 @@ const STATUS_LABELS: Record<NetworkToolSessionStatus, string> = {
   running: "检测中",
   complete: "已完成",
   stopped: "已停止",
-  undetermined: "无法判断",
+  undetermined: "暂时无法判断",
 };
 
 const OBSERVATION_LABELS: Record<ToolObservationStatus, string> = {
-  observed: "已观察",
-  unobserved: "未观察",
-  undetermined: "无法判断",
+  observed: "已加载",
+  unobserved: "未加载",
+  undetermined: "暂时无法判断",
 };
 
 const STATUS_DOT_CLASSES: Record<NetworkToolSessionStatus, string> = {
@@ -280,11 +280,11 @@ const ConnectivityRow = ({
         />
       </div>
       <p className="mt-2 text-xs leading-5 text-mute">
-        HTTPS favicon 资源请求
+        资源请求
         {observation?.reason === "load-error" ? " · 资源未加载" : ""}
-        {observation?.reason === "timeout" ? " · 超时" : ""}
+        {observation?.reason === "timeout" ? " · 请求超时" : ""}
         {observation?.reason === "cancelled" ? " · 已停止" : ""}
-        {observation?.reason === "unsupported" ? " · 浏览器能力不可用" : ""}
+        {observation?.reason === "unsupported" ? " · 暂时无法判断" : ""}
       </p>
     </li>
   );
@@ -310,7 +310,7 @@ const ConnectivityGroup = ({
       <div className="flex items-center justify-between gap-4">
         <h4 className="text-sm font-semibold text-ink">{title}</h4>
         <span className="font-mono text-xs text-mute">
-          {CONNECTIVITY_TARGETS.filter((target) => target.group === group).length} 个目标
+          {CONNECTIVITY_TARGETS.filter((target) => target.group === group).length} 个网站
         </span>
       </div>
       <ul className="mt-3">
@@ -351,7 +351,7 @@ const ConnectivityTool = ({
       aria-labelledby="connectivity-title"
     >
       <ToolHeader
-        description="固定观察八个常用网站的 HTTPS favicon 资源请求。结果只描述本次浏览器是否观察到资源加载及其耗时，不把失败解释成 DNS、TCP、TLS 或代理配置原因。"
+        description="检查八个常用网站的资源请求是否成功，并显示每次请求的耗时。"
         href="/connectivity"
         onStart={onStart}
         onStop={onStop}
@@ -376,13 +376,12 @@ const ConnectivityTool = ({
           title="国外"
         />
       </div>
-      <div className="flex flex-col gap-2 border-t border-hairline bg-canvas-soft px-5 py-4 text-xs leading-5 text-body sm:flex-row sm:items-center sm:justify-between sm:px-7">
+      <div className="border-t border-hairline bg-canvas-soft px-5 py-4 text-xs leading-5 text-body sm:px-7">
         <p aria-live="polite">
           {connectivity.status === "idle"
-            ? "目标清单固定维护，不提供临时网站或自定义地址。"
-            : `${judgedCount} / ${CONNECTIVITY_TARGETS.length} 个目标已返回观测；已观察 ${observedCount} 个。`}
+            ? "网站清单固定，不提供临时添加的网站。"
+            : `已检查 ${judgedCount} / ${CONNECTIVITY_TARGETS.length} 个网站，${observedCount} 个资源请求成功。`}
         </p>
-        <p className="font-mono text-xs text-mute">BROWSER → FAVICON / NO PROXY</p>
       </div>
     </section>
   );

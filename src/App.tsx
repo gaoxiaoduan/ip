@@ -210,8 +210,8 @@ const TOOL_PAGE_CONTENT: Record<
   connectivity: {
     title: "网络连通性",
     description:
-      "用固定网站的 HTTPS favicon 资源请求，观察当前浏览器能否完成到常用国内外网站的资源加载。每个目标单独返回观测状态和耗时。",
-    note: "目标清单固定维护，不接受临时网站、自定义地址或任意端口。",
+      "检查八个常用网站的资源请求是否成功，并显示每次请求的耗时。",
+    note: "网站清单固定，不提供临时添加的网站。",
   },
   webrtc: {
     title: "WebRTC 候选测试",

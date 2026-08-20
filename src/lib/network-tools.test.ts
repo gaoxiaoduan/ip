@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   CONNECTIVITY_TARGETS,
+  createBrowserConnectivityAdapter,
   SPEED_PROFILES,
   WEBRTC_SERVERS,
   runConnectivityTest,
@@ -16,11 +17,16 @@ import {
 const abortError = () => new DOMException("The operation was aborted", "AbortError");
 
 describe("网络工具 runner", () => {
-  it("固定维护八个 HTTPS favicon 目标，并按国内与国外分组", () => {
+  it("固定维护八个网站资源请求目标，并按国内与国外分组", () => {
     expect(CONNECTIVITY_TARGETS).toHaveLength(8);
     expect(CONNECTIVITY_TARGETS.filter((target) => target.group === "domestic")).toHaveLength(3);
     expect(CONNECTIVITY_TARGETS.filter((target) => target.group === "international")).toHaveLength(5);
-    expect(CONNECTIVITY_TARGETS.every((target) => target.faviconUrl.startsWith("https://"))).toBe(true);
+    expect(CONNECTIVITY_TARGETS.every((target) => target.resourceUrl.startsWith("https://"))).toBe(true);
+    expect(CONNECTIVITY_TARGETS[0]).toMatchObject({
+      resourceUrl: "https://weixin.qq.com/",
+      requestType: "page",
+    });
+    expect(CONNECTIVITY_TARGETS.slice(1).every((target) => target.requestType === "image")).toBe(true);
     expect(CONNECTIVITY_TARGETS.map((target) => target.label)).toEqual([
       "微信",
       "哔哩哔哩",
@@ -33,11 +39,28 @@ describe("网络工具 runner", () => {
     ]);
   });
 
-  it("连通性逐目标呈现已观察、未观察与无法判断，不让单个失败吞掉其他结果", async () => {
+  it("微信使用稳定首页请求，不依赖可能变化的 ico 地址", async () => {
+    const fetcher = vi
+      .spyOn(globalThis, "fetch")
+      .mockResolvedValue(new Response(null, { status: 200 }));
+    const adapter = createBrowserConnectivityAdapter();
+    const signal = new AbortController().signal;
+
+    await expect(adapter.loadResource(CONNECTIVITY_TARGETS[0], signal)).resolves.toBe(true);
+
+    expect(fetcher).toHaveBeenCalledWith("https://weixin.qq.com/", {
+      cache: "no-store",
+      mode: "no-cors",
+      referrerPolicy: "no-referrer",
+      signal,
+    });
+  });
+
+  it("连通性逐目标呈现加载状态，不让单个失败吞掉其他结果", async () => {
     const adapter: ConnectivityAdapter = {
       supported: true,
       now: vi.fn(() => 100),
-      loadFavicon: vi.fn(async (target) => target.id !== "bilibili"),
+      loadResource: vi.fn(async (target) => target.id !== "bilibili"),
     };
     const observed: string[] = [];
 
@@ -51,14 +74,14 @@ describe("网络工具 runner", () => {
     expect(result.observations.find((item) => item.target.id === "bilibili")?.status).toBe("unobserved");
     expect(observed).toContain("wechat");
     expect(observed).toContain("bilibili");
-    expect(adapter.loadFavicon).toHaveBeenCalledTimes(8);
+    expect(adapter.loadResource).toHaveBeenCalledTimes(8);
   });
 
-  it("把 favicon 超时和取消保守地表达为无法判断", async () => {
+  it("把资源请求超时和取消保守地表达为无法判断", async () => {
     const timeoutAdapter: ConnectivityAdapter = {
       supported: true,
       now: vi.fn(() => 0),
-      loadFavicon: vi.fn((_target, signal) =>
+      loadResource: vi.fn((_target, signal) =>
         new Promise<boolean>((_resolve, reject) => {
           signal.addEventListener("abort", () => reject(abortError()), { once: true });
         }),
