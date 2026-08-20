@@ -147,48 +147,64 @@ const ObservationStatus = ({
   </span>
 );
 
+const ConnectivityIcon = () => (
+  <svg
+    aria-hidden="true"
+    className="size-5 fill-none stroke-current stroke-[1.75]"
+    viewBox="0 0 24 24"
+  >
+    <circle cx="12" cy="12" r="10" />
+    <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+  </svg>
+);
+
 const ToolHeader = ({
+  icon,
   description,
   href,
   onStart,
   onStop,
   startLabel,
-  stopLabel,
+  stopLabel = "停止",
   status,
   title,
   titleId,
   running,
 }: {
+  readonly icon: React.ReactNode;
   readonly description: string;
   readonly href: string;
   readonly onStart: () => void;
   readonly onStop: () => void;
   readonly startLabel: string;
-  readonly stopLabel: string;
+  readonly stopLabel?: string;
   readonly status: NetworkToolSessionStatus;
   readonly title: string;
   readonly titleId: string;
   readonly running: boolean;
 }) => (
-  <header className="flex flex-col gap-6 border-b border-hairline px-5 py-6 sm:flex-row sm:items-start sm:justify-between sm:gap-8 sm:px-7 sm:py-7">
-    <div className="max-w-[680px]">
-      <div className="flex items-center gap-4">
+  <header className="flex flex-col gap-5 border-b border-hairline px-5 py-5 sm:flex-row sm:items-start sm:justify-between sm:gap-8 sm:px-7 sm:py-6">
+    <div className="max-w-[700px]">
+      <div className="flex flex-wrap items-center gap-3 sm:gap-3.5">
+        <span className="flex-none text-link" aria-hidden="true">
+          {icon}
+        </span>
         <h3
-          className="text-[clamp(24px,3vw,34px)] leading-tight font-semibold tracking-[-0.035em] text-ink"
+          className="text-[clamp(22px,3vw,30px)] leading-tight font-semibold tracking-[-0.035em] text-ink"
           id={titleId}
         >
           {title}
         </h3>
         <ToolStatus status={status} />
       </div>
-      <p className="mt-3 max-w-[68ch] text-sm leading-5 text-body">
+      <p className="mt-2.5 max-w-[68ch] text-sm leading-6 text-body">
         {description}
       </p>
     </div>
-    <div className="flex flex-wrap items-center gap-3 sm:justify-end">
+    <div className="flex items-center justify-between gap-3 sm:justify-end">
       {running ? (
         <Button
-          className="h-10 rounded-full border border-hairline bg-canvas px-4 text-sm text-body shadow-none hover:bg-canvas-soft-2 hover:text-ink"
+          className="h-10 rounded-full border border-hairline bg-canvas px-4 text-sm text-body shadow-none hover:bg-canvas-soft-2 hover:text-ink cursor-pointer"
           type="button"
           onClick={onStop}
         >
@@ -197,7 +213,7 @@ const ToolHeader = ({
         </Button>
       ) : (
         <Button
-          className="h-10 rounded-full bg-ink px-4 text-sm text-white shadow-[0_1px_1px_rgb(0_0_0/5%),0_3px_8px_rgb(0_0_0/12%)] hover:bg-black"
+          className="h-10 rounded-full bg-ink px-4 text-sm text-white shadow-[0_1px_1px_rgb(0_0_0/5%),0_3px_8px_rgb(0_0_0/12%)] hover:bg-black cursor-pointer"
           type="button"
           onClick={onStart}
         >
@@ -231,9 +247,9 @@ const ConnectivityRow = ({
     : 0;
 
   return (
-    <li className="group border-b border-hairline py-4 last:border-b-0 sm:py-4">
+    <li className="group border-b border-hairline/80 py-3.5 last:border-b-0">
       <div className="flex items-center justify-between gap-4">
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="flex min-w-0 items-center gap-2.5">
           <span
             className={cn(
               "size-2 flex-none rounded-full",
@@ -249,13 +265,13 @@ const ConnectivityRow = ({
             {target.label}
           </span>
         </div>
-        <div className="flex flex-none items-center gap-4">
+        <div className="flex flex-none items-center gap-3.5">
           {status ? (
             <ObservationStatus status={status} />
           ) : (
             <span className="text-xs text-mute">{running ? "检测中" : "等待"}</span>
           )}
-          <span className="w-[62px] text-right font-mono text-xs tabular-nums text-mute">
+          <span className="w-[60px] text-right font-mono text-xs tabular-nums text-mute">
             {observation?.latencyMs === null || observation?.latencyMs === undefined
               ? "—"
               : `${observation.latencyMs} ms`}
@@ -263,7 +279,7 @@ const ConnectivityRow = ({
         </div>
       </div>
       <div
-        className="mt-3 h-1 overflow-hidden rounded-full bg-canvas-soft-2"
+        className="mt-2.5 h-1 overflow-hidden rounded-full bg-canvas-soft-2"
         aria-hidden="true"
       >
         <span
@@ -280,7 +296,7 @@ const ConnectivityRow = ({
           style={{ width: `${timingWidth}%` }}
         />
       </div>
-      <p className="mt-2 text-xs leading-5 text-mute">
+      <p className="mt-1.5 text-xs leading-5 text-mute">
         资源请求
         {observation?.reason === "load-error" ? " · 资源未加载" : ""}
         {observation?.reason === "timeout" ? " · 请求超时" : ""}
@@ -308,13 +324,13 @@ const ConnectivityGroup = ({
 
   return (
     <div className="px-5 py-5 sm:px-7 sm:py-6">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-4 pb-2 border-b border-hairline/60">
         <h4 className="text-sm font-semibold text-ink">{title}</h4>
         <span className="font-mono text-xs text-mute">
           {CONNECTIVITY_TARGETS.filter((target) => target.group === group).length} 个网站
         </span>
       </div>
-      <ul className="mt-3">
+      <ul className="mt-2">
         {CONNECTIVITY_TARGETS.filter((target) => target.group === group).map(
           (target) => (
             <ConnectivityRow
@@ -347,11 +363,12 @@ const ConnectivityTool = ({
 
   return (
     <section
-      className="overflow-hidden border-y border-hairline bg-canvas"
+      className="overflow-hidden rounded-2xl border border-hairline bg-canvas shadow-[0_1px_3px_rgb(0_0_0/3%),0_6px_20px_rgb(0_0_0/4%)]"
       id="connectivity-tool"
       aria-labelledby="connectivity-title"
     >
       <ToolHeader
+        icon={<ConnectivityIcon />}
         description="检查八个常用网站的资源请求是否成功，并显示每次请求的耗时。"
         href="/connectivity"
         onStart={onStart}
@@ -377,7 +394,7 @@ const ConnectivityTool = ({
           title="国外"
         />
       </div>
-      <div className="border-t border-hairline bg-canvas-soft px-5 py-4 text-xs leading-5 text-body sm:px-7">
+      <div className="border-t border-hairline bg-canvas-soft/60 px-5 py-3.5 text-xs leading-5 text-body sm:px-7">
         <p aria-live="polite">
           {connectivity.status === "idle"
             ? "网站清单固定，不提供临时添加的网站。"
@@ -530,7 +547,7 @@ const WebRtcCard = ({
                 running
                   ? "animate-status-pulse bg-link"
                   : hasIp
-                    ? "bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,0.18)]"
+                    ? "bg-cyan shadow-[0_0_0_3px_rgb(80_227_194/24%)]"
                     : result
                       ? "bg-warning"
                       : "bg-hairline-strong",
@@ -653,57 +670,23 @@ const WebRtcTool = ({
 
   return (
     <section
-      className="overflow-hidden border-y border-hairline bg-canvas"
+      className="overflow-hidden rounded-2xl border border-hairline bg-canvas shadow-[0_1px_3px_rgb(0_0_0/3%),0_6px_20px_rgb(0_0_0/4%)]"
       id="webrtc-tool"
       aria-labelledby="webrtc-title"
     >
-      <header className="flex flex-col gap-6 border-b border-hairline px-5 py-6 sm:flex-row sm:items-start sm:justify-between sm:gap-8 sm:px-7 sm:py-7">
-        <div className="max-w-[720px]">
-          <div className="flex items-center gap-3">
-            <span className="flex-none text-warning" aria-hidden="true">
-              <WebRtcLeakIcon />
-            </span>
-            <h3
-              className="text-[clamp(24px,3vw,34px)] leading-tight font-semibold tracking-[-0.035em] text-ink"
-              id="webrtc-title"
-            >
-              WebRTC 泄漏测试
-            </h3>
-            <ToolStatus status={webrtc.status} />
-          </div>
-          <p className="mt-3 max-w-[68ch] text-sm leading-6 text-body">
-            WebRTC 往往通过 UDP 直连进行建立，如果测试返回了真实 IP，则意味着你的代理设置没有覆盖这些连接。除了检测你连接 WebRTC 时所使用的 IP，我们还会检测你的 NAT 类型。然而，NAT 类型的检测并不是 100% 准确的，仅供参考。
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-3 sm:justify-end">
-          {running ? (
-            <Button
-              className="h-10 rounded-full border border-hairline bg-canvas px-4 text-sm text-body shadow-none hover:bg-canvas-soft-2 hover:text-ink"
-              type="button"
-              onClick={onStop}
-            >
-              <StopIcon />
-              停止
-            </Button>
-          ) : (
-            <Button
-              className="h-10 rounded-full bg-ink px-4 text-sm text-white shadow-[0_1px_1px_rgb(0_0_0/5%),0_3px_8px_rgb(0_0_0/12%)] hover:bg-black"
-              type="button"
-              onClick={onStart}
-            >
-              <PlayIcon />
-              {webrtc.status === "idle" ? "开始测试" : "重新测试"}
-            </Button>
-          )}
-          <a
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-full px-2.5 text-xs text-body underline-offset-4 hover:text-ink hover:underline"
-            href="/webrtc"
-          >
-            独立页面
-            <ExternalIcon />
-          </a>
-        </div>
-      </header>
+      <ToolHeader
+        icon={<WebRtcLeakIcon />}
+        description="WebRTC 往往通过 UDP 直连进行建立，如果测试返回了真实 IP，则意味着你的代理设置没有覆盖这些连接。除了检测你连接 WebRTC 时所使用的 IP，我们还会检测你的 NAT 类型。然而，NAT 类型的检测并不是 100% 准确的，仅供参考。"
+        href="/webrtc"
+        onStart={onStart}
+        onStop={onStop}
+        running={running}
+        startLabel={webrtc.status === "idle" ? "开始测试" : "重新测试"}
+        stopLabel="停止"
+        status={webrtc.status}
+        title="WebRTC 泄漏测试"
+        titleId="webrtc-title"
+      />
 
       <div className="p-5 sm:p-7">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -721,7 +704,7 @@ const WebRtcTool = ({
         </div>
       </div>
 
-      <p className="border-t border-hairline bg-canvas-soft px-5 py-4 text-xs leading-5 text-mute sm:px-7">
+      <p className="border-t border-hairline bg-canvas-soft/60 px-5 py-3.5 text-xs leading-5 text-mute sm:px-7">
         WebRTC 请求直接从当前浏览器发往对应 STUN 服务；测试结果只存在本轮会话中，不保存个人检测历史。
       </p>
     </section>
@@ -750,19 +733,19 @@ const generateBezierPath = (points: { x: number; y: number }[]) => {
 const SpeedWaveform = ({
   samples,
   currentValue,
-  theme = "emerald",
+  theme = "cyan",
   label,
   active = false,
 }: {
   readonly samples: readonly number[];
   readonly currentValue: number | null;
-  readonly theme?: "emerald" | "cyan";
+  readonly theme?: "cyan" | "link";
   readonly label: string;
   readonly active?: boolean;
 }) => {
-  const isEmerald = theme === "emerald";
-  const strokeColor = isEmerald ? "#10b981" : "#06b6d4";
-  const gradientId = isEmerald ? "grad-emerald-speed" : "grad-cyan-speed";
+  const isCyan = theme === "cyan";
+  const strokeColor = isCyan ? "#50e3c2" : "#0070f3";
+  const gradientId = isCyan ? "grad-cyan-speed" : "grad-link-speed";
 
   const points = (() => {
     if (samples.length === 0) {
@@ -788,21 +771,16 @@ const SpeedWaveform = ({
             className={cn(
               "size-2 rounded-full",
               active
-                ? isEmerald
-                  ? "animate-pulse bg-emerald-500 shadow-[0_0_8px_#10b981]"
-                  : "animate-pulse bg-cyan-500 shadow-[0_0_8px_#06b6d4]"
+                ? isCyan
+                  ? "animate-pulse bg-cyan shadow-[0_0_8px_rgb(80_227_194/60%)]"
+                  : "animate-pulse bg-link shadow-[0_0_8px_rgb(0_112_243/60%)]"
                 : "bg-mute/40",
             )}
           />
           {label}
         </span>
         <div className="flex items-baseline gap-1.5">
-          <span
-            className={cn(
-              "font-mono text-2xl font-bold tracking-tight sm:text-3xl tabular-nums",
-              isEmerald ? "text-emerald-600 dark:text-emerald-400" : "text-cyan-600 dark:text-cyan-400",
-            )}
-          >
+          <span className="font-mono text-2xl font-bold tracking-tight text-ink sm:text-3xl tabular-nums">
             {currentValue !== null && currentValue > 0
               ? currentValue.toFixed(2)
               : "0.00"}
@@ -824,7 +802,7 @@ const SpeedWaveform = ({
               <stop
                 offset="0%"
                 stopColor={strokeColor}
-                stopOpacity={isEmerald ? "0.3" : "0.25"}
+                stopOpacity="0.25"
               />
               <stop offset="100%" stopColor={strokeColor} stopOpacity="0" />
             </linearGradient>
@@ -907,10 +885,10 @@ const SpeedPulseButton = ({
     <div className="relative flex flex-col items-center justify-center">
       <div
         className={cn(
-          "absolute -inset-3 rounded-full transition-all duration-700 pointer-events-none",
+          "pointer-events-none absolute -inset-3 rounded-full transition-all duration-700",
           running
-            ? "animate-ping opacity-25 bg-gradient-to-tr from-cyan-500 to-emerald-400"
-            : "opacity-0 group-hover:opacity-30 bg-cyan-500/20 blur-xl",
+            ? "animate-status-pulse bg-cyan/20 opacity-60 blur-md"
+            : "opacity-0 group-hover:opacity-40 bg-ink/5 blur-lg",
         )}
       />
 
@@ -919,23 +897,24 @@ const SpeedPulseButton = ({
         onClick={onClick}
         aria-label={running ? "停止测速" : status === "idle" ? "开始测速" : "重新测速"}
         className={cn(
-          "group relative flex size-32 sm:size-36 flex-col items-center justify-center rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cyan-400/40 cursor-pointer",
+          "group relative flex size-32 cursor-pointer flex-col items-center justify-center rounded-full bg-ink text-white transition-all duration-200 focus-visible:outline-2 focus-visible:outline-ink focus-visible:outline-offset-4 active:scale-95 sm:size-36",
           running
-            ? "bg-gradient-to-br from-cyan-600 via-teal-600 to-emerald-600 shadow-[0_0_30px_rgba(6,182,212,0.45)] text-white"
-            : "bg-gradient-to-br from-cyan-500 via-teal-500 to-emerald-500 shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:scale-105 hover:shadow-[0_0_35px_rgba(6,182,212,0.5)] active:scale-95 text-white",
+            ? "shadow-[0_0_0_2px_rgb(23_23_23),0_0_0_5px_rgb(80_227_194/40%),0_8px_24px_rgb(0_0_0/20%)]"
+            : "shadow-[0_1px_2px_rgb(0_0_0/6%),0_8px_20px_rgb(0_0_0/12%)] hover:bg-black hover:shadow-[0_2px_4px_rgb(0_0_0/8%),0_12px_28px_rgb(0_0_0/18%)]",
         )}
       >
         {running ? (
           <svg
-            className="absolute inset-0 size-full -rotate-90 animate-spin [animation-duration:6s]"
+            className="absolute inset-0 size-full -rotate-90 animate-spin [animation-duration:4s]"
             viewBox="0 0 100 100"
+            aria-hidden="true"
           >
             <circle
               cx="50"
               cy="50"
               r="46"
               fill="none"
-              stroke="rgba(255, 255, 255, 0.2)"
+              stroke="rgb(255 255 255 / 15%)"
               strokeWidth="3"
             />
             <circle
@@ -943,7 +922,7 @@ const SpeedPulseButton = ({
               cy="50"
               r="46"
               fill="none"
-              stroke="#ffffff"
+              stroke="var(--color-cyan)"
               strokeWidth="3.5"
               strokeDasharray="60 120"
               strokeLinecap="round"
@@ -951,16 +930,16 @@ const SpeedPulseButton = ({
           </svg>
         ) : null}
 
-        <span className="relative z-10 text-lg sm:text-xl font-bold tracking-tight text-white drop-shadow-sm">
+        <span className="relative z-10 text-lg font-bold tracking-tight text-white sm:text-xl">
           {statusText}
         </span>
 
         {running ? (
-          <span className="relative z-10 mt-0.5 font-mono text-[11px] font-semibold text-cyan-100 tabular-nums">
+          <span className="relative z-10 mt-0.5 font-mono text-[11px] font-semibold text-hairline-strong tabular-nums">
             {Math.round(progress * 100)}%
           </span>
         ) : (
-          <span className="relative z-10 mt-0.5 text-[10px] font-medium text-cyan-100/90">
+          <span className="relative z-10 mt-0.5 text-[10px] font-medium text-hairline-strong">
             {status === "idle" ? "点击开始" : "再次测试"}
           </span>
         )}
@@ -1003,62 +982,28 @@ const SpeedTool = ({
 
   return (
     <section
-      className="overflow-hidden border-y border-hairline bg-canvas"
+      className="overflow-hidden rounded-2xl border border-hairline bg-canvas shadow-[0_1px_3px_rgb(0_0_0/3%),0_6px_20px_rgb(0_0_0/4%)]"
       id="speed-tool"
       aria-labelledby="speed-title"
     >
-      <header className="flex flex-col gap-6 border-b border-hairline px-5 py-6 sm:flex-row sm:items-start sm:justify-between sm:gap-8 sm:px-7 sm:py-7">
-        <div className="max-w-[720px]">
-          <div className="flex items-center gap-3">
-            <span className="flex-none text-link" aria-hidden="true">
-              <SpeedGaugeIcon />
-            </span>
-            <h3
-              className="text-[clamp(24px,3vw,34px)] leading-tight font-semibold tracking-[-0.035em] text-ink"
-              id="speed-title"
-            >
-              网速测试
-            </h3>
-            <ToolStatus status={speed.status} />
-          </div>
-          <p className="mt-3 max-w-[68ch] text-sm leading-6 text-body">
-            通过 Cloudflare edge 直接测量下载、上传、空闲延迟和抖动。测试会直接消耗流量，{SPEED_PROFILES[speed.profile].warning}
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-3 sm:justify-end">
-          {running ? (
-            <Button
-              className="h-10 rounded-full border border-hairline bg-canvas px-4 text-sm text-body shadow-none hover:bg-canvas-soft-2 hover:text-ink cursor-pointer"
-              type="button"
-              onClick={onStop}
-            >
-              <StopIcon />
-              停止测速
-            </Button>
-          ) : (
-            <Button
-              className="h-10 rounded-full bg-ink px-4 text-sm text-white shadow-[0_1px_1px_rgb(0_0_0/5%),0_3px_8px_rgb(0_0_0/12%)] hover:bg-black cursor-pointer"
-              type="button"
-              onClick={() => onStart(speed.profile)}
-            >
-              <PlayIcon />
-              {speed.status === "idle" ? "开始测速" : "重新测速"}
-            </Button>
-          )}
-          <a
-            className="inline-flex min-h-10 items-center gap-1.5 rounded-full px-2.5 text-xs text-body underline-offset-4 hover:text-ink hover:underline"
-            href="/speed-test"
-          >
-            独立页面
-            <ExternalIcon />
-          </a>
-        </div>
-      </header>
+      <ToolHeader
+        icon={<SpeedGaugeIcon />}
+        description={`通过 Cloudflare edge 直接测量下载、上传、空闲延迟和抖动。测试会直接消耗流量，${SPEED_PROFILES[speed.profile].warning}`}
+        href="/speed-test"
+        onStart={() => onStart(speed.profile)}
+        onStop={onStop}
+        running={running}
+        startLabel={speed.status === "idle" ? "开始测速" : "重新测速"}
+        stopLabel="停止测速"
+        status={speed.status}
+        title="网速测试"
+        titleId="speed-title"
+      />
 
       <div className="p-5 sm:p-7">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[300px_1fr] lg:gap-8">
           {/* Left Column: Console */}
-          <div className="flex flex-col items-center justify-between gap-6 rounded-xl border border-hairline bg-canvas-soft p-6">
+          <div className="flex flex-col items-center justify-between gap-6 rounded-xl border border-hairline bg-canvas-soft/60 p-6">
             <SpeedPulseButton
               status={speed.status}
               phase={speed.phase}
@@ -1129,7 +1074,7 @@ const SpeedTool = ({
           {/* Right Column: Dashboard */}
           <div className="flex flex-col justify-between gap-4">
             {/* Top Banner Summary */}
-            <div className="flex min-h-12 items-center justify-between rounded-xl border border-hairline bg-canvas-soft px-4 py-3 text-xs">
+            <div className="flex min-h-12 items-center justify-between rounded-xl border border-hairline bg-canvas-soft/60 px-4 py-3 text-xs">
               <div className="flex items-center gap-2">
                 <span className="text-base" aria-hidden="true">
                   {result?.status === "complete" ? "🎉" : running ? "🚀" : "💡"}
@@ -1157,14 +1102,14 @@ const SpeedTool = ({
             <div className="grid grid-cols-1 gap-4">
               <SpeedWaveform
                 label="下载 / Mbps"
-                theme="emerald"
+                theme="cyan"
                 samples={downloadSamples}
                 currentValue={downloadCurrentValue}
                 active={speed.phase === "download"}
               />
               <SpeedWaveform
                 label="上传 / Mbps"
-                theme="cyan"
+                theme="link"
                 samples={uploadSamples}
                 currentValue={uploadCurrentValue}
                 active={speed.phase === "upload"}
@@ -1172,7 +1117,7 @@ const SpeedTool = ({
             </div>
 
             {/* Bottom Metrics Bar */}
-            <dl className="grid grid-cols-3 gap-2 rounded-xl border border-hairline bg-canvas-soft p-3 sm:p-4">
+            <dl className="grid grid-cols-3 gap-2 rounded-xl border border-hairline bg-canvas-soft/60 p-3 sm:p-4">
               <div className="px-2 text-center sm:text-left">
                 <dt className="text-[11px] text-mute">空闲延迟</dt>
                 <dd className="mt-1 font-mono text-base font-semibold tabular-nums text-ink sm:text-lg">
@@ -1202,7 +1147,7 @@ const SpeedTool = ({
         </div>
       </div>
 
-      <p className="border-t border-hairline bg-canvas-soft px-5 py-4 text-xs leading-5 text-mute sm:px-7">
+      <p className="border-t border-hairline bg-canvas-soft/60 px-5 py-3.5 text-xs leading-5 text-mute sm:px-7">
         测速请求从当前浏览器直接发往 Cloudflare edge；结果只存在本轮工具测试会话中，不保存个人历史。
       </p>
     </section>

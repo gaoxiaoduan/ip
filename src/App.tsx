@@ -266,16 +266,13 @@ const ToolPage = ({
           </div>
         </section>
       </main>
-      <footer className="grid min-h-[148px] grid-cols-1 items-start gap-6 border-t border-hairline bg-canvas px-4 py-10 sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-6 sm:px-6 sm:py-8">
+      <footer className="flex flex-col items-start justify-between gap-4 border-t border-hairline bg-canvas px-4 py-8 sm:flex-row sm:items-center sm:px-6">
         <a className={BRAND_CLASS} href="/" aria-label="IP 出口检测首页">
           <BrandMark />
           <span>IP 出口检测</span>
         </a>
-        <p className="max-w-[40ch] text-xs leading-5 text-mute">
-          当前工具结果只存在本页，不保存个人检测历史。更新于 2026-07-29。
-        </p>
         <a
-          className="justify-self-start text-xs text-mute hover:text-ink sm:justify-self-end"
+          className="text-xs text-mute hover:text-ink"
           href="#top"
         >
           回到顶部 ↑
@@ -374,7 +371,7 @@ const HomePage = ({ networkAdapters }: AppProps) => {
               ))}
             </div>
             <div
-              className="mt-8 grid min-h-32 grid-cols-1 items-center gap-4 rounded-[16px] bg-ink px-5 py-5 text-white sm:grid-cols-[auto_1fr_auto] sm:gap-5 sm:px-7 sm:py-6"
+              className="mt-6 sm:mt-8 grid min-h-28 grid-cols-1 items-start gap-4 rounded-[16px] bg-ink p-5 text-white sm:grid-cols-[auto_1fr_auto] sm:items-center sm:gap-5 sm:px-7 sm:py-6"
               aria-live="polite"
             >
               <ComparisonMark kind={comparisonContent.kind} />
@@ -528,16 +525,13 @@ const HomePage = ({ networkAdapters }: AppProps) => {
         </section>
       </main>
 
-      <footer className="grid min-h-[148px] grid-cols-1 items-start gap-6 border-t border-hairline bg-canvas px-4 py-10 sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-6 sm:px-6 sm:py-8">
+      <footer className="flex flex-col items-start justify-between gap-4 border-t border-hairline bg-canvas px-4 py-8 sm:flex-row sm:items-center sm:px-6">
         <div className={BRAND_CLASS}>
           <BrandMark />
           <span>IP 出口检测</span>
         </div>
-        <p className="max-w-[40ch] text-xs leading-5 text-mute">
-          一个只在当前页面比较公网出口的轻量工具。更新于 2026-07-29。
-        </p>
         <a
-          className="justify-self-start text-xs text-mute hover:text-ink sm:justify-self-end"
+          className="text-xs text-mute hover:text-ink"
           href="#top"
         >
           回到顶部 ↑

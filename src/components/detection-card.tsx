@@ -115,12 +115,12 @@ const DetectionStateBody = ({
     case "idle":
     case "loading":
       return (
-        <div className="flex flex-col gap-3 py-4" aria-live="polite">
+        <div className="flex flex-col gap-3 py-3 sm:py-4" aria-live="polite">
           <span className="sr-only">
             {state.status === "loading" ? "正在检测" : "等待检测"}
           </span>
           <span
-            className={cn(SKELETON_CLASS, "h-[34px] w-[72%]")}
+            className={cn(SKELETON_CLASS, "h-[32px] w-[72%]")}
             aria-hidden="true"
           />
           <span className={cn(SKELETON_CLASS, "w-[54%]")} aria-hidden="true" />
@@ -131,14 +131,14 @@ const DetectionStateBody = ({
     case "success":
       return (
         <>
-          <div className="border-t border-hairline pt-4 pb-5">
+          <div className="border-t border-hairline pt-3.5 pb-4 sm:pt-4 sm:pb-5">
             <MonoLabel>公网出口</MonoLabel>
             <div className="mt-2 flex items-center justify-between gap-3">
-              <code className="min-w-0 overflow-hidden break-all font-mono text-[clamp(20px,2vw,30px)] leading-9 tracking-[-0.03em] text-ellipsis text-ink">
+              <code className="min-w-0 overflow-hidden break-all font-mono text-[clamp(20px,2.2vw,28px)] font-semibold leading-8 tracking-[-0.03em] text-ellipsis text-ink">
                 {state.observation.ip}
               </code>
               <button
-                className="inline-flex min-h-10 min-w-[62px] cursor-pointer items-center gap-2 rounded-md border border-hairline bg-canvas px-2.5 text-[11px] text-body hover:bg-canvas-soft hover:text-ink"
+                className="inline-flex min-h-9 min-w-[58px] cursor-pointer items-center justify-center gap-1.5 rounded-md border border-hairline bg-canvas px-2 text-xs text-body transition-colors hover:bg-canvas-soft hover:text-ink active:bg-canvas-soft-2 focus-visible:outline-2 focus-visible:outline-ink"
                 type="button"
                 onClick={() => void onCopy(state.observation.ip)}
                 aria-label={`复制 ${state.observation.ip}`}
@@ -174,7 +174,7 @@ const DetectionStateBody = ({
             ) : null}
           </div>
 
-          <footer className="mt-auto flex items-end justify-between border-t border-hairline pt-4">
+          <footer className="mt-auto flex items-end justify-between border-t border-hairline pt-3.5 sm:pt-4">
             <div className="flex flex-col gap-1">
               <MonoLabel>数据来源</MonoLabel>
               <a
@@ -200,7 +200,7 @@ const DetectionStateBody = ({
 
     case "unreachable":
       return (
-        <div className="mt-1 grid grid-cols-[40px_1fr] gap-4 border-t border-hairline py-5">
+        <div className="mt-1 grid grid-cols-[40px_1fr] gap-4 border-t border-hairline py-4 sm:py-5">
           <span
             className="grid size-10 place-items-center rounded-full bg-warning-soft font-mono text-[#8a5500] forced-colors:border forced-colors:border-[CanvasText]"
             aria-hidden="true"
@@ -229,7 +229,7 @@ export function DetectionCard({
 
   return (
     <article
-      className="flex min-h-[404px] flex-col rounded-[14px] border border-hairline bg-canvas p-5 max-sm:min-h-[392px] sm:min-h-[420px] sm:p-6"
+      className="flex min-h-[360px] flex-col rounded-[14px] border border-hairline bg-canvas p-4 sm:min-h-[420px] sm:p-6"
       aria-labelledby={titleId}
     >
       <header className="flex items-start justify-between gap-4">
@@ -258,7 +258,7 @@ export function DetectionCard({
         </span>
       </header>
 
-      <p className="mt-3 mb-5 min-h-[42px] max-w-[38ch] text-[13px] leading-5 text-body max-sm:mt-2 max-sm:mb-4">
+      <p className="mt-2.5 mb-4 min-h-[40px] max-w-[38ch] text-[13px] leading-5 text-body sm:mt-3 sm:mb-5">
         {path.description}
       </p>
       <DetectionStateBody
