@@ -943,6 +943,33 @@ export interface SpeedTestResult {
   readonly uploadMbps: number | null;
   readonly durationMs: number;
   readonly samples: readonly number[];
+  readonly downloadSamples: readonly number[];
+  readonly uploadSamples: readonly number[];
+}
+
+export function getBandwidthEquivalent(downloadMbps: number | null): string {
+  if (downloadMbps === null || downloadMbps <= 0) {
+    return "尚未测得有效带宽";
+  }
+  if (downloadMbps >= 1000) {
+    return "千兆宽带 (1000M+)";
+  }
+  if (downloadMbps >= 500) {
+    return "相当于 500M~1000M 宽带";
+  }
+  if (downloadMbps >= 200) {
+    return "相当于 200M~500M 宽带";
+  }
+  if (downloadMbps >= 100) {
+    return "相当于 100M~200M 宽带";
+  }
+  if (downloadMbps >= 50) {
+    return "相当于 50M~100M 宽带";
+  }
+  if (downloadMbps >= 20) {
+    return "相当于 20M~50M 宽带";
+  }
+  return "相当于 10M~20M 宽带";
 }
 
 export interface SpeedTestRunOptions {
@@ -990,6 +1017,8 @@ const createSpeedResult = (
   downloadMbps: number | null,
   uploadMbps: number | null,
   samples: readonly number[],
+  downloadSamples: readonly number[] = [],
+  uploadSamples: readonly number[] = [],
 ): SpeedTestResult => ({
   status,
   profile,
@@ -1003,6 +1032,8 @@ const createSpeedResult = (
   uploadMbps,
   durationMs: Math.max(0, Math.round(now() - startedAt)),
   samples,
+  downloadSamples,
+  uploadSamples,
 });
 
 export const createBrowserSpeedAdapter = (): SpeedTestAdapter => {
@@ -1044,12 +1075,16 @@ export const createBrowserSpeedAdapter = (): SpeedTestAdapter => {
 
     let transferred = 0;
     const startedAt = now();
+    let lastSampleTime = startedAt;
+    let lastSampleBytes = 0;
+
     if (!response.body) {
       transferred = (await response.arrayBuffer()).byteLength;
+      const duration = Math.max(1, now() - startedAt);
       report({
         phase: "download",
         percent: Math.min(1, transferred / bytes),
-        sampleMbps: calculateMbps(transferred, now() - startedAt) ?? undefined,
+        sampleMbps: calculateMbps(transferred, duration) ?? undefined,
       });
       return { bytesTransferred: Math.min(bytes, transferred) };
     }
@@ -1062,11 +1097,25 @@ export const createBrowserSpeedAdapter = (): SpeedTestAdapter => {
           break;
         }
         transferred += chunk.value.byteLength;
-        report({
-          phase: "download",
-          percent: Math.min(1, transferred / bytes),
-          sampleMbps: calculateMbps(transferred, now() - startedAt) ?? undefined,
-        });
+        const currentTime = now();
+        const timeDelta = currentTime - lastSampleTime;
+
+        // Sample every 120ms or when reaching total bytes
+        if (timeDelta >= 120 || transferred >= bytes) {
+          const bytesDelta = transferred - lastSampleBytes;
+          const intervalMbps = calculateMbps(bytesDelta, timeDelta) ?? 0;
+          const overallMbps = calculateMbps(transferred, currentTime - startedAt) ?? 0;
+          const currentSpeed = intervalMbps > 0 ? intervalMbps : overallMbps;
+
+          lastSampleTime = currentTime;
+          lastSampleBytes = transferred;
+
+          report({
+            phase: "download",
+            percent: Math.min(1, transferred / bytes),
+            sampleMbps: Number(currentSpeed.toFixed(2)),
+          });
+        }
       }
     } finally {
       await reader.cancel();
@@ -1080,24 +1129,45 @@ export const createBrowserSpeedAdapter = (): SpeedTestAdapter => {
     signal: AbortSignal,
     report: (progress: SpeedProgress) => void,
   ) => {
+    const chunkSize = bytes <= 5_000_000 ? 500_000 : 1_000_000;
+    let transferred = 0;
     const startedAt = now();
-    const payload = new Uint8Array(bytes);
-    const response = await fetch(uploadUrl, {
-      method: "POST",
-      body: payload,
-      cache: "no-store",
-      referrerPolicy: "no-referrer",
-      signal,
-    });
-    if (!response.ok) {
-      throw new Error(`Upload request failed: ${response.status}`);
+    const chunkPayload = new Uint8Array(chunkSize);
+
+    while (transferred < bytes) {
+      if (signal.aborted) {
+        throw new DOMException("Aborted", "AbortError");
+      }
+      const currentChunkSize = Math.min(chunkSize, bytes - transferred);
+      const payload = currentChunkSize === chunkSize ? chunkPayload : new Uint8Array(currentChunkSize);
+      const chunkStartedAt = now();
+
+      const response = await fetch(uploadUrl, {
+        method: "POST",
+        body: payload,
+        cache: "no-store",
+        referrerPolicy: "no-referrer",
+        signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Upload request failed: ${response.status}`);
+      }
+
+      transferred += currentChunkSize;
+      const chunkDuration = Math.max(1, now() - chunkStartedAt);
+      const chunkMbps = calculateMbps(currentChunkSize, chunkDuration) ?? 0;
+      const overallMbps = calculateMbps(transferred, now() - startedAt) ?? 0;
+      const currentSpeed = chunkMbps > 0 ? chunkMbps : overallMbps;
+
+      report({
+        phase: "upload",
+        percent: Math.min(1, transferred / bytes),
+        sampleMbps: Number(currentSpeed.toFixed(2)),
+      });
     }
-    report({
-      phase: "upload",
-      percent: 1,
-      sampleMbps: calculateMbps(bytes, now() - startedAt) ?? undefined,
-    });
-    return { bytesTransferred: bytes };
+
+    return { bytesTransferred: transferred };
   };
 
   return { supported, now, measureLatency, download, upload };
@@ -1122,6 +1192,8 @@ export async function runSpeedTest(
   const startedAt = adapter.now();
   const latencies: number[] = [];
   const samples: number[] = [];
+  const downloadSamples: number[] = [];
+  const uploadSamples: number[] = [];
   let downloadMbps: number | null = null;
   let uploadMbps: number | null = null;
 
@@ -1135,13 +1207,31 @@ export async function runSpeedTest(
       downloadMbps,
       uploadMbps,
       samples,
+      downloadSamples,
+      uploadSamples,
     );
   }
 
   const timeoutMs = options.timeoutMs ?? DEFAULT_SPEED_TIMEOUT_MS;
+  const MAX_ROLLING_SAMPLES = 36;
+
   const collect = (progress: SpeedProgress) => {
-    if (progress.sampleMbps !== undefined && samples.length < 48) {
+    if (progress.sampleMbps !== undefined && progress.sampleMbps > 0) {
       samples.push(progress.sampleMbps);
+      if (samples.length > MAX_ROLLING_SAMPLES * 2) {
+        samples.splice(0, samples.length - MAX_ROLLING_SAMPLES * 2);
+      }
+      if (progress.phase === "download") {
+        downloadSamples.push(progress.sampleMbps);
+        if (downloadSamples.length > MAX_ROLLING_SAMPLES) {
+          downloadSamples.splice(0, downloadSamples.length - MAX_ROLLING_SAMPLES);
+        }
+      } else if (progress.phase === "upload") {
+        uploadSamples.push(progress.sampleMbps);
+        if (uploadSamples.length > MAX_ROLLING_SAMPLES) {
+          uploadSamples.splice(0, uploadSamples.length - MAX_ROLLING_SAMPLES);
+        }
+      }
     }
   };
 
@@ -1184,6 +1274,8 @@ export async function runSpeedTest(
         downloadMbps,
         uploadMbps,
         samples,
+        downloadSamples,
+        uploadSamples,
       );
     }
 
@@ -1213,6 +1305,8 @@ export async function runSpeedTest(
         downloadMbps,
         uploadMbps,
         samples,
+        downloadSamples,
+        uploadSamples,
       );
     }
     reportProgress(options, { phase: "upload", percent: 1 });
@@ -1226,6 +1320,8 @@ export async function runSpeedTest(
       downloadMbps,
       uploadMbps,
       samples,
+      downloadSamples,
+      uploadSamples,
     );
   } catch (error) {
     const status: ToolRunStatus = isToolAbortError(error)
@@ -1244,6 +1340,8 @@ export async function runSpeedTest(
       downloadMbps,
       uploadMbps,
       samples,
+      downloadSamples,
+      uploadSamples,
     );
   }
 }

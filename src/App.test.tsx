@@ -252,7 +252,7 @@ describe("App", () => {
     render(<App networkAdapters={adapters} />);
 
     expect(screen.getByRole("heading", { name: "网络工具台" })).toBeInTheDocument();
-    expect(screen.getByText("尚未开始测速")).toBeInTheDocument();
+    expect(screen.getByText(/尚未开始测速/)).toBeInTheDocument();
     expect(screen.getByText("网站清单固定，不提供临时添加的网站。")).toBeInTheDocument();
     expect(adapters.speed?.measureLatency).not.toHaveBeenCalled();
 
@@ -291,7 +291,7 @@ describe("App", () => {
     render(<App networkAdapters={adapters} />);
 
     expect(screen.getByText(/约 15 MB 流量/)).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "开始测速" }));
+    await user.click(screen.getAllByRole("button", { name: "开始测速" })[0]!);
 
     await waitFor(() => {
       expect(adapters.speed?.download).toHaveBeenCalledWith(
@@ -300,8 +300,8 @@ describe("App", () => {
         expect.any(Function),
       );
     });
-    expect(await screen.findByText("本轮测量完成")).toBeInTheDocument();
-    expect(screen.getByText("下载")).toBeInTheDocument();
+    expect(await screen.findByText(/本轮测量完成/)).toBeInTheDocument();
+    expect(screen.getByText("下载 / Mbps")).toBeInTheDocument();
     expect(screen.getByText("空闲延迟")).toBeInTheDocument();
   });
 
@@ -331,13 +331,13 @@ describe("App", () => {
 
     render(<App networkAdapters={{ speed }} />);
 
-    await user.click(screen.getByRole("button", { name: "开始测速" }));
+    await user.click(screen.getAllByRole("button", { name: "开始测速" })[0]!);
     await waitFor(() => {
       expect(speed.download).toHaveBeenCalled();
     });
-    await user.click(screen.getByRole("button", { name: "停止测速" }));
+    await user.click(screen.getAllByRole("button", { name: "停止测速" })[0]!);
 
-    expect(await screen.findByText("本轮已停止")).toBeInTheDocument();
+    expect(await screen.findByText(/本轮已停止/)).toBeInTheDocument();
     expect(screen.getByText("耗时")).toBeInTheDocument();
   });
 

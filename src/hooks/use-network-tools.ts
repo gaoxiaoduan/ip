@@ -47,6 +47,9 @@ export interface SpeedToolState {
   readonly status: NetworkToolSessionStatus;
   readonly progress: number;
   readonly phase: SpeedProgress["phase"] | null;
+  readonly currentMbps: number | null;
+  readonly downloadSamples: readonly number[];
+  readonly uploadSamples: readonly number[];
   readonly result: SpeedTestResult | null;
   readonly profile: SpeedProfileId;
 }
@@ -73,6 +76,9 @@ const createSpeedState = (profile: SpeedProfileId): SpeedToolState => ({
   status: "idle",
   progress: 0,
   phase: null,
+  currentMbps: null,
+  downloadSamples: [],
+  uploadSamples: [],
   result: null,
   profile,
 });
@@ -251,11 +257,25 @@ export function useNetworkTools(
           if (!isCurrent("speed", runId)) {
             return;
           }
-          setSpeed((current) => ({
-            ...current,
-            progress: progress.percent,
-            phase: progress.phase,
-          }));
+          setSpeed((current) => {
+            const currentMbps = progress.sampleMbps ?? current.currentMbps;
+            const downloadSamples =
+              progress.phase === "download" && progress.sampleMbps !== undefined
+                ? [...current.downloadSamples.slice(-35), progress.sampleMbps]
+                : current.downloadSamples;
+            const uploadSamples =
+              progress.phase === "upload" && progress.sampleMbps !== undefined
+                ? [...current.uploadSamples.slice(-35), progress.sampleMbps]
+                : current.uploadSamples;
+            return {
+              ...current,
+              progress: progress.percent,
+              phase: progress.phase,
+              currentMbps,
+              downloadSamples,
+              uploadSamples,
+            };
+          });
         },
       }).then((result) => {
         if (!isCurrent("speed", runId)) {
@@ -266,6 +286,9 @@ export function useNetworkTools(
           status: result.status,
           progress: result.status === "complete" ? 1 : current.progress,
           phase: null,
+          currentMbps: result.uploadMbps ?? result.downloadMbps ?? current.currentMbps,
+          downloadSamples: result.downloadSamples.length > 0 ? result.downloadSamples : current.downloadSamples,
+          uploadSamples: result.uploadSamples.length > 0 ? result.uploadSamples : current.uploadSamples,
           result,
           profile: result.profile,
         }));

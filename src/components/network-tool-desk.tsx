@@ -12,10 +12,10 @@ import {
   CONNECTIVITY_TARGETS,
   SPEED_PROFILES,
   WEBRTC_SERVERS,
+  getBandwidthEquivalent,
   type ConnectivityObservation,
   type ConnectivityTarget,
   type SpeedProfileId,
-  type SpeedTestResult,
   type ToolObservationStatus,
   type WebRtcServerResult,
 } from "@/lib/network-tools";
@@ -471,6 +471,17 @@ const CopyIconSmall = () => (
   </svg>
 );
 
+const SpeedGaugeIcon = () => (
+  <svg
+    aria-hidden="true"
+    className="size-5 fill-none stroke-current stroke-[1.75]"
+    viewBox="0 0 24 24"
+  >
+    <path d="M12 14v-4M3.34 19a10 10 0 1 1 17.32 0" />
+    <path d="m14.5 9.5-2.5 4.5" />
+  </svg>
+);
+
 interface WebRtcCardProps {
   readonly index: number;
   readonly server: (typeof WEBRTC_SERVERS)[number];
@@ -717,72 +728,246 @@ const WebRtcTool = ({
   );
 };
 
-const formatMetric = (value: number | null, unit: string) =>
-  value === null ? "—" : `${value} ${unit}`;
-
-const SpeedTrace = ({ samples }: { samples: readonly number[] }) => {
-  if (samples.length < 2) {
-    return null;
+const generateBezierPath = (points: { x: number; y: number }[]) => {
+  if (points.length === 0) return "";
+  const first = points[0];
+  if (!first) return "";
+  if (points.length === 1) return `M 0 ${first.y.toFixed(1)} L 300 ${first.y.toFixed(1)}`;
+  let path = `M ${first.x.toFixed(1)} ${first.y.toFixed(1)}`;
+  for (let i = 0; i < points.length - 1; i++) {
+    const current = points[i];
+    const next = points[i + 1];
+    if (!current || !next) continue;
+    const controlX1 = current.x + (next.x - current.x) / 2;
+    const controlY1 = current.y;
+    const controlX2 = current.x + (next.x - current.x) / 2;
+    const controlY2 = next.y;
+    path += ` C ${controlX1.toFixed(1)} ${controlY1.toFixed(1)}, ${controlX2.toFixed(1)} ${controlY2.toFixed(1)}, ${next.x.toFixed(1)} ${next.y.toFixed(1)}`;
   }
-  const max = Math.max(...samples, 1);
-  const points = samples
-    .map((sample, index) => {
-      const x = (index / (samples.length - 1)) * 300;
-      const y = 72 - (sample / max) * 56;
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
-    })
-    .join(" ");
+  return path;
+};
+
+const SpeedWaveform = ({
+  samples,
+  currentValue,
+  theme = "emerald",
+  label,
+  active = false,
+}: {
+  readonly samples: readonly number[];
+  readonly currentValue: number | null;
+  readonly theme?: "emerald" | "cyan";
+  readonly label: string;
+  readonly active?: boolean;
+}) => {
+  const isEmerald = theme === "emerald";
+  const strokeColor = isEmerald ? "#10b981" : "#06b6d4";
+  const gradientId = isEmerald ? "grad-emerald-speed" : "grad-cyan-speed";
+
+  const points = (() => {
+    if (samples.length === 0) {
+      return [];
+    }
+    const maxVal = Math.max(...samples, 10);
+    const allSamples = [0, ...samples];
+    return allSamples.map((sample, idx) => ({
+      x: (idx / (allSamples.length - 1)) * 300,
+      y: 65 - (sample / maxVal) * 50,
+    }));
+  })();
+
+  const linePath = generateBezierPath(points);
+  const areaPath =
+    points.length > 0 ? `${linePath} L 300 70 L 0 70 Z` : "";
 
   return (
-    <div className="mt-7 border-t border-hairline pt-5">
-      <div className="flex items-center justify-between gap-4">
-        <h4 className="text-xs font-medium text-body">测量轨迹</h4>
-        <span className="font-mono text-xs text-mute">Mbps / sample</span>
+    <div className="relative flex flex-col justify-between overflow-hidden rounded-xl border border-hairline bg-canvas p-4 sm:p-5">
+      <div className="relative z-10 flex items-center justify-between gap-4">
+        <span className="flex items-center gap-2 text-xs font-semibold text-body">
+          <span
+            className={cn(
+              "size-2 rounded-full",
+              active
+                ? isEmerald
+                  ? "animate-pulse bg-emerald-500 shadow-[0_0_8px_#10b981]"
+                  : "animate-pulse bg-cyan-500 shadow-[0_0_8px_#06b6d4]"
+                : "bg-mute/40",
+            )}
+          />
+          {label}
+        </span>
+        <div className="flex items-baseline gap-1.5">
+          <span
+            className={cn(
+              "font-mono text-2xl font-bold tracking-tight sm:text-3xl tabular-nums",
+              isEmerald ? "text-emerald-600 dark:text-emerald-400" : "text-cyan-600 dark:text-cyan-400",
+            )}
+          >
+            {currentValue !== null && currentValue > 0
+              ? currentValue.toFixed(2)
+              : "0.00"}
+          </span>
+          <span className="font-mono text-xs text-mute">Mbps</span>
+        </div>
       </div>
-      <svg
-        className="mt-4 h-20 w-full overflow-visible"
-        viewBox="0 0 300 80"
-        preserveAspectRatio="none"
-        role="img"
-        aria-label="测速过程曲线"
-      >
-        <path d="M0 72H300" className="fill-none stroke-hairline" strokeWidth="1" />
-        <polyline
-          points={points}
-          className="fill-none stroke-link"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="1.8"
-        />
-      </svg>
+
+      <div className="relative z-10 mt-3 h-16 w-full">
+        <svg
+          className="h-full w-full overflow-visible"
+          viewBox="0 0 300 70"
+          preserveAspectRatio="none"
+          role="img"
+          aria-label={`${label}波形图`}
+        >
+          <defs>
+            <linearGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop
+                offset="0%"
+                stopColor={strokeColor}
+                stopOpacity={isEmerald ? "0.3" : "0.25"}
+              />
+              <stop offset="100%" stopColor={strokeColor} stopOpacity="0" />
+            </linearGradient>
+          </defs>
+
+          <line
+            x1="0"
+            y1="68"
+            x2="300"
+            y2="68"
+            className="stroke-hairline"
+            strokeWidth="1"
+          />
+          <line
+            x1="0"
+            y1="35"
+            x2="300"
+            y2="35"
+            className="stroke-hairline"
+            strokeWidth="1"
+            strokeDasharray="4 4"
+          />
+
+          {areaPath ? <path d={areaPath} fill={`url(#${gradientId})`} /> : null}
+
+          {linePath ? (
+            <path
+              d={linePath}
+              fill="none"
+              stroke={strokeColor}
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          ) : (
+            <line
+              x1="0"
+              y1="68"
+              x2="300"
+              y2="68"
+              stroke={strokeColor}
+              strokeWidth="1.5"
+              strokeDasharray="4 4"
+              opacity="0.3"
+            />
+          )}
+        </svg>
+      </div>
     </div>
   );
 };
 
-const SpeedMetrics = ({ result }: { result: SpeedTestResult }) => (
-  <dl className="grid grid-cols-2 border-y border-hairline sm:grid-cols-5">
-    {[
-      ["下载", formatMetric(result.downloadMbps, "Mb/s")],
-      ["上传", formatMetric(result.uploadMbps, "Mb/s")],
-      ["空闲延迟", formatMetric(result.latencyMs, "ms")],
-      ["抖动", formatMetric(result.jitterMs, "ms")],
-      ["耗时", formatMetric(result.durationMs, "ms")],
-    ].map(([label, value], index) => (
+const SpeedPulseButton = ({
+  status,
+  phase,
+  progress,
+  onClick,
+}: {
+  readonly status: NetworkToolSessionStatus;
+  readonly phase: SpeedToolState["phase"];
+  readonly progress: number;
+  readonly onClick: () => void;
+}) => {
+  const running = status === "running";
+
+  const statusText = (() => {
+    if (running) {
+      if (phase === "latency") return "测时延中";
+      if (phase === "download") return "测下载中";
+      if (phase === "upload") return "测上传中";
+      return "测试中...";
+    }
+    if (status === "complete" || status === "stopped") {
+      return "重新测速";
+    }
+    return "开始测速";
+  })();
+
+  return (
+    <div className="relative flex flex-col items-center justify-center">
       <div
         className={cn(
-          "border-b border-hairline px-3 py-4 first:pl-0 sm:border-b-0 sm:border-r sm:py-5 sm:last:border-r-0",
-          index > 1 && "sm:border-t-0",
+          "absolute -inset-3 rounded-full transition-all duration-700 pointer-events-none",
+          running
+            ? "animate-ping opacity-25 bg-gradient-to-tr from-cyan-500 to-emerald-400"
+            : "opacity-0 group-hover:opacity-30 bg-cyan-500/20 blur-xl",
         )}
-        key={label}
+      />
+
+      <button
+        type="button"
+        onClick={onClick}
+        aria-label={running ? "停止测速" : status === "idle" ? "开始测速" : "重新测速"}
+        className={cn(
+          "group relative flex size-32 sm:size-36 flex-col items-center justify-center rounded-full transition-all duration-300 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-cyan-400/40 cursor-pointer",
+          running
+            ? "bg-gradient-to-br from-cyan-600 via-teal-600 to-emerald-600 shadow-[0_0_30px_rgba(6,182,212,0.45)] text-white"
+            : "bg-gradient-to-br from-cyan-500 via-teal-500 to-emerald-500 shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:scale-105 hover:shadow-[0_0_35px_rgba(6,182,212,0.5)] active:scale-95 text-white",
+        )}
       >
-        <dt className="text-xs text-mute">{label}</dt>
-        <dd className="mt-2 font-mono text-[15px] tabular-nums tracking-[-0.02em] text-ink">
-          {value}
-        </dd>
-      </div>
-    ))}
-  </dl>
-);
+        {running ? (
+          <svg
+            className="absolute inset-0 size-full -rotate-90 animate-spin [animation-duration:6s]"
+            viewBox="0 0 100 100"
+          >
+            <circle
+              cx="50"
+              cy="50"
+              r="46"
+              fill="none"
+              stroke="rgba(255, 255, 255, 0.2)"
+              strokeWidth="3"
+            />
+            <circle
+              cx="50"
+              cy="50"
+              r="46"
+              fill="none"
+              stroke="#ffffff"
+              strokeWidth="3.5"
+              strokeDasharray="60 120"
+              strokeLinecap="round"
+            />
+          </svg>
+        ) : null}
+
+        <span className="relative z-10 text-lg sm:text-xl font-bold tracking-tight text-white drop-shadow-sm">
+          {statusText}
+        </span>
+
+        {running ? (
+          <span className="relative z-10 mt-0.5 font-mono text-[11px] font-semibold text-cyan-100 tabular-nums">
+            {Math.round(progress * 100)}%
+          </span>
+        ) : (
+          <span className="relative z-10 mt-0.5 text-[10px] font-medium text-cyan-100/90">
+            {status === "idle" ? "点击开始" : "再次测试"}
+          </span>
+        )}
+      </button>
+    </div>
+  );
+};
 
 const SpeedTool = ({
   onStart,
@@ -798,115 +983,227 @@ const SpeedTool = ({
   const running = speed.status === "running";
   const result = speed.result;
 
+  const downloadSamples =
+    speed.downloadSamples.length > 0
+      ? speed.downloadSamples
+      : result?.downloadSamples ?? [];
+  const uploadSamples =
+    speed.uploadSamples.length > 0
+      ? speed.uploadSamples
+      : result?.uploadSamples ?? [];
+
+  const downloadCurrentValue =
+    speed.phase === "download"
+      ? speed.currentMbps
+      : result?.downloadMbps ?? null;
+  const uploadCurrentValue =
+    speed.phase === "upload"
+      ? speed.currentMbps
+      : result?.uploadMbps ?? null;
+
   return (
     <section
       className="overflow-hidden border-y border-hairline bg-canvas"
       id="speed-tool"
       aria-labelledby="speed-title"
     >
-      <ToolHeader
-        description="通过 Cloudflare edge 直接测量下载、上传、空闲延迟和抖动。速度只呈现本轮测量结果，不把数字转换成网络好坏或代理正常异常的评分。"
-        href="/speed-test"
-        onStart={() => onStart(speed.profile)}
-        onStop={onStop}
-        running={running}
-        startLabel={speed.status === "idle" ? "开始测速" : "重新测速"}
-        stopLabel="停止测速"
-        status={speed.status}
-        title="网速测试"
-        titleId="speed-title"
-      />
-      <div className="grid grid-cols-1 gap-8 px-5 py-6 sm:px-7 sm:py-7 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] lg:gap-12">
-        <div>
-          <div className="rounded-md bg-warning-soft px-4 py-3 text-xs leading-5 text-body">
-            测试会直接消耗流量。{SPEED_PROFILES[speed.profile].warning}
+      <header className="flex flex-col gap-6 border-b border-hairline px-5 py-6 sm:flex-row sm:items-start sm:justify-between sm:gap-8 sm:px-7 sm:py-7">
+        <div className="max-w-[720px]">
+          <div className="flex items-center gap-3">
+            <span className="flex-none text-link" aria-hidden="true">
+              <SpeedGaugeIcon />
+            </span>
+            <h3
+              className="text-[clamp(24px,3vw,34px)] leading-tight font-semibold tracking-[-0.035em] text-ink"
+              id="speed-title"
+            >
+              网速测试
+            </h3>
+            <ToolStatus status={speed.status} />
           </div>
-          <fieldset className="mt-6">
-            <legend className="text-sm font-semibold text-ink">测速档位</legend>
-            <div className="mt-3 grid grid-cols-2 gap-2" role="group" aria-label="测速档位">
-              {(Object.keys(SPEED_PROFILES) as SpeedProfileId[]).map((profileId) => {
-                const profile = SPEED_PROFILES[profileId];
-                const selected = speed.profile === profileId;
-                return (
-                  <button
-                    className={cn(
-                      "min-h-[72px] cursor-pointer rounded-md border px-3 py-3 text-left transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-link",
-                      selected
-                        ? "border-ink bg-ink text-white"
-                        : "border-hairline bg-canvas text-body hover:border-hairline-strong hover:text-ink",
-                    )}
-                    key={profileId}
-                    type="button"
-                    aria-pressed={selected}
-                    disabled={running}
-                    onClick={() => onSelect(profileId)}
-                  >
-                    <span className="block text-xs font-medium">{profile.label}</span>
-                    <span className={cn("mt-1 block font-mono text-xs", selected ? "text-canvas-soft-2" : "text-mute")}>
-                      {formatBytes(profile.downloadBytes)} ↓ / {formatBytes(profile.uploadBytes)} ↑
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </fieldset>
+          <p className="mt-3 max-w-[68ch] text-sm leading-6 text-body">
+            通过 Cloudflare edge 直接测量下载、上传、空闲延迟和抖动。测试会直接消耗流量，{SPEED_PROFILES[speed.profile].warning}
+          </p>
         </div>
-        <div aria-live="polite" className="min-w-0">
+        <div className="flex flex-wrap items-center gap-3 sm:justify-end">
           {running ? (
-            <div className="border-y border-hairline py-6">
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-sm font-medium text-ink">
-                  {speed.phase === "latency"
-                    ? "正在测量空闲延迟"
-                    : speed.phase === "download"
-                      ? "正在测量下载"
-                      : "正在测量上传"}
-                </span>
-                <span className="font-mono text-xs tabular-nums text-body">
-                  {Math.round(speed.progress * 100)}%
-                </span>
-              </div>
-              <div className="mt-5 h-1 overflow-hidden rounded-full bg-canvas-soft-2">
-                <span
-                  className="block h-full rounded-full bg-link transition-[width] duration-200"
-                  style={{ width: `${speed.progress * 100}%` }}
-                />
-              </div>
-              <p className="mt-3 text-xs leading-5 text-body">
-                当前页面正在产生流量；可以随时停止，本次数据不会被保存。
-              </p>
-            </div>
-          ) : result ? (
-            <>
-              <div className="mb-5 flex items-center justify-between gap-4">
-                <p className="text-sm text-body">
-                  {result.status === "complete"
-                    ? "本轮测量完成"
-                    : result.status === "stopped"
-                      ? "本轮已停止"
-                      : "本轮无法判断"}
-                </p>
-                <span className="font-mono text-xs text-mute">
-                  {SPEED_PROFILES[result.profile].label}
-                </span>
-              </div>
-              <SpeedMetrics result={result} />
-              <SpeedTrace samples={result.samples} />
-            </>
+            <Button
+              className="h-10 rounded-full border border-hairline bg-canvas px-4 text-sm text-body shadow-none hover:bg-canvas-soft-2 hover:text-ink cursor-pointer"
+              type="button"
+              onClick={onStop}
+            >
+              <StopIcon />
+              停止测速
+            </Button>
           ) : (
-            <div className="grid min-h-[226px] place-items-center border-y border-hairline px-8 text-center">
-              <div>
-                <p className="text-sm font-medium text-ink">尚未开始测速</p>
-                <p className="mt-2 max-w-[34ch] text-xs leading-5 text-body">
-                  选择档位后开始；“开始全部检测”不会触发这里的流量测试。
-                </p>
+            <Button
+              className="h-10 rounded-full bg-ink px-4 text-sm text-white shadow-[0_1px_1px_rgb(0_0_0/5%),0_3px_8px_rgb(0_0_0/12%)] hover:bg-black cursor-pointer"
+              type="button"
+              onClick={() => onStart(speed.profile)}
+            >
+              <PlayIcon />
+              {speed.status === "idle" ? "开始测速" : "重新测速"}
+            </Button>
+          )}
+          <a
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-full px-2.5 text-xs text-body underline-offset-4 hover:text-ink hover:underline"
+            href="/speed-test"
+          >
+            独立页面
+            <ExternalIcon />
+          </a>
+        </div>
+      </header>
+
+      <div className="p-5 sm:p-7">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[300px_1fr] lg:gap-8">
+          {/* Left Column: Console */}
+          <div className="flex flex-col items-center justify-between gap-6 rounded-xl border border-hairline bg-canvas-soft p-6">
+            <SpeedPulseButton
+              status={speed.status}
+              phase={speed.phase}
+              progress={speed.progress}
+              onClick={() => {
+                if (running) {
+                  onStop();
+                } else {
+                  onStart(speed.profile);
+                }
+              }}
+            />
+
+            {/* Node & IP metadata */}
+            <div className="w-full space-y-3 border-t border-hairline pt-4 text-xs">
+              <div className="flex items-center gap-2.5">
+                <span className="text-mute" aria-hidden="true">
+                  <LocationIcon />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <span className="text-[11px] text-mute">当前网络</span>
+                  <p className="truncate font-medium text-ink">本机网络 · 出口直连</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <span className="text-mute" aria-hidden="true">
+                  <NetworkIcon />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <span className="text-[11px] text-mute">测速节点</span>
+                  <p className="truncate font-medium text-ink">Cloudflare Edge · 全球加速节点</p>
+                </div>
               </div>
             </div>
-          )}
+
+            {/* Profile switchers */}
+            <div className="w-full border-t border-hairline pt-4">
+              <span className="block text-[11px] font-semibold text-mute">测速档位</span>
+              <div className="mt-2 grid grid-cols-2 gap-2" role="group" aria-label="测速档位">
+                {(Object.keys(SPEED_PROFILES) as SpeedProfileId[]).map((profileId) => {
+                  const profile = SPEED_PROFILES[profileId];
+                  const selected = speed.profile === profileId;
+                  return (
+                    <button
+                      key={profileId}
+                      type="button"
+                      aria-pressed={selected}
+                      disabled={running}
+                      onClick={() => onSelect(profileId)}
+                      className={cn(
+                        "rounded-lg border px-3 py-2 text-center transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-link cursor-pointer",
+                        selected
+                          ? "border-ink bg-ink text-white"
+                          : "border-hairline bg-canvas text-body hover:border-hairline-strong hover:text-ink",
+                      )}
+                    >
+                      <span className="block text-xs font-semibold">{profile.label}</span>
+                      <span className={cn("block font-mono text-[10px] mt-0.5", selected ? "text-canvas-soft-2" : "text-mute")}>
+                        {formatBytes(profile.downloadBytes + profile.uploadBytes)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Dashboard */}
+          <div className="flex flex-col justify-between gap-4">
+            {/* Top Banner Summary */}
+            <div className="flex min-h-12 items-center justify-between rounded-xl border border-hairline bg-canvas-soft px-4 py-3 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="text-base" aria-hidden="true">
+                  {result?.status === "complete" ? "🎉" : running ? "🚀" : "💡"}
+                </span>
+                <span className="font-medium text-ink">
+                  {result?.status === "complete"
+                    ? `本轮测量完成 · 你的网速${getBandwidthEquivalent(result.downloadMbps)}`
+                    : result?.status === "stopped"
+                      ? "本轮已停止"
+                      : running
+                        ? speed.phase === "latency"
+                          ? "正在测量空闲延迟与抖动..."
+                          : speed.phase === "download"
+                            ? "正在测量下行下载速率..."
+                            : "正在测量上行上传速率..."
+                        : "尚未开始测速，点击左侧按钮或右上角即可开始"}
+                </span>
+              </div>
+              <span className="font-mono text-xs text-mute">
+                {SPEED_PROFILES[speed.profile].label}
+              </span>
+            </div>
+
+            {/* Realtime Waveforms */}
+            <div className="grid grid-cols-1 gap-4">
+              <SpeedWaveform
+                label="下载 / Mbps"
+                theme="emerald"
+                samples={downloadSamples}
+                currentValue={downloadCurrentValue}
+                active={speed.phase === "download"}
+              />
+              <SpeedWaveform
+                label="上传 / Mbps"
+                theme="cyan"
+                samples={uploadSamples}
+                currentValue={uploadCurrentValue}
+                active={speed.phase === "upload"}
+              />
+            </div>
+
+            {/* Bottom Metrics Bar */}
+            <dl className="grid grid-cols-3 gap-2 rounded-xl border border-hairline bg-canvas-soft p-3 sm:p-4">
+              <div className="px-2 text-center sm:text-left">
+                <dt className="text-[11px] text-mute">空闲延迟</dt>
+                <dd className="mt-1 font-mono text-base font-semibold tabular-nums text-ink sm:text-lg">
+                  {result?.latencyMs !== null && result?.latencyMs !== undefined
+                    ? `${result.latencyMs} ms`
+                    : "—"}
+                </dd>
+              </div>
+              <div className="border-x border-hairline px-2 text-center sm:text-left">
+                <dt className="text-[11px] text-mute">抖动</dt>
+                <dd className="mt-1 font-mono text-base font-semibold tabular-nums text-ink sm:text-lg">
+                  {result?.jitterMs !== null && result?.jitterMs !== undefined
+                    ? `${result.jitterMs} ms`
+                    : "—"}
+                </dd>
+              </div>
+              <div className="px-2 text-center sm:text-left">
+                <dt className="text-[11px] text-mute">耗时</dt>
+                <dd className="mt-1 font-mono text-base font-semibold tabular-nums text-ink sm:text-lg">
+                  {result?.durationMs
+                    ? `${(result.durationMs / 1000).toFixed(1)} s`
+                    : "—"}
+                </dd>
+              </div>
+            </dl>
+          </div>
         </div>
       </div>
-      <p className="border-t border-hairline bg-canvas-soft px-5 py-4 text-xs leading-5 text-body sm:px-7">
-        测速请求从当前浏览器直接发往 Cloudflare edge；结果只存在本轮工具测试会话中。
+
+      <p className="border-t border-hairline bg-canvas-soft px-5 py-4 text-xs leading-5 text-mute sm:px-7">
+        测速请求从当前浏览器直接发往 Cloudflare edge；结果只存在本轮工具测试会话中，不保存个人历史。
       </p>
     </section>
   );

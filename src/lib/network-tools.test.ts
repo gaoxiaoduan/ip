@@ -6,6 +6,7 @@ import {
   clearIpGeoCache,
   fetchIpGeoInfo,
   getFlagEmoji,
+  getBandwidthEquivalent,
   SPEED_PROFILES,
   WEBRTC_SERVERS,
   runConnectivityTest,
@@ -285,6 +286,11 @@ describe("网络工具 runner", () => {
     expect(result.downloadMbps).toBeGreaterThan(0);
     expect(result.uploadMbps).toBeGreaterThan(0);
     expect(result.samples).toEqual([80, 40]);
+    expect(result.downloadSamples).toEqual([80]);
+    expect(result.uploadSamples).toEqual([40]);
+    expect(getBandwidthEquivalent(150)).toBe("相当于 100M~200M 宽带");
+    expect(getBandwidthEquivalent(1200)).toBe("千兆宽带 (1000M+)");
+    expect(getBandwidthEquivalent(null)).toBe("尚未测得有效带宽");
   });
 
   it("下载未收到档位要求的完整字节数时保持无法判断并跳过上传", async () => {
