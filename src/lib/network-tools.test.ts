@@ -3,6 +3,9 @@ import { describe, expect, it, vi } from "vitest";
 import {
   CONNECTIVITY_TARGETS,
   createBrowserConnectivityAdapter,
+  clearIpGeoCache,
+  fetchIpGeoInfo,
+  getFlagEmoji,
   SPEED_PROFILES,
   WEBRTC_SERVERS,
   runConnectivityTest,
@@ -99,7 +102,7 @@ describe("网络工具 runner", () => {
     expect(cancelled.observations.every((item) => item.reason === "cancelled")).toBe(true);
   });
 
-  it("四个 STUN 服务独立收集并去重候选，保留地址族、范围和候选类型", async () => {
+  it("四个 STUN 服务独立收集并去重候选，解析公网 IP、NAT 类型与地理信息", async () => {
     class FakeConnection implements WebRtcConnection {
       onicecandidate: ((event: { candidate: { candidate: string } | null }) => void) | null = null;
       onicecandidateerror: ((event: { errorText?: string; errorCode?: number }) => void) | null = null;
@@ -155,6 +158,15 @@ describe("网络工具 runner", () => {
         connections.push(connection);
         return connection;
       },
+      fetchIpGeo: vi.fn(async (ip) => ({
+        ip,
+        country: "中国",
+        countryCode: "CN",
+        flagEmoji: "🇨🇳",
+        region: "浙江",
+        city: "杭州",
+        isp: "Chinanet",
+      })),
     };
 
     const result = await runWebRtcTest(adapter);
@@ -174,15 +186,16 @@ describe("网络工具 runner", () => {
       "relay",
       "host",
     ]);
-    expect(result.candidates.map((candidate) => candidate.addressFamily)).toEqual([
-      "IPv4",
-      "IPv4",
-      "IPv6",
-      "mDNS",
-    ]);
-    expect(result.natReference).toContain("srflx");
+    expect(result.natReference).toContain("端口限制型或对称型");
     expect(connections.every((connection) => connection.closed)).toBe(true);
     expect(result.servers.every((server) => server.logs.some((log) => log.includes("SDP")))).toBe(true);
+
+    const googleServer = result.servers.find((s) => s.server.id === "google");
+    expect(googleServer?.ip).toBe("203.0.113.8");
+    expect(googleServer?.natType).toBe("端口限制型或对称型");
+    expect(googleServer?.isp).toBe("Chinanet");
+    expect(googleServer?.country).toBe("中国");
+    expect(googleServer?.flagEmoji).toBe("🇨🇳");
   });
 
   it("缺少 RTCPeerConnection 时不伪造 WebRTC 结果", async () => {
@@ -199,6 +212,42 @@ describe("网络工具 runner", () => {
     expect(result.status).toBe("undetermined");
     expect(result.servers.every((server) => server.status === "undetermined")).toBe(true);
     expect(result.candidates).toEqual([]);
+  });
+
+  it("IP 地理与运营商解析能提取国旗 Emoji，并支持内存去重缓存", async () => {
+    clearIpGeoCache();
+    expect(getFlagEmoji("CN")).toBe("🇨🇳");
+    expect(getFlagEmoji("US")).toBe("🇺🇸");
+    expect(getFlagEmoji("JP")).toBe("🇯🇵");
+
+    const fetcher = vi.fn(async () =>
+      Response.json({
+        success: true,
+        country: "中国",
+        country_code: "CN",
+        region: "浙江",
+        city: "杭州",
+        connection: { isp: "Chinanet", asn: 4134 },
+      }),
+    );
+
+    const first = await fetchIpGeoInfo("183.158.4.83", fetcher as unknown as typeof fetch);
+    expect(first).toEqual({
+      ip: "183.158.4.83",
+      country: "中国",
+      countryCode: "CN",
+      flagEmoji: "🇨🇳",
+      region: "浙江",
+      city: "杭州",
+      isp: "Chinanet",
+      network: "AS4134",
+    });
+    expect(fetcher).toHaveBeenCalledTimes(1);
+
+    // Repeated call for the same IP should use memory cache
+    const second = await fetchIpGeoInfo("183.158.4.83", fetcher as unknown as typeof fetch);
+    expect(second).toEqual(first);
+    expect(fetcher).toHaveBeenCalledTimes(1);
   });
 
   it("测速使用明确的低流量/精测档位，计算吞吐量、延迟和抖动", async () => {

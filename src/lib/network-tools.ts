@@ -295,6 +295,7 @@ export interface WebRtcServer {
   readonly id: string;
   readonly label: string;
   readonly url: string;
+  readonly host: string;
 }
 
 export const WEBRTC_SERVERS = [
@@ -302,21 +303,25 @@ export const WEBRTC_SERVERS = [
     id: "google",
     label: "Google STUN",
     url: "stun:stun.l.google.com:19302",
+    host: "stun.l.google.com:19302",
   },
   {
     id: "blackberry",
     label: "BlackBerry STUN",
     url: "stun:stun.voip.blackberry.com:3478",
+    host: "stun.voip.blackberry.com:3478",
   },
   {
     id: "twilio",
     label: "Twilio STUN",
     url: "stun:global.stun.twilio.com:3478",
+    host: "global.stun.twilio.com:3478",
   },
   {
     id: "cloudflare",
     label: "Cloudflare STUN",
     url: "stun:stun.cloudflare.com:3478",
+    host: "stun.cloudflare.com:3478",
   },
 ] as const satisfies readonly WebRtcServer[];
 
@@ -338,10 +343,134 @@ export interface WebRtcCandidateEvidence {
   readonly serverIds: readonly string[];
 }
 
+export interface WebRtcIpGeoInfo {
+  readonly ip: string;
+  readonly country: string;
+  readonly countryCode?: string;
+  readonly flagEmoji?: string;
+  readonly region?: string;
+  readonly city?: string;
+  readonly isp?: string;
+  readonly network?: string;
+}
+
+export const getFlagEmoji = (countryCode?: string): string => {
+  if (!countryCode || countryCode.length !== 2) {
+    return "";
+  }
+  const code = countryCode.toUpperCase();
+  const codePoints = code
+    .split("")
+    .map((char) => 127397 + char.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
+};
+
+const geoCache = new Map<string, Promise<WebRtcIpGeoInfo | null>>();
+
+export function clearIpGeoCache(): void {
+  geoCache.clear();
+}
+
+export async function fetchIpGeoInfo(
+  ip: string,
+  fetcher: typeof fetch = globalThis.fetch,
+  signal?: AbortSignal,
+): Promise<WebRtcIpGeoInfo | null> {
+  const trimmed = ip.trim();
+  if (!trimmed || !isIpv4Address(trimmed)) {
+    return null;
+  }
+  if (geoCache.has(trimmed)) {
+    return geoCache.get(trimmed)!;
+  }
+
+  const queryPromise = (async () => {
+    try {
+      const response = await fetcher(`https://ipwho.is/${trimmed}?lang=zh-CN`, {
+        cache: "no-store",
+        referrerPolicy: "no-referrer",
+        signal,
+      });
+      if (response.ok) {
+        const data = (await response.json()) as {
+          success?: boolean;
+          country?: string;
+          country_code?: string;
+          region?: string;
+          city?: string;
+          connection?: { isp?: string; org?: string; asn?: number };
+          flag?: { emoji?: string };
+        };
+        if (data.success !== false && data.country) {
+          const countryCode = data.country_code;
+          return {
+            ip: trimmed,
+            country: data.country,
+            countryCode,
+            flagEmoji: data.flag?.emoji || getFlagEmoji(countryCode),
+            region: data.region,
+            city: data.city,
+            isp: data.connection?.isp || data.connection?.org,
+            network: data.connection?.asn ? `AS${data.connection.asn}` : undefined,
+          };
+        }
+      }
+    } catch {
+      // Fallback to secondary geo service
+    }
+
+    try {
+      const fallbackResp = await fetcher(`https://api.ip.sb/geoip/${trimmed}`, {
+        cache: "no-store",
+        referrerPolicy: "no-referrer",
+        signal,
+      });
+      if (fallbackResp.ok) {
+        const data = (await fallbackResp.json()) as {
+          country?: string;
+          country_code?: string;
+          region?: string;
+          city?: string;
+          organization?: string;
+          asn?: number;
+        };
+        if (data.country) {
+          const countryCode = data.country_code;
+          return {
+            ip: trimmed,
+            country: data.country,
+            countryCode,
+            flagEmoji: getFlagEmoji(countryCode),
+            region: data.region,
+            city: data.city,
+            isp: data.organization,
+            network: data.asn ? `AS${data.asn}` : undefined,
+          };
+        }
+      }
+    } catch {
+      // Ignore
+    }
+
+    return null;
+  })();
+
+  geoCache.set(trimmed, queryPromise);
+  return queryPromise;
+}
+
 export interface WebRtcServerResult {
   readonly server: WebRtcServer;
   readonly status: ToolObservationStatus;
   readonly latencyMs: number | null;
+  readonly ip: string | null;
+  readonly natType: string | null;
+  readonly isp: string | null;
+  readonly country: string | null;
+  readonly countryCode: string | null;
+  readonly flagEmoji: string | null;
+  readonly region: string | null;
+  readonly city: string | null;
   readonly candidates: readonly WebRtcCandidateEvidence[];
   readonly logs: readonly string[];
   readonly sdp: string;
@@ -383,6 +512,10 @@ export interface WebRtcAdapter {
   readonly supported: boolean;
   readonly now: () => number;
   readonly createConnection: (server: WebRtcServer) => WebRtcConnection;
+  readonly fetchIpGeo?: (
+    ip: string,
+    signal?: AbortSignal,
+  ) => Promise<WebRtcIpGeoInfo | null>;
 }
 
 export interface WebRtcRunOptions {
@@ -505,6 +638,14 @@ const createUnsupportedWebRtcResult = (
   server,
   status: "undetermined",
   latencyMs: null,
+  ip: null,
+  natType: "无法获取 / 连接受限",
+  isp: null,
+  country: null,
+  countryCode: null,
+  flagEmoji: null,
+  region: null,
+  city: null,
   candidates: [],
   logs: ["RTCPeerConnection 不可用"],
   sdp: "",
@@ -523,7 +664,47 @@ export const createBrowserWebRtcAdapter = (): WebRtcAdapter => ({
       iceServers: [{ urls: server.url }],
     }) as unknown as WebRtcConnection;
   },
+  fetchIpGeo: (ip, signal) => fetchIpGeoInfo(ip, globalThis.fetch, signal),
 });
+
+const inferNatType = (
+  candidates: readonly WebRtcCandidateEvidence[],
+  hasError: boolean,
+): string => {
+  if (hasError) {
+    return "无法获取 / 连接受限";
+  }
+  const srflx = candidates.find((candidate) => candidate.type === "srflx");
+  if (srflx) {
+    return "端口限制型或对称型";
+  }
+  const publicHost = candidates.find(
+    (candidate) => candidate.type === "host" && candidate.scope === "public",
+  );
+  if (publicHost) {
+    return "公网直连 (无 NAT)";
+  }
+  if (candidates.length > 0) {
+    return "无法获取 / 连接受限";
+  }
+  return "无法获取 / 连接受限";
+};
+
+const extractPublicIp = (
+  candidates: readonly WebRtcCandidateEvidence[],
+): string | null => {
+  const srflx = candidates.find(
+    (candidate) => candidate.type === "srflx" && candidate.scope === "public",
+  );
+  if (srflx) {
+    return srflx.address;
+  }
+  const publicCand = candidates.find((candidate) => candidate.scope === "public");
+  if (publicCand) {
+    return publicCand.address;
+  }
+  return null;
+};
 
 const runWebRtcProbe = async (
   adapter: WebRtcAdapter,
@@ -597,10 +778,31 @@ const runWebRtcProbe = async (
     });
 
     const uniqueCandidates = dedupeCandidates(candidates);
+    const publicIp = extractPublicIp(uniqueCandidates);
+    const natType = inferNatType(uniqueCandidates, false);
+
+    let geoInfo: WebRtcIpGeoInfo | null = null;
+    if (publicIp) {
+      try {
+        const geoFetcher = adapter.fetchIpGeo ?? ((ip, sig) => fetchIpGeoInfo(ip, globalThis.fetch, sig));
+        geoInfo = await geoFetcher(publicIp, options.signal);
+      } catch {
+        // Geo lookup is non-blocking
+      }
+    }
+
     return {
       server,
       status: uniqueCandidates.length > 0 ? "observed" : "unobserved",
       latencyMs: Math.max(0, Math.round(adapter.now() - startedAt)),
+      ip: publicIp,
+      natType,
+      isp: geoInfo?.isp ?? null,
+      country: geoInfo?.country ?? null,
+      countryCode: geoInfo?.countryCode ?? null,
+      flagEmoji: geoInfo?.flagEmoji ?? null,
+      region: geoInfo?.region ?? null,
+      city: geoInfo?.city ?? null,
       candidates: uniqueCandidates,
       logs,
       sdp: connection.localDescription?.sdp ?? offer.sdp ?? "",
@@ -619,11 +821,22 @@ const runWebRtcProbe = async (
           ? "本次 STUN 连接已停止"
           : `STUN 连接无法判断 · ${error instanceof Error ? error.message : "未知错误"}`,
     );
+    const uniqueCandidates = dedupeCandidates(candidates);
+    const publicIp = extractPublicIp(uniqueCandidates);
+
     return {
       server,
       status: "undetermined",
       latencyMs: null,
-      candidates: dedupeCandidates(candidates),
+      ip: publicIp,
+      natType: "无法获取 / 连接受限",
+      isp: null,
+      country: null,
+      countryCode: null,
+      flagEmoji: null,
+      region: null,
+      city: null,
+      candidates: uniqueCandidates,
       logs,
       sdp: connection?.localDescription?.sdp ?? "",
       reason,
@@ -637,7 +850,7 @@ const deriveNatReference = (
   candidates: readonly WebRtcCandidateEvidence[],
 ) => {
   if (candidates.some((candidate) => candidate.type === "srflx")) {
-    return "观察到 srflx 候选（仅供参考）";
+    return "端口限制型或对称型（仅供参考）";
   }
   if (candidates.length > 0) {
     return "未观察到 srflx 候选（仅供参考）";

@@ -340,4 +340,62 @@ describe("App", () => {
     expect(await screen.findByText("本轮已停止")).toBeInTheDocument();
     expect(screen.getByText("耗时")).toBeInTheDocument();
   });
+
+  it("WebRTC 泄漏测试独立页面渲染 4 张卡片并支持测试触发", async () => {
+    window.history.pushState({}, "", "/webrtc");
+    const webrtc = {
+      supported: true,
+      now: () => 100,
+      createConnection: vi.fn(() => ({
+        onicecandidate: null,
+        onicecandidateerror: null,
+        onicegatheringstatechange: null,
+        iceGatheringState: "new",
+        localDescription: null,
+        createDataChannel: vi.fn(() => ({})),
+        createOffer: vi.fn(async () => ({ type: "offer", sdp: "v=0\no=test" })),
+        setLocalDescription: vi.fn(async function (this: {
+          iceGatheringState: string;
+          onicecandidate: ((ev: { candidate: { candidate: string } | null }) => void) | null;
+          onicegatheringstatechange: (() => void) | null;
+        }) {
+          this.iceGatheringState = "complete";
+          this.onicecandidate?.({
+            candidate: {
+              candidate: "candidate:1 1 udp 1 183.158.4.83 54321 typ srflx",
+            },
+          });
+          this.onicegatheringstatechange?.();
+          this.onicecandidate?.({ candidate: null });
+        }),
+        close: vi.fn(),
+      })),
+      fetchIpGeo: vi.fn(async (ip: string) => ({
+        ip,
+        country: "中国",
+        countryCode: "CN",
+        flagEmoji: "🇨🇳",
+        region: "浙江",
+        city: "杭州",
+        isp: "Chinanet",
+      })),
+    };
+    const user = userEvent.setup();
+
+    render(<App networkAdapters={{ webrtc }} />);
+
+    expect(screen.getAllByRole("heading", { name: "WebRTC 泄漏测试" })[0]).toBeInTheDocument();
+    expect(screen.getAllByText("WebRTC 连接")).toHaveLength(4);
+    expect(screen.getByText("#1")).toBeInTheDocument();
+    expect(screen.getByText("#4")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "开始测试" }));
+
+    await waitFor(() => {
+      expect(webrtc.createConnection).toHaveBeenCalledTimes(4);
+    });
+    expect(await screen.findAllByText("183.158.4.83")).not.toHaveLength(0);
+    expect(await screen.findAllByText("端口限制型或对称型")).not.toHaveLength(0);
+    expect(await screen.findAllByText("Chinanet")).not.toHaveLength(0);
+  });
 });

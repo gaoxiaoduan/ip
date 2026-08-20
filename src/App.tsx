@@ -214,10 +214,10 @@ const TOOL_PAGE_CONTENT: Record<
     note: "网站清单固定，不提供临时添加的网站。",
   },
   webrtc: {
-    title: "WebRTC 候选测试",
+    title: "WebRTC 泄漏测试",
     description:
-      "建立四个独立 STUN 连接，收集浏览器本轮提供的 ICE 候选地址。页面区分公网、私有、本地和 mDNS 证据，并保留 SDP / ICE 诊断日志。",
-    note: "NAT 类型只作为参考；候选地址不被包装成泄露成功或代理配置结论。",
+      "建立四个独立 STUN 连接，检测浏览器 WebRTC 是否暴露真实公网 IP 及 NAT 类型。展示真实出口 IP、NAT 类型、运营商网络与所属地区，并保留 SDP 诊断日志。",
+    note: "WebRTC 往往通过 UDP 直连建立；若测试返回真实 IP 说明代理未覆盖此类连接。NAT 类型仅供参考。",
   },
   speed: {
     title: "网速测试",

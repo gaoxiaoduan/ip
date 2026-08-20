@@ -239,29 +239,29 @@ export const PUBLIC_PAGES: readonly PublicPage[] = [
   },
   {
     path: "/webrtc",
-    title: "WebRTC 候选测试：查看浏览器连接证据",
+    title: "WebRTC 泄漏测试：检测真实 IP 与 NAT 类型",
     description:
-      "通过四个独立 STUN 服务收集 WebRTC ICE 候选，展示公网、私有、本地与 mDNS 地址、候选类型和 SDP / ICE 诊断日志。",
-    eyebrow: "WebRTC / ICE 候选",
+      "通过四个独立 STUN 服务检测浏览器 WebRTC 是否暴露真实公网 IP 及 NAT 类型，展示真实出口 IP、NAT 类型、运营商网络与所属地区。",
+    eyebrow: "WebRTC / 泄漏测试",
     intro:
-      "本页提供可直接启动的 WebRTC 候选测试。页面呈现浏览器本轮向 STUN 连接提供的证据，并把 NAT 类型明确标为参考信息，不作泄露成功或代理失效的确定性判断。",
+      "本页提供可直接启动的 WebRTC 泄漏测试。WebRTC 往往通过 UDP 直连建立，若测试返回了真实 IP，则意味着你的代理设置没有覆盖这些连接。同时提供 NAT 类型检测作为参考。",
     sections: [
       {
         title: "四个独立 STUN 连接",
         paragraphs: [
-          "测试分别连接 stun.l.google.com:19302、stun.voip.blackberry.com:3478、global.stun.twilio.com:3478 和 stun.cloudflare.com:3478。每个服务有自己的状态、耗时、候选数量和诊断日志；单个服务不可用时，其他连接仍可以完成。",
+          "测试分别连接 stun.l.google.com:19302、stun.voip.blackberry.com:3478、global.stun.twilio.com:3478 和 stun.cloudflare.com:3478。每个服务有独立的连接状态、公网 IP、NAT 类型、运营商与诊断日志；单个服务不可用时，其他连接仍可以正常完成。",
         ],
       },
       {
-        title: "候选地址如何阅读",
+        title: "WebRTC 连接与 NAT 类型",
         paragraphs: [
-          "候选按地址族区分 IPv4、IPv6 与 mDNS，并标记公网、私有、本地或 mDNS 范围；候选类型使用 host、srflx 或 relay。候选出现只说明本轮浏览器与服务共同提供了这类连接证据，不代表全部网络流量或任何安全结论。",
+          "页面展示各 STUN 服务检测到的真实公网 IP、NAT 类型（如端口限制型或对称型）、运营商网络（如 Chinanet）及国家地区。如果测试返回了真实 IP，说明代理未覆盖 UDP 直连。",
         ],
       },
       {
-        title: "诊断日志只存在本轮",
+        title: "SDP 诊断日志只存在本轮",
         paragraphs: [
-          "展开 SDP / ICE 诊断日志可以复核当前页面产生的连接细节。日志和候选地址不会写入 Cookie、localStorage、URL 参数或匿名优化事件；刷新或离开页面后即消失。",
+          "展开 SDP 日志可以复核当前页面产生的连接细节。日志和候选地址不会写入 Cookie、localStorage、URL 参数或匿名优化事件；刷新或离开页面后即消失。",
         ],
       },
     ],
@@ -423,7 +423,7 @@ export const renderHomeFallback = () => `<div class="public-shell">
     <article class="public-article">
       <section class="public-section" id="results"><h2>三条路径，一次对照</h2><div><p>浏览器直接访问不同目的网络类别的检测端点。每张路径卡片都会标明本次实际采用的数据来源和返回时间。</p><p>国内网站路径用于观察访问中国大陆常见网站时的出口结果；普通海外网站路径用于观察一般跨境访问；受限海外服务路径只提供可能受访问策略影响的代表性观测，不等同于任何指定服务。</p></div></section>
       <section class="public-section"><h2>结果如何比较</h2><div><p>至少两条成功路径才可以比较。若成功路径观察到不同的公网 IP 或出口归属地，页面会显示出口差异；成功路径不足两条时，页面会显示数据不足。</p><p>每条路径只会在主检测端点失败后尝试备用端点。不可达不证明没有公网出口，也不证明服务被封锁。</p></div></section>
-      <section class="public-section"><h2>网络工具台</h2><div><p>首页下方提供三种可直接操作的新工具，默认等待，不会自动启动 WebRTC 或消耗测速流量。</p><p><a href="/connectivity">网络连通性</a>显示八个固定网站的资源请求；<a href="/webrtc">WebRTC 候选测试</a>展示四个 STUN 服务的连接证据；<a href="/speed-test">网速测试</a>测量下载、上传、延迟和抖动。</p></div></section>
+      <section class="public-section"><h2>网络工具台</h2><div><p>首页下方提供三种可直接操作的新工具，默认等待，不会自动启动 WebRTC 或消耗测速流量。</p><p><a href="/connectivity">网络连通性</a>显示八个固定网站的资源请求；<a href="/webrtc">WebRTC 泄漏测试</a>展示四个 STUN 服务的连接证据；<a href="/speed-test">网速测试</a>测量下载、上传、延迟和抖动。</p></div></section>
       <section class="public-section"><h2>把观测和判断分开</h2><div><p>浏览器直连：出口结果来自检测端点，本站不会代替访客转发请求。检测会话只停留在当前页面，刷新或关闭后结果消失，不形成账户历史。</p><p>出口差异不是诊断结论。页面只比较各检测端点看到的出口结果，不据此判断代理配置正常、异常或是否生效。</p></div></section>
       <section class="public-section"><h2>隐私边界</h2><div><p>出口归属地来自各检测端点自己的 IP 地理数据库，可能存在差异。它不代表设备的精确物理位置，也不代表设备全部网络流量。</p><p>项目不需要账户、不保存个人检测结果，也不请求额外定位。</p></div></section>
       <section class="public-section"><h2>继续了解</h2><div><p><a href="/guides/ip-differences">为什么不同网站会看到不同的出口 IP？</a></p><p><a href="/guides/ip-mismatch">国内和海外看到的 IP 不一致，该怎么理解？</a></p><p><a href="/guides/traffic-split-observation">三条检测路径，观察的是什么？</a></p><p><a href="/methodology">检测方法与隐私边界</a></p></div></section>

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   useNetworkTools,
@@ -387,113 +388,236 @@ const ConnectivityTool = ({
   );
 };
 
-const serverStatus = (
-  result: WebRtcServerResult | undefined,
-): ToolObservationStatus | null => result?.status ?? null;
+const WebRtcLeakIcon = () => (
+  <svg
+    aria-hidden="true"
+    className="size-5 fill-none stroke-current stroke-[1.75]"
+    viewBox="0 0 24 24"
+  >
+    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    <path d="m4.5 4.5 15 15" />
+  </svg>
+);
 
-const WebRtcServerRow = ({
-  result,
-  running,
-  server,
-}: {
+const WebRtcCardIcon = () => (
+  <svg
+    aria-hidden="true"
+    className="size-4 fill-none stroke-current stroke-[1.6]"
+    viewBox="0 0 24 24"
+  >
+    <circle cx="12" cy="12" r="3" />
+    <circle cx="19" cy="5" r="2" />
+    <circle cx="5" cy="5" r="2" />
+    <circle cx="5" cy="19" r="2" />
+    <circle cx="19" cy="19" r="2" />
+    <path d="M10.5 10.5 6.5 6.5M13.5 10.5l4-4M10.5 13.5l-4 4M13.5 13.5l4 4" />
+  </svg>
+);
+
+const NatIcon = () => (
+  <svg
+    aria-hidden="true"
+    className="size-3.5 flex-none fill-none stroke-current stroke-[1.5]"
+    viewBox="0 0 16 16"
+  >
+    <circle cx="4" cy="4" r="2" />
+    <circle cx="12" cy="4" r="2" />
+    <circle cx="4" cy="12" r="2" />
+    <path d="M4 6v4M4 8h5a3 3 0 0 0 3-3V6" />
+  </svg>
+);
+
+const NetworkIcon = () => (
+  <svg
+    aria-hidden="true"
+    className="size-3.5 flex-none fill-none stroke-current stroke-[1.5]"
+    viewBox="0 0 16 16"
+  >
+    <rect x="2" y="3" width="12" height="8" rx="1.5" />
+    <path d="M8 11v3M5 14h6" />
+  </svg>
+);
+
+const LocationIcon = () => (
+  <svg
+    aria-hidden="true"
+    className="size-3.5 flex-none fill-none stroke-current stroke-[1.5]"
+    viewBox="0 0 16 16"
+  >
+    <path d="M8 14s4-4.5 4-7.5A4 4 0 0 0 4 6.5C4 9.5 8 14 8 14z" />
+    <circle cx="8" cy="6.5" r="1.5" />
+  </svg>
+);
+
+const DocIcon = () => (
+  <svg
+    aria-hidden="true"
+    className="size-3.5 flex-none fill-none stroke-current stroke-[1.4]"
+    viewBox="0 0 16 16"
+  >
+    <path d="M3.5 2.5h6l3 3v8h-9v-11z" />
+    <path d="M9.5 2.5v3h3M6 8h4M6 10.5h4" />
+  </svg>
+);
+
+const CopyIconSmall = () => (
+  <svg
+    aria-hidden="true"
+    className="size-3 fill-none stroke-current stroke-[1.5]"
+    viewBox="0 0 16 16"
+  >
+    <rect x="5" y="5" width="8" height="8" rx="1" />
+    <path d="M3 11H2.5A1.5 1.5 0 0 1 1 9.5V2.5A1.5 1.5 0 0 1 2.5 1H9.5A1.5 1.5 0 0 1 11 2.5V3" />
+  </svg>
+);
+
+interface WebRtcCardProps {
+  readonly index: number;
+  readonly server: (typeof WEBRTC_SERVERS)[number];
   readonly result?: WebRtcServerResult;
   readonly running: boolean;
-  readonly server: (typeof WEBRTC_SERVERS)[number];
-}) => {
-  const status = serverStatus(result);
+  readonly copiedIp: string | null;
+  readonly onCopy: (ip: string) => void;
+}
+
+const WebRtcCard = ({
+  index,
+  server,
+  result,
+  running,
+  copiedIp,
+  onCopy,
+}: WebRtcCardProps) => {
+  const hasIp = Boolean(result?.ip);
+  const logCount = result?.logs.length ?? 0;
+  const isCopied = copiedIp === result?.ip;
+
   return (
-    <li className="grid grid-cols-1 gap-3 border-b border-hairline py-4 last:border-b-0 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center sm:gap-6">
-      <div className="min-w-0">
-        <div className="flex items-center gap-2">
-          <span
-            className={cn(
-              "size-2 flex-none rounded-full",
-              status
-                ? OBSERVATION_DOT_CLASSES[status]
-                : running
-                  ? "animate-status-pulse bg-link"
-                  : "bg-hairline-strong",
-            )}
-            aria-hidden="true"
-          />
-          <span className="text-sm font-medium text-ink">{server.label}</span>
-          {status ? (
-            <ObservationStatus status={status} />
-          ) : (
-            <span className="text-xs text-mute">{running ? "检测中" : "等待"}</span>
-          )}
+    <article className="flex flex-col justify-between rounded-xl border border-hairline bg-canvas p-5 transition-shadow hover:shadow-md sm:p-5">
+      <div>
+        <div className="flex items-center justify-between gap-2 border-b border-hairline pb-3">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="flex-none text-link" aria-hidden="true">
+              <WebRtcCardIcon />
+            </span>
+            <h4 className="truncate text-sm font-semibold text-ink">WebRTC 连接</h4>
+          </div>
+          <span className="flex-none font-mono text-xs font-medium text-mute">
+            #{index + 1}
+          </span>
         </div>
-        <code className="mt-1 block truncate font-mono text-xs text-mute">
-          {server.url}
-        </code>
+
+        <p className="mt-2.5 truncate font-mono text-[11px] text-mute" title={server.host}>
+          {server.host}
+        </p>
+
+        <div className="my-4 flex items-center justify-between gap-2 rounded-lg bg-canvas-soft p-3">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <span
+              className={cn(
+                "size-2.5 flex-none rounded-full transition-colors",
+                running
+                  ? "animate-status-pulse bg-link"
+                  : hasIp
+                    ? "bg-emerald-500 shadow-[0_0_0_3px_rgba(16,185,129,0.18)]"
+                    : result
+                      ? "bg-warning"
+                      : "bg-hairline-strong",
+              )}
+              aria-hidden="true"
+            />
+            {running && !result ? (
+              <span className="animate-pulse text-xs text-mute">正在检测...</span>
+            ) : hasIp ? (
+              <code className="truncate font-mono text-[17px] font-semibold tracking-tight text-ink">
+                {result!.ip}
+              </code>
+            ) : result ? (
+              <span className="text-xs text-mute">未发现公网 IP</span>
+            ) : (
+              <span className="text-xs text-mute">等待检测</span>
+            )}
+          </div>
+
+          {hasIp ? (
+            <button
+              className="inline-flex min-h-7 cursor-pointer items-center gap-1 rounded border border-hairline bg-canvas px-2 text-[11px] text-body hover:bg-canvas-soft-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-link"
+              type="button"
+              onClick={() => onCopy(result!.ip!)}
+              aria-label={`复制 IP ${result!.ip}`}
+              title="复制 IP"
+            >
+              <CopyIconSmall />
+              <span>{isCopied ? "已复制" : "复制"}</span>
+            </button>
+          ) : null}
+        </div>
+
+        <dl className="space-y-3 pt-1 text-xs">
+          <div className="flex items-start gap-2.5">
+            <span className="mt-0.5 text-mute" aria-hidden="true">
+              <NatIcon />
+            </span>
+            <div className="min-w-0 flex-1">
+              <dt className="text-[11px] text-mute">NAT</dt>
+              <dd className="mt-0.5 truncate font-medium text-ink">
+                {result?.natType || (running ? "检测中..." : "—")}
+              </dd>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-2.5">
+            <span className="mt-0.5 text-mute" aria-hidden="true">
+              <NetworkIcon />
+            </span>
+            <div className="min-w-0 flex-1">
+              <dt className="text-[11px] text-mute">网络</dt>
+              <dd className="mt-0.5 truncate font-medium text-ink" title={result?.isp ?? undefined}>
+                {result?.isp || (running ? "检测中..." : "—")}
+              </dd>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-2.5">
+            <span className="mt-0.5 text-mute" aria-hidden="true">
+              <LocationIcon />
+            </span>
+            <div className="min-w-0 flex-1">
+              <dt className="text-[11px] text-mute">地区</dt>
+              <dd className="mt-0.5 flex items-center gap-1.5 truncate font-medium text-ink">
+                {result?.flagEmoji ? <span aria-hidden="true">{result.flagEmoji}</span> : null}
+                <span className="truncate">
+                  {result?.country
+                    ? result.city
+                      ? `${result.country} · ${result.city}`
+                      : result.country
+                    : running
+                      ? "检测中..."
+                      : "—"}
+                </span>
+              </dd>
+            </div>
+          </div>
+        </dl>
       </div>
-      <span className="font-mono text-xs tabular-nums text-body">
-        {result?.latencyMs === null || result?.latencyMs === undefined
-          ? "—"
-          : `${result.latencyMs} ms`}
-      </span>
-      <span className="font-mono text-xs tabular-nums text-mute">
-        {result ? `${result.candidates.length} 候选` : "尚未收集"}
-      </span>
-    </li>
+
+      <details className="group mt-5 border-t border-hairline pt-3">
+        <summary className="flex cursor-pointer list-none items-center justify-between text-xs text-mute hover:text-ink focus-visible:outline-2 focus-visible:outline-link [&::-webkit-details-marker]:hidden">
+          <span className="inline-flex items-center gap-1.5 font-medium">
+            <DocIcon />
+            SDP 日志 ({logCount})
+          </span>
+          <span className="transition-transform duration-200 group-open:rotate-180">
+            <ChevronIcon />
+          </span>
+        </summary>
+        <pre className="mt-2.5 max-h-48 overflow-auto whitespace-pre-wrap break-all rounded bg-ink p-3 font-mono text-[10px] leading-relaxed text-canvas-soft-2">
+          {result?.logs.join("\n") || "本轮没有诊断日志。"}
+        </pre>
+      </details>
+    </article>
   );
 };
-
-const CandidateTable = ({
-  candidates,
-}: {
-  readonly candidates: ReturnType<typeof useNetworkTools>["webrtc"]["candidates"];
-}) => {
-  if (candidates.length === 0) {
-    return (
-      <div className="border-t border-hairline py-7 text-sm text-body">
-        尚未观察到候选地址。开始测试后，浏览器会在这里呈现本轮收集到的证据。
-      </div>
-    );
-  }
-
-  return (
-    <div className="overflow-x-auto border-t border-hairline">
-      <table className="w-full min-w-[680px] border-collapse text-left">
-        <caption className="sr-only">WebRTC 候选地址证据</caption>
-        <thead>
-          <tr className="border-b border-hairline text-xs text-mute">
-            <th className="py-3 pr-4 font-normal">地址</th>
-            <th className="px-4 py-3 font-normal">地址族</th>
-            <th className="px-4 py-3 font-normal">范围</th>
-            <th className="px-4 py-3 font-normal">候选类型</th>
-            <th className="py-3 pl-4 font-normal">来源</th>
-          </tr>
-        </thead>
-        <tbody>
-          {candidates.map((candidate) => (
-            <tr className="border-b border-hairline last:border-b-0" key={`${candidate.address}-${candidate.type}`}>
-              <td className="py-3 pr-4 font-mono text-[12px] text-ink">{candidate.address}</td>
-              <td className="px-4 py-3 text-xs text-body">{candidate.addressFamily}</td>
-              <td className="px-4 py-3 text-xs text-body">{candidate.scope}</td>
-              <td className="px-4 py-3 font-mono text-xs text-body">{candidate.type}</td>
-              <td className="py-3 pl-4 font-mono text-xs text-mute">{candidate.serverIds.join(", ")}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-};
-
-const Diagnostics = ({ result }: { result: WebRtcServerResult }) => (
-  <details className="group border-t border-hairline py-4">
-    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-xs text-body outline-none marker:hidden focus-visible:ring-2 focus-visible:ring-link focus-visible:ring-offset-4 [&::-webkit-details-marker]:hidden">
-      <span>SDP / ICE 诊断日志 · {result.server.label}</span>
-      <span className="transition-transform duration-200 group-open:rotate-180">
-        <ChevronIcon />
-      </span>
-    </summary>
-    <pre className="mt-4 max-h-64 overflow-auto whitespace-pre-wrap break-words rounded-md bg-ink p-4 font-mono text-xs leading-5 text-canvas-soft-2">
-      {result.logs.join("\n") || "本轮没有诊断日志。"}
-    </pre>
-  </details>
-);
 
 const WebRtcTool = ({
   onStart,
@@ -508,15 +632,13 @@ const WebRtcTool = ({
   const resultsById = new Map(
     webrtc.servers.map((result) => [result.server.id, result]),
   );
-  const summary = running
-    ? "正在收集 ICE 候选"
-    : webrtc.status === "idle"
-      ? "尚未开始"
-      : webrtc.candidates.length > 0
-        ? "观察到候选地址"
-        : webrtc.status === "stopped"
-          ? "本轮已停止"
-          : "无法判断";
+  const [copiedIp, setCopiedIp] = useState<string | null>(null);
+
+  const handleCopy = (ip: string) => {
+    void navigator.clipboard?.writeText(ip);
+    setCopiedIp(ip);
+    setTimeout(() => setCopiedIp(null), 2000);
+  };
 
   return (
     <section
@@ -524,60 +646,72 @@ const WebRtcTool = ({
       id="webrtc-tool"
       aria-labelledby="webrtc-title"
     >
-      <ToolHeader
-        description="四个 STUN 服务各自建立一个 WebRTC 数据通道，展示浏览器本轮提供的候选地址、地址族、范围与候选类型。NAT 只作为参考信息，不输出泄露成功或代理失效结论。"
-        href="/webrtc"
-        onStart={onStart}
-        onStop={onStop}
-        running={running}
-        startLabel={webrtc.status === "idle" ? "开始收集" : "重新收集"}
-        stopLabel="停止"
-        status={webrtc.status}
-        title="WebRTC 候选测试"
-        titleId="webrtc-title"
-      />
-      <div className="grid grid-cols-1 gap-8 px-5 py-6 sm:px-7 sm:py-7 lg:grid-cols-[minmax(0,0.86fr)_minmax(0,1.14fr)] lg:gap-12">
-        <div>
-          <div className="flex items-end justify-between gap-4 border-b border-hairline pb-3">
-            <h4 className="text-sm font-semibold text-ink">STUN 服务</h4>
-            <span className="font-mono text-xs text-mute">4 独立连接</span>
-          </div>
-          <ul aria-live="polite">
-            {WEBRTC_SERVERS.map((server) => (
-              <WebRtcServerRow
-                key={server.id}
-                result={resultsById.get(server.id)}
-                running={running}
-                server={server}
-              />
-            ))}
-          </ul>
-          <div className="mt-5 rounded-md bg-canvas-soft-2 px-4 py-3 text-xs leading-5 text-body">
-            {webrtc.natReference ?? "NAT 参考：完成收集后根据候选类型显示。"}
-          </div>
-        </div>
-        <div aria-live="polite">
-          <div className="flex items-end justify-between gap-4 border-b border-hairline pb-3">
-            <div>
-              <h4 className="text-sm font-semibold text-ink">候选地址证据</h4>
-              <p className="mt-1 text-xs text-body">{summary}</p>
-            </div>
-            <span className="font-mono text-xs text-mute">
-              {webrtc.candidates.length} 条去重
+      <header className="flex flex-col gap-6 border-b border-hairline px-5 py-6 sm:flex-row sm:items-start sm:justify-between sm:gap-8 sm:px-7 sm:py-7">
+        <div className="max-w-[720px]">
+          <div className="flex items-center gap-3">
+            <span className="flex-none text-warning" aria-hidden="true">
+              <WebRtcLeakIcon />
             </span>
+            <h3
+              className="text-[clamp(24px,3vw,34px)] leading-tight font-semibold tracking-[-0.035em] text-ink"
+              id="webrtc-title"
+            >
+              WebRTC 泄漏测试
+            </h3>
+            <ToolStatus status={webrtc.status} />
           </div>
-          <CandidateTable candidates={webrtc.candidates} />
+          <p className="mt-3 max-w-[68ch] text-sm leading-6 text-body">
+            WebRTC 往往通过 UDP 直连进行建立，如果测试返回了真实 IP，则意味着你的代理设置没有覆盖这些连接。除了检测你连接 WebRTC 时所使用的 IP，我们还会检测你的 NAT 类型。然而，NAT 类型的检测并不是 100% 准确的，仅供参考。
+          </p>
         </div>
-      </div>
-      {webrtc.servers.length > 0 ? (
-        <div className="px-5 pb-5 sm:px-7 sm:pb-7">
-          {webrtc.servers.map((result) => (
-            <Diagnostics key={result.server.id} result={result} />
+        <div className="flex flex-wrap items-center gap-3 sm:justify-end">
+          {running ? (
+            <Button
+              className="h-10 rounded-full border border-hairline bg-canvas px-4 text-sm text-body shadow-none hover:bg-canvas-soft-2 hover:text-ink"
+              type="button"
+              onClick={onStop}
+            >
+              <StopIcon />
+              停止
+            </Button>
+          ) : (
+            <Button
+              className="h-10 rounded-full bg-ink px-4 text-sm text-white shadow-[0_1px_1px_rgb(0_0_0/5%),0_3px_8px_rgb(0_0_0/12%)] hover:bg-black"
+              type="button"
+              onClick={onStart}
+            >
+              <PlayIcon />
+              {webrtc.status === "idle" ? "开始测试" : "重新测试"}
+            </Button>
+          )}
+          <a
+            className="inline-flex min-h-10 items-center gap-1.5 rounded-full px-2.5 text-xs text-body underline-offset-4 hover:text-ink hover:underline"
+            href="/webrtc"
+          >
+            独立页面
+            <ExternalIcon />
+          </a>
+        </div>
+      </header>
+
+      <div className="p-5 sm:p-7">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {WEBRTC_SERVERS.map((server, index) => (
+            <WebRtcCard
+              key={server.id}
+              index={index}
+              server={server}
+              result={resultsById.get(server.id)}
+              running={running}
+              copiedIp={copiedIp}
+              onCopy={handleCopy}
+            />
           ))}
         </div>
-      ) : null}
-      <p className="border-t border-hairline bg-canvas-soft px-5 py-4 text-xs leading-5 text-body sm:px-7">
-        候选地址只说明本轮浏览器与 STUN 服务提供了哪些连接证据；它不等同于安全、泄露或网络配置结论。
+      </div>
+
+      <p className="border-t border-hairline bg-canvas-soft px-5 py-4 text-xs leading-5 text-mute sm:px-7">
+        WebRTC 请求直接从当前浏览器发往对应 STUN 服务；测试结果只存在本轮会话中，不保存个人检测历史。
       </p>
     </section>
   );
