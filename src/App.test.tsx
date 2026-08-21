@@ -4,7 +4,7 @@ import { StrictMode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import App from "@/App";
-import type { NetworkToolAdapterOverrides } from "@/hooks/use-network-tools";
+import type { NetworkToolAdapterOverrides } from "@/lib/network-tool-session";
 
 const responseFor = (input: RequestInfo | URL) => {
   const url = String(input);

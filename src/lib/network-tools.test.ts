@@ -13,6 +13,7 @@ import {
   runSpeedTest,
   runWebRtcTest,
   type ConnectivityAdapter,
+  type SpeedMeasurementProgress,
   type SpeedTestAdapter,
   type WebRtcAdapter,
   type WebRtcConnection,
@@ -260,6 +261,7 @@ describe("网络工具 runner", () => {
     });
     const downloads: number[] = [];
     const uploads: number[] = [];
+    const progress: SpeedMeasurementProgress[] = [];
     const adapter: SpeedTestAdapter = {
       supported: true,
       now,
@@ -276,7 +278,10 @@ describe("网络工具 runner", () => {
       }),
     };
 
-    const result = await runSpeedTest(adapter, { profile: "precision" });
+    const result = await runSpeedTest(adapter, {
+      profile: "precision",
+      onProgress: (next) => progress.push(next),
+    });
 
     expect(downloads).toEqual([SPEED_PROFILES.precision.downloadBytes]);
     expect(uploads).toEqual([SPEED_PROFILES.precision.uploadBytes]);
@@ -288,6 +293,19 @@ describe("网络工具 runner", () => {
     expect(result.samples).toEqual([80, 40]);
     expect(result.downloadSamples).toEqual([80]);
     expect(result.uploadSamples).toEqual([40]);
+    expect(
+      progress.find(
+        (next) => next.phase === "download" && next.sampleMbps === 80,
+      ),
+    ).toMatchObject({
+      downloadSamples: [80],
+      uploadSamples: [],
+    });
+    expect(progress.at(-1)).toMatchObject({
+      samples: [80, 40],
+      downloadSamples: [80],
+      uploadSamples: [40],
+    });
     expect(getBandwidthEquivalent(150)).toBe("相当于 100M~200M 宽带");
     expect(getBandwidthEquivalent(1200)).toBe("千兆宽带 (1000M+)");
     expect(getBandwidthEquivalent(null)).toBe("尚未测得有效带宽");
@@ -370,5 +388,34 @@ describe("网络工具 runner", () => {
     expect(result.uploadMbps).toBeNull();
     expect(result.samples).toEqual([72]);
     expect(adapter.upload).not.toHaveBeenCalled();
+  });
+
+  it("测速滚动样本按阶段最多保留最近 36 个", async () => {
+    let time = 0;
+    const adapter: SpeedTestAdapter = {
+      supported: true,
+      now: () => {
+        time += 100;
+        return time;
+      },
+      measureLatency: vi.fn(async () => 10),
+      download: vi.fn(async (bytes, _signal, report) => {
+        for (let sample = 1; sample <= 40; sample += 1) {
+          report({ phase: "download", percent: sample / 40, sampleMbps: sample });
+        }
+        return { bytesTransferred: bytes };
+      }),
+      upload: vi.fn(async (bytes, _signal, report) => {
+        report({ phase: "upload", percent: 1, sampleMbps: 80 });
+        return { bytesTransferred: bytes };
+      }),
+    };
+
+    const result = await runSpeedTest(adapter);
+
+    expect(result.downloadSamples).toHaveLength(36);
+    expect(result.downloadSamples[0]).toBe(5);
+    expect(result.downloadSamples.at(-1)).toBe(40);
+    expect(result.uploadSamples).toEqual([80]);
   });
 });

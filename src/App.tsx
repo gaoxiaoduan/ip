@@ -9,8 +9,8 @@ import {
 } from "@/components/network-tool-desk";
 import { BRAND_CLASS, BrandMark, SiteHeader } from "@/components/site-header";
 import { useDetectionSession } from "@/hooks/use-detection-session";
-import type { NetworkToolAdapterOverrides } from "@/hooks/use-network-tools";
 import { DETECTION_PATHS } from "@/lib/endpoints";
+import type { NetworkToolAdapterOverrides } from "@/lib/network-tool-session";
 import { cn } from "@/lib/utils";
 
 const PRINCIPLES = [

@@ -1,13 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  useNetworkTools,
-  type ConnectivityToolState,
-  type NetworkToolAdapterOverrides,
-  type NetworkToolSessionStatus,
-  type SpeedToolState,
-  type WebRtcToolState,
-} from "@/hooks/use-network-tools";
+import { useNetworkTools } from "@/hooks/use-network-tools";
 import {
   CONNECTIVITY_TARGETS,
   SPEED_PROFILES,
@@ -19,6 +12,13 @@ import {
   type ToolObservationStatus,
   type WebRtcServerResult,
 } from "@/lib/network-tools";
+import type {
+  ConnectivityToolState,
+  NetworkToolAdapterOverrides,
+  NetworkToolSessionStatus,
+  SpeedToolState,
+  WebRtcToolState,
+} from "@/lib/network-tool-session";
 import { cn } from "@/lib/utils";
 
 export type NetworkToolView = "all" | "connectivity" | "webrtc" | "speed";
@@ -554,7 +554,7 @@ const WebRtcCard = ({
               )}
               aria-hidden="true"
             />
-            {running && !result ? (
+            {running && !hasIp ? (
               <span className="animate-pulse text-xs text-mute">正在检测...</span>
             ) : hasIp ? (
               <code className="truncate font-mono text-[17px] font-semibold tracking-tight text-ink">
@@ -962,23 +962,17 @@ const SpeedTool = ({
   const running = speed.status === "running";
   const result = speed.result;
 
-  const downloadSamples =
-    speed.downloadSamples.length > 0
-      ? speed.downloadSamples
-      : result?.downloadSamples ?? [];
-  const uploadSamples =
-    speed.uploadSamples.length > 0
-      ? speed.uploadSamples
-      : result?.uploadSamples ?? [];
+  const downloadSamples = speed.downloadSamples;
+  const uploadSamples = speed.uploadSamples;
 
   const downloadCurrentValue =
     speed.phase === "download"
       ? speed.currentMbps
-      : result?.downloadMbps ?? null;
+      : result?.downloadMbps ?? speed.downloadSamples.at(-1) ?? null;
   const uploadCurrentValue =
     speed.phase === "upload"
       ? speed.currentMbps
-      : result?.uploadMbps ?? null;
+      : result?.uploadMbps ?? speed.uploadSamples.at(-1) ?? null;
 
   return (
     <section
@@ -1080,10 +1074,12 @@ const SpeedTool = ({
                   {result?.status === "complete" ? "🎉" : running ? "🚀" : "💡"}
                 </span>
                 <span className="font-medium text-ink">
-                  {result?.status === "complete"
+                  {result?.status === "complete" && speed.status === "complete"
                     ? `本轮测量完成 · 你的网速${getBandwidthEquivalent(result.downloadMbps)}`
-                    : result?.status === "stopped"
+                    : speed.status === "stopped"
                       ? "本轮已停止"
+                      : speed.status === "undetermined"
+                        ? "本轮暂时无法判断"
                       : running
                         ? speed.phase === "latency"
                           ? "正在测量空闲延迟与抖动..."

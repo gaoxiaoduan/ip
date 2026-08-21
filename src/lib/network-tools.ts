@@ -521,6 +521,7 @@ export interface WebRtcAdapter {
 export interface WebRtcRunOptions {
   readonly signal?: AbortSignal;
   readonly timeoutMs?: number;
+  readonly onServerProgress?: (result: WebRtcServerResult) => void;
   readonly onServerResult?: (result: WebRtcServerResult) => void;
 }
 
@@ -720,10 +721,32 @@ const runWebRtcProbe = async (
   const logs: string[] = [];
   const candidates: WebRtcCandidateEvidence[] = [];
   let connection: WebRtcConnection | null = null;
+  const emitProgress = () => {
+    const uniqueCandidates = dedupeCandidates(candidates);
+    const publicIp = extractPublicIp(uniqueCandidates);
+    options.onServerProgress?.({
+      server,
+      status: uniqueCandidates.length > 0 ? "observed" : "undetermined",
+      latencyMs: null,
+      ip: publicIp,
+      natType: inferNatType(uniqueCandidates, false),
+      isp: null,
+      country: null,
+      countryCode: null,
+      flagEmoji: null,
+      region: null,
+      city: null,
+      candidates: uniqueCandidates,
+      logs: [...logs],
+      sdp: connection?.localDescription?.sdp ?? "",
+      ...(uniqueCandidates.length === 0 ? { reason: "no-candidates" } : {}),
+    });
+  };
 
   try {
     connection = adapter.createConnection(server);
     logs.push(`连接 ${server.url}`);
+    emitProgress();
 
     let finishGathering: (() => void) | null = null;
     const gatheringComplete = new Promise<void>((resolve) => {
@@ -739,6 +762,7 @@ const runWebRtcProbe = async (
     connection.onicecandidate = (event) => {
       if (!event.candidate) {
         logs.push("ICE gathering complete");
+        emitProgress();
         finishGathering?.();
         finishGathering = null;
         return;
@@ -749,14 +773,17 @@ const runWebRtcProbe = async (
       if (candidate) {
         candidates.push(candidate);
       }
+      emitProgress();
     };
     connection.onicecandidateerror = (event) => {
       logs.push(
         `ICE error · ${event.errorCode ?? "?"} ${event.errorText ?? "未知错误"}`,
       );
+      emitProgress();
     };
     connection.onicegatheringstatechange = () => {
       logs.push(`ICE state · ${connection?.iceGatheringState ?? "unknown"}`);
+      emitProgress();
       finishIfComplete();
     };
 
@@ -766,11 +793,13 @@ const runWebRtcProbe = async (
       { signal: options.signal, timeoutMs },
     );
     logs.push(`SDP offer\n${offer.sdp ?? "(empty)"}`);
+    emitProgress();
     await runAbortable(
       () => connection!.setLocalDescription(offer),
       { signal: options.signal, timeoutMs },
     );
     logs.push("local description set");
+    emitProgress();
     finishIfComplete();
     await runAbortable(() => gatheringComplete, {
       signal: options.signal,
@@ -819,8 +848,9 @@ const runWebRtcProbe = async (
         ? "本次 STUN 连接超时"
         : reason === "cancelled"
           ? "本次 STUN 连接已停止"
-          : `STUN 连接无法判断 · ${error instanceof Error ? error.message : "未知错误"}`,
+        : `STUN 连接无法判断 · ${error instanceof Error ? error.message : "未知错误"}`,
     );
+    emitProgress();
     const uniqueCandidates = dedupeCandidates(candidates);
     const publicIp = extractPublicIp(uniqueCandidates);
 
@@ -846,7 +876,7 @@ const runWebRtcProbe = async (
   }
 };
 
-const deriveNatReference = (
+export const getWebRtcNatReference = (
   candidates: readonly WebRtcCandidateEvidence[],
 ) => {
   if (candidates.some((candidate) => candidate.type === "srflx")) {
@@ -884,7 +914,7 @@ export async function runWebRtcTest(
         : "undetermined",
     servers,
     candidates,
-    natReference: deriveNatReference(candidates),
+    natReference: getWebRtcNatReference(candidates),
   };
 }
 
@@ -912,6 +942,12 @@ export interface SpeedProgress {
   readonly phase: SpeedProgressPhase;
   readonly percent: number;
   readonly sampleMbps?: number;
+}
+
+export interface SpeedMeasurementProgress extends SpeedProgress {
+  readonly samples: readonly number[];
+  readonly downloadSamples: readonly number[];
+  readonly uploadSamples: readonly number[];
 }
 
 export interface SpeedTransferResult {
@@ -976,7 +1012,7 @@ export interface SpeedTestRunOptions {
   readonly profile?: SpeedProfileId;
   readonly signal?: AbortSignal;
   readonly timeoutMs?: number;
-  readonly onProgress?: (progress: SpeedProgress) => void;
+  readonly onProgress?: (progress: SpeedMeasurementProgress) => void;
 }
 
 const DEFAULT_SPEED_TIMEOUT_MS = 60_000;
@@ -1175,7 +1211,7 @@ export const createBrowserSpeedAdapter = (): SpeedTestAdapter => {
 
 const reportProgress = (
   options: SpeedTestRunOptions,
-  progress: SpeedProgress,
+  progress: SpeedMeasurementProgress,
 ) => {
   options.onProgress?.({
     ...progress,
@@ -1235,6 +1271,16 @@ export async function runSpeedTest(
     }
   };
 
+  const reportMeasuredProgress = (progress: SpeedProgress) => {
+    collect(progress);
+    reportProgress(options, {
+      ...progress,
+      samples: [...samples],
+      downloadSamples: [...downloadSamples],
+      uploadSamples: [...uploadSamples],
+    });
+  };
+
   try {
     for (let index = 0; index < LATENCY_SAMPLE_COUNT; index += 1) {
       const latency = await runAbortable(
@@ -1242,7 +1288,7 @@ export async function runSpeedTest(
         { signal: options.signal, timeoutMs },
       );
       latencies.push(Math.max(0, latency));
-      reportProgress(options, {
+      reportMeasuredProgress({
         phase: "latency",
         percent: ((index + 1) / LATENCY_SAMPLE_COUNT) * 0.15,
       });
@@ -1252,8 +1298,7 @@ export async function runSpeedTest(
     const download = await runAbortable(
       (signal) =>
         adapter.download(profileConfig.downloadBytes, signal, (progress) => {
-          collect(progress);
-          reportProgress(options, {
+          reportMeasuredProgress({
             ...progress,
             percent: 0.15 + progress.percent * 0.45,
           });
@@ -1283,8 +1328,7 @@ export async function runSpeedTest(
     const upload = await runAbortable(
       (signal) =>
         adapter.upload(profileConfig.uploadBytes, signal, (progress) => {
-          collect(progress);
-          reportProgress(options, {
+          reportMeasuredProgress({
             ...progress,
             percent: 0.6 + progress.percent * 0.4,
           });
@@ -1309,7 +1353,7 @@ export async function runSpeedTest(
         uploadSamples,
       );
     }
-    reportProgress(options, { phase: "upload", percent: 1 });
+    reportMeasuredProgress({ phase: "upload", percent: 1 });
 
     return createSpeedResult(
       profile,
