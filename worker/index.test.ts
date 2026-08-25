@@ -108,3 +108,147 @@ describe("POST /api/analytics", () => {
     expect(writeDataPoint).not.toHaveBeenCalled();
   });
 });
+
+const MCP_HEADERS = {
+  Accept: "application/json, text/event-stream",
+  "Content-Type": "application/json",
+};
+
+const mcpRequest = (
+  method: string,
+  id: number,
+  params: Record<string, unknown> = {},
+) =>
+  new Request("https://ip.33338888.xyz/mcp", {
+    method: "POST",
+    headers: MCP_HEADERS,
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id,
+      method,
+      params,
+    }),
+  });
+
+const mcpResponse = async (request: Request) => {
+  Object.defineProperty(request, "cf", {
+    value: {
+      asn: 64500,
+      asOrganization: "Example Network",
+      city: "Tokyo",
+      colo: "NRT",
+      country: "JP",
+      region: "Tokyo",
+    },
+  });
+
+  const ctx = createExecutionContext();
+  const response = await worker.fetch(request, env, ctx);
+  await waitOnExecutionContext(ctx);
+  return response;
+};
+
+describe("MCP Apps", () => {
+  it("advertises the MCP Apps extension during initialization", async () => {
+    const response = await mcpResponse(
+      mcpRequest("initialize", 1, {
+        protocolVersion: "2025-06-18",
+        capabilities: {
+          extensions: {
+            "io.modelcontextprotocol/ui": {
+              mimeTypes: ["text/html;profile=mcp-app"],
+            },
+          },
+        },
+        clientInfo: {
+          name: "orank-test",
+          version: "1.0.0",
+        },
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      result: {
+        capabilities: {
+          extensions: {
+            "io.modelcontextprotocol/ui": {
+              mimeTypes: ["text/html;profile=mcp-app"],
+            },
+          },
+        },
+      },
+    });
+  });
+
+  it("exposes an app-linked tool and ui resource", async () => {
+    const toolsResponse = await mcpResponse(mcpRequest("tools/list", 2));
+    const resourcesResponse = await mcpResponse(
+      mcpRequest("resources/list", 3),
+    );
+    const toolsBody = (await toolsResponse.json()) as {
+      result: { tools: Array<{ name: string; _meta?: { ui?: { resourceUri?: string } } }> };
+    };
+    const resourcesBody = (await resourcesResponse.json()) as {
+      result: { resources: Array<{ uri: string; mimeType?: string }> };
+    };
+
+    expect(toolsResponse.status).toBe(200);
+    expect(toolsBody.result.tools).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: "observe_ip",
+          _meta: expect.objectContaining({
+            ui: expect.objectContaining({
+              resourceUri: "ui://ip-exit-observer/observe.html",
+            }),
+          }),
+        }),
+      ]),
+    );
+    expect(resourcesResponse.status).toBe(200);
+    expect(resourcesBody.result.resources).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          uri: "ui://ip-exit-observer/observe.html",
+          mimeType: "text/html;profile=mcp-app",
+        }),
+      ]),
+    );
+  });
+
+  it("returns the interactive ui resource with CSP metadata", async () => {
+    const response = await mcpResponse(
+      mcpRequest("resources/read", 4, {
+        uri: "ui://ip-exit-observer/observe.html",
+      }),
+    );
+    const body = (await response.json()) as {
+      result: {
+        contents: Array<{
+          uri: string;
+          mimeType: string;
+          text: string;
+          _meta?: { ui?: { csp?: { resourceDomains?: string[] } } };
+        }>;
+      };
+    };
+
+    expect(response.status).toBe(200);
+    expect(body.result.contents[0]).toMatchObject({
+      uri: "ui://ip-exit-observer/observe.html",
+      mimeType: "text/html;profile=mcp-app",
+      text: expect.stringContaining('name="color-scheme"'),
+      _meta: {
+        ui: {
+          csp: {
+            resourceDomains: ["https://esm.sh"],
+          },
+        },
+      },
+    });
+    expect(body.result.contents[0]?.text).toContain(
+      "http-equiv=\"Content-Security-Policy\"",
+    );
+  });
+});

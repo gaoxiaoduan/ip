@@ -410,11 +410,31 @@ export const renderPublicPage = (
 
 const homeJsonLd = JSON.stringify({
   "@context": "https://schema.org",
-  "@type": "WebSite",
+  "@type": "SoftwareApplication",
   name: "IP 出口检测",
   url: `${SITE_ORIGIN}/`,
   inLanguage: "zh-CN",
   description: "比较不同目的网络实际观察到的公网出口，不保存个人检测结果。",
+  applicationCategory: "NetworkApplication",
+  operatingSystem: "Web",
+  isAccessibleForFree: true,
+  featureList: [
+    "国内、普通海外与受限海外路径的出口观测",
+    "网络连通性检查",
+    "WebRTC 泄漏测试",
+    "下载、上传、延迟与抖动测试",
+  ],
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "CNY",
+  },
+  publisher: {
+    "@type": "Organization",
+    name: "IP 出口检测",
+    url: `${SITE_ORIGIN}/`,
+  },
+  sameAs: ["https://github.com/gaoxiaoduan/ip"],
 }).replace(/</g, "\\u003c");
 
 export const renderHomeFallback = () => `<div class="public-shell">

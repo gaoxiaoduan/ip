@@ -1,0 +1,26 @@
+# IP 出口检测
+
+> IP 出口检测比较当前浏览器或 MCP 请求从不同网络路径观察到的公网出口信息。它不保存个人检测结果，也不把一次观测解释成网络配置诊断。
+
+## When to use this service
+
+Reach for IP 出口检测 when an agent needs to:
+
+- read the public IP, country, region, city, ASN, or network organization observed for the current request;
+- compare the public exit observed by domestic, ordinary-overseas, and restricted-overseas browser routes;
+- inspect whether browser WebRTC exposes a public IP, check fixed-site resource connectivity, or measure download/upload speed after the user explicitly starts a test.
+
+Do not use one result as proof of a device's precise physical location, the route of all traffic, the reachability of a particular third-party service, or the correctness of a proxy configuration.
+
+## How to call it
+
+- Current request observation: `GET https://ip.33338888.xyz/api/observe`. No authentication is required. The JSON response includes `ip`, `country`, `countryCode`, `region`, `city`, `organization`, `network`, and `colo`.
+- Interactive browser tools: open `https://ip.33338888.xyz/` and let the user start the requested test. Tests run from the user's browser and remain in the current page session.
+- MCP endpoint: connect to `https://ip.33338888.xyz/mcp` using Streamable HTTP. List tools and call `observe_ip` with `{}`. The tool returns a text fallback plus structured data and is linked to the MCP App resource `ui://ip-exit-observer/observe.html`.
+
+## Public references
+
+- Homepage: https://ip.33338888.xyz/
+- Methodology and privacy: https://ip.33338888.xyz/methodology
+- Sitemap: https://ip.33338888.xyz/sitemap.xml
+- MCP Apps extension: https://github.com/modelcontextprotocol/ext-apps

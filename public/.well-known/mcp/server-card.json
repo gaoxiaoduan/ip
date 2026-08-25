@@ -1,0 +1,27 @@
+{
+  "name": "ip-exit-observer",
+  "displayName": "IP 出口检测",
+  "description": "读取当前 MCP 请求被 Cloudflare 观察到的公网 IP、国家/地区、城市、网络组织、ASN 和边缘机房，并提供可渲染的 MCP App 视图。",
+  "version": "0.1.0",
+  "serverUrl": "https://ip.33338888.xyz/mcp",
+  "transport": "streamable-http",
+  "tools": [
+    {
+      "name": "observe_ip",
+      "description": "读取当前 MCP 请求的公网 IP 和 Cloudflare 网络观测。",
+      "readOnlyHint": true,
+      "destructiveHint": false
+    }
+  ],
+  "resources": [
+    {
+      "uri": "ui://ip-exit-observer/observe.html",
+      "mimeType": "text/html;profile=mcp-app"
+    }
+  ],
+  "extensions": {
+    "io.modelcontextprotocol/ui": {
+      "mimeTypes": ["text/html;profile=mcp-app"]
+    }
+  }
+}
