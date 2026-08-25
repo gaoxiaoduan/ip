@@ -18,9 +18,21 @@ Do not use one result as proof of a device's precise physical location, the rout
 - Interactive browser tools: open `https://ip.33338888.xyz/` and let the user start the requested test. Tests run from the user's browser and remain in the current page session.
 - MCP endpoint: connect to `https://ip.33338888.xyz/mcp` using Streamable HTTP. List tools and call `observe_ip` with `{}`. The tool returns a text fallback plus structured data and is linked to the MCP App resource `ui://ip-exit-observer/observe.html`.
 
+## Developer resources
+
+- Developer hub: `https://ip.33338888.xyz/developers/` — the canonical index for API and agent integrations.
+- OpenAPI specification: `https://ip.33338888.xyz/openapi.json` — describes the unauthenticated `GET /api/observe` endpoint.
+- MCP manifest: `https://ip.33338888.xyz/.well-known/mcp/manifest.json` — machine-readable server metadata and connection URL.
+- MCP server card: `https://ip.33338888.xyz/.well-known/mcp/server-card.json` — server capabilities, tools, resources, and MCP Apps MIME type.
+- MCP Apps resource: `ui://ip-exit-observer/observe.html` — interactive view for the `observe_ip` tool.
+
+The public API and MCP server require no authentication. They observe only the request reaching this service; they do not provide a precise device location, diagnose proxy configuration, or represent every destination's network path.
+
 ## Public references
 
 - Homepage: https://ip.33338888.xyz/
+- Developer hub: https://ip.33338888.xyz/developers/
+- OpenAPI: https://ip.33338888.xyz/openapi.json
 - Methodology and privacy: https://ip.33338888.xyz/methodology
 - Sitemap: https://ip.33338888.xyz/sitemap.xml
 - MCP Apps extension: https://github.com/modelcontextprotocol/ext-apps

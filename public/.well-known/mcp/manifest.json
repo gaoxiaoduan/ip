@@ -1,0 +1,60 @@
+{
+  "manifest_version": "1.0",
+  "server": {
+    "name": "ip-exit-observer",
+    "displayName": "IP 出口检测",
+    "description": "读取当前请求被 Cloudflare 观察到的公网 IP、国家/地区、城市、网络组织、ASN 和边缘机房。",
+    "version": "0.1.0",
+    "homepage": "https://ip.33338888.xyz/",
+    "repository": "https://github.com/gaoxiaoduan/ip",
+    "url": "https://ip.33338888.xyz/mcp"
+  },
+  "url": "https://ip.33338888.xyz/mcp",
+  "endpoint": "https://ip.33338888.xyz/mcp",
+  "serverUrl": "https://ip.33338888.xyz/mcp",
+  "mcpUrl": "https://ip.33338888.xyz/mcp",
+  "transport": {
+    "type": "streamable-http",
+    "url": "https://ip.33338888.xyz/mcp",
+    "http": {
+      "base_url": "https://ip.33338888.xyz/mcp",
+      "auth": "none",
+      "docs_url": "https://ip.33338888.xyz/developers/"
+    }
+  },
+  "tools": [
+    {
+      "name": "observe_ip",
+      "description": "读取当前 MCP 请求的公网 IP 和 Cloudflare 网络观测。",
+      "readOnlyHint": true
+    }
+  ],
+  "when_to_use": {
+    "heuristic": "当需要读取当前 MCP 请求的公网出口观测时，调用 observe_ip。",
+    "scenarios": [
+      {
+        "trigger": "需要当前请求的公网 IP、国家/地区、城市、ASN 或网络组织。",
+        "action": "通过 Streamable HTTP 连接 MCP，并调用 observe_ip。"
+      },
+      {
+        "trigger": "需要在 AI 对话中展示当前出口观测。",
+        "action": "调用 observe_ip，并渲染 ui://ip-exit-observer/observe.html。"
+      }
+    ],
+    "anti_patterns": [
+      "不要将一次观测当作精确物理定位。",
+      "不要用它判断所有目标网站的网络路径。",
+      "不要用它诊断代理、DNS 或路由配置。"
+    ]
+  },
+  "pricing": {
+    "model": "free",
+    "free_tier": "无需认证，可免费读取当前请求观测。"
+  },
+  "resources": [
+    {
+      "uri": "ui://ip-exit-observer/observe.html",
+      "mimeType": "text/html;profile=mcp-app"
+    }
+  ]
+}

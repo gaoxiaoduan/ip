@@ -244,6 +244,13 @@ const handleMcpRequest = async (request: Request): Promise<Response> => {
   });
 
   await server.connect(transport);
+  const accept = request.headers.get("Accept") ?? "";
+  if (!accept.includes("text/event-stream")) {
+    const headers = new Headers(request.headers);
+    headers.set("Accept", "application/json, text/event-stream");
+    request = new Request(request, { headers });
+  }
+
   return addMcpHeaders(await transport.handleRequest(request));
 };
 

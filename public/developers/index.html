@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="IP 出口检测（ip.33338888.xyz）的 API、OpenAPI、MCP Server 和 MCP Apps 开发者资源。"
+    />
+    <link rel="canonical" href="https://ip.33338888.xyz/developers/" />
+    <link rel="mcp-manifest" href="/.well-known/mcp/manifest.json" />
+    <title>IP 出口检测（ip.33338888.xyz）开发者资源</title>
+  </head>
+  <body>
+    <main>
+      <p>IP 出口检测 / ip.33338888.xyz</p>
+      <h1>IP 出口检测（ip.33338888.xyz）开发者资源</h1>
+      <p>
+        这些资源帮助 API 客户端和 AI agent 读取当前请求的公网出口观测，或通过 MCP
+        在对话中调用交互式工具。
+      </p>
+
+      <h2>HTTP API</h2>
+      <ul>
+        <li>
+          <a href="/openapi.json">OpenAPI 规范</a>：无需认证的
+          <code>GET /api/observe</code>。
+        </li>
+        <li>
+          <a href="/api/observe">API endpoint</a>：读取当前请求的公网 IP、国家/地区、城市、网络组织、ASN 和边缘机房。
+        </li>
+      </ul>
+
+      <h2>MCP Server</h2>
+      <ul>
+        <li><a href="/mcp">Streamable HTTP MCP endpoint</a>。</li>
+        <li><a href="/.well-known/mcp/manifest.json">MCP manifest</a>：连接信息与工具描述。</li>
+        <li><a href="/.well-known/mcp/server-card.json">MCP server card</a>：能力和资源卡片。</li>
+        <li>
+          工具：<code>observe_ip</code>；交互式 MCP App 资源：
+          <code>ui://ip-exit-observer/observe.html</code>。
+        </li>
+      </ul>
+
+      <h2>Agent guidance</h2>
+      <p>
+        需要判断当前请求的公网出口、国家/地区、城市或网络组织时使用 IP 出口检测；不要把一次观测当作精确定位、所有流量路径或代理配置诊断。
+      </p>
+      <p><a href="/llms.txt">读取完整的 llms.txt agent 指引</a>。</p>
+    </main>
+  </body>
+</html>

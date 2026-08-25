@@ -149,6 +149,30 @@ const mcpResponse = async (request: Request) => {
 };
 
 describe("MCP Apps", () => {
+  it("accepts JSON-only clients during the initialize handshake", async () => {
+    const request = mcpRequest("initialize", 0, {
+      protocolVersion: "2025-06-18",
+      capabilities: {},
+      clientInfo: {
+        name: "json-only-client",
+        version: "1.0.0",
+      },
+    });
+    const headers = new Headers(request.headers);
+    headers.set("Accept", "application/json");
+
+    const response = await mcpResponse(new Request(request, { headers }));
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      result: {
+        serverInfo: {
+          name: "ip-exit-observer",
+        },
+      },
+    });
+  });
+
   it("advertises the MCP Apps extension during initialization", async () => {
     const response = await mcpResponse(
       mcpRequest("initialize", 1, {

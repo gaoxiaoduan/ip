@@ -91,3 +91,26 @@ for (const [, , pathname] of publicPages) {
 const robots = await readBuiltFile("robots.txt");
 assert.match(robots, /User-agent: GPTBot\nDisallow: \//);
 assert.match(robots, /Disallow: \/api\//);
+
+const openApi = JSON.parse(await readBuiltFile("openapi.json"));
+assert.equal(openApi.openapi, "3.1.0");
+assert.equal(openApi.info.title, "IP 出口检测 API");
+assert.ok(openApi.paths["/api/observe"].get);
+
+const developerHub = await readBuiltFile("developers/index.html");
+assert.match(developerHub, /IP 出口检测（ip\.33338888\.xyz）开发者资源/);
+assert.match(developerHub, /href="\/openapi\.json"/);
+assert.match(developerHub, /href="\/mcp"/);
+assert.match(developerHub, /href="\/\.well-known\/mcp\/manifest\.json"/);
+
+const mcpManifest = JSON.parse(
+  await readBuiltFile(".well-known/mcp/manifest.json"),
+);
+assert.equal(mcpManifest.manifest_version, "1.0");
+assert.equal(mcpManifest.transport.type, "streamable-http");
+assert.equal(mcpManifest.transport.url, "https://ip.33338888.xyz/mcp");
+assert.equal(
+  mcpManifest.transport.http.base_url,
+  "https://ip.33338888.xyz/mcp",
+);
+assert.equal(mcpManifest.tools[0].name, "observe_ip");

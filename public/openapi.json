@@ -1,0 +1,139 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "IP 出口检测 API",
+    "summary": "读取当前请求被观察到的公网出口信息",
+    "description": "IP 出口检测提供一个无需认证的观测接口。返回值描述当前请求到达 ip.33338888.xyz 时被 Cloudflare 观察到的公网 IP 和网络归属，不代表设备精确位置、所有流量或代理配置诊断。",
+    "version": "0.1.0",
+    "contact": {
+      "name": "IP 出口检测",
+      "url": "https://ip.33338888.xyz/developers/"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://ip.33338888.xyz",
+      "description": "生产环境"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Observation",
+      "description": "读取当前请求的出口观测"
+    }
+  ],
+  "paths": {
+    "/api/observe": {
+      "get": {
+        "tags": ["Observation"],
+        "operationId": "observeIp",
+        "summary": "读取当前请求的公网出口",
+        "description": "读取当前请求被 Cloudflare 观察到的公网 IP、国家/地区、城市、网络组织、ASN 和边缘机房。无需认证；每次请求只返回本次观测。",
+        "responses": {
+          "200": {
+            "description": "当前请求的出口观测",
+            "headers": {
+              "Cache-Control": {
+                "description": "响应不会被缓存",
+                "schema": {
+                  "type": "string",
+                  "const": "no-store, max-age=0"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Observation"
+                },
+                "example": {
+                  "ok": true,
+                  "ip": "203.0.113.42",
+                  "country": "JP",
+                  "countryCode": "JP",
+                  "region": "Tokyo",
+                  "city": "Tokyo",
+                  "organization": "Example Network",
+                  "network": "AS64500",
+                  "colo": "NRT",
+                  "source": "Cloudflare request metadata"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "只支持 GET 请求"
+          },
+          "500": {
+            "description": "服务内部错误"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Observation": {
+        "type": "object",
+        "required": [
+          "ok",
+          "ip",
+          "country",
+          "countryCode",
+          "region",
+          "city",
+          "organization",
+          "network",
+          "colo",
+          "source"
+        ],
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "const": true
+          },
+          "ip": {
+            "type": "string",
+            "description": "当前请求的公网 IP"
+          },
+          "country": {
+            "type": "string",
+            "description": "国家或地区代码；没有数据时为未知"
+          },
+          "countryCode": {
+            "type": "string",
+            "description": "Cloudflare 提供的 ISO 国家或地区代码"
+          },
+          "region": {
+            "type": "string",
+            "description": "Cloudflare 观察到的地区"
+          },
+          "city": {
+            "type": "string",
+            "description": "Cloudflare 观察到的城市"
+          },
+          "organization": {
+            "type": "string",
+            "description": "网络组织名称"
+          },
+          "network": {
+            "type": "string",
+            "description": "自治系统编号，例如 AS64500"
+          },
+          "colo": {
+            "type": "string",
+            "description": "处理请求的 Cloudflare 边缘机房代码"
+          },
+          "source": {
+            "type": "string",
+            "const": "Cloudflare request metadata"
+          }
+        }
+      }
+    }
+  },
+  "externalDocs": {
+    "description": "IP 出口检测开发者资源",
+    "url": "https://ip.33338888.xyz/developers/"
+  }
+}
