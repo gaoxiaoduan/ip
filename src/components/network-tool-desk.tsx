@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tooltip } from "@/components/tooltip";
 import { useNetworkTools } from "@/hooks/use-network-tools";
@@ -703,9 +703,13 @@ const SpeedWaveform = ({
   readonly label: string;
   readonly active?: boolean;
 }) => {
-  const strokeColor = "var(--color-ink)";
-  const chartHeight = 64;
-  const baselineY = 60;
+  const gradientId = useId();
+  const strokeColor = "currentColor";
+  const chartHeight = 72;
+  const baselineY = 64;
+  const topY = 10;
+  const midY = (baselineY + topY) / 2;
+  const waveHeight = baselineY - topY;
 
   const points = (() => {
     if (samples.length === 0) {
@@ -714,17 +718,17 @@ const SpeedWaveform = ({
     const maxVal = Math.max(...samples, 10);
     return samples.map((sample, idx) => ({
       x: samples.length === 1 ? 0 : (idx / (samples.length - 1)) * 300,
-      y: baselineY - (sample / maxVal) * 50,
+      y: baselineY - (Math.min(sample, maxVal) / maxVal) * waveHeight,
     }));
   })();
 
   const linePath = generateBezierPath(points);
   const areaPath =
-    points.length > 0 ? `${linePath} L 300 ${chartHeight} L 0 ${chartHeight} Z` : "";
+    points.length > 0 ? `${linePath} L 300 ${baselineY} L 0 ${baselineY} Z` : "";
 
   return (
-    <div className="relative flex flex-col justify-between overflow-hidden rounded-xl border border-hairline bg-canvas p-4 sm:p-5">
-      <div className="relative z-10 flex items-center justify-between gap-4">
+    <div className="relative flex h-full min-h-[130px] flex-col justify-between overflow-hidden rounded-xl border border-hairline bg-canvas p-4 sm:min-h-[140px] sm:p-5">
+      <div className="relative z-10 flex shrink-0 items-center justify-between gap-4">
         <span className="flex items-center gap-2 text-xs font-semibold text-body">
           <span
             className={cn(
@@ -737,7 +741,7 @@ const SpeedWaveform = ({
           {label}
         </span>
         <div className="flex items-baseline gap-1.5">
-          <span className="font-mono text-2xl font-bold tracking-tight text-ink sm:text-3xl tabular-nums">
+          <span className="font-mono text-2xl font-bold tracking-tight text-ink tabular-nums sm:text-3xl">
             {currentValue !== null && currentValue > 0
               ? currentValue.toFixed(2)
               : "0.00"}
@@ -746,14 +750,21 @@ const SpeedWaveform = ({
         </div>
       </div>
 
-      <div className="relative z-10 mt-3 h-16 w-full overflow-hidden">
+      <div className="relative z-10 mt-2 flex min-h-14 w-full flex-1 items-end sm:min-h-16">
         <svg
-          className="block h-full w-full"
+          className="block h-full w-full overflow-visible text-ink"
           viewBox={`0 0 300 ${chartHeight}`}
           preserveAspectRatio="none"
           role="img"
           aria-label={`${label}波形图`}
         >
+          <defs>
+            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="currentColor" stopOpacity="0.12" />
+              <stop offset="100%" stopColor="currentColor" stopOpacity="0.01" />
+            </linearGradient>
+          </defs>
+
           <line
             x1="0"
             y1={baselineY}
@@ -764,16 +775,17 @@ const SpeedWaveform = ({
           />
           <line
             x1="0"
-            y1="30"
+            y1={midY}
             x2="300"
-            y2="30"
+            y2={midY}
             className="stroke-hairline"
             strokeWidth="1"
             strokeDasharray="4 4"
+            opacity="0.6"
           />
 
           {areaPath ? (
-            <path d={areaPath} fill="var(--color-canvas-soft-2)" opacity="0.6" />
+            <path d={areaPath} fill={`url(#${gradientId})`} />
           ) : null}
 
           {linePath ? (
@@ -1013,7 +1025,7 @@ const SpeedTool = ({
           {/* Right Column: Dashboard */}
           <div className="flex flex-col justify-between gap-4">
             {/* Top Banner Summary */}
-            <div className="flex min-h-12 items-center justify-between rounded-xl border border-hairline bg-canvas-soft px-4 py-3 text-xs">
+            <div className="flex min-h-12 shrink-0 items-center justify-between rounded-xl border border-hairline bg-canvas-soft px-4 py-3 text-xs">
               <div className="flex items-center gap-2">
                 <span className="text-base" aria-hidden="true">
                   {result?.status === "complete" ? "🎉" : running ? "🚀" : "💡"}
@@ -1040,7 +1052,7 @@ const SpeedTool = ({
             </div>
 
             {/* Realtime Waveforms */}
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 grid-rows-2 gap-4 flex-1">
               <SpeedWaveform
                 label="下载 / Mbps"
                 samples={downloadSamples}
@@ -1056,7 +1068,7 @@ const SpeedTool = ({
             </div>
 
             {/* Bottom Metrics Bar */}
-            <dl className="grid grid-cols-3 gap-2 rounded-xl border border-hairline px-2 py-4 sm:py-5">
+            <dl className="grid shrink-0 grid-cols-3 gap-2 rounded-xl border border-hairline px-2 py-4 sm:py-5">
               <div className="px-2 text-center sm:text-left">
                 <dt className="text-[11px] text-mute">空闲延迟</dt>
                 <dd className="mt-1 font-mono text-base font-semibold tabular-nums text-ink sm:text-lg">

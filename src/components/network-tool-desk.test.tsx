@@ -389,4 +389,19 @@ describe("网络工具台", () => {
     await user.click(screen.getAllByRole("button", { name: "开始测速" })[0]!);
     await waitFor(() => expect(speed.measureLatency).toHaveBeenCalled());
   });
+
+  it("渲染下载与上传波形图，且图形具备自适应视图属性与安全留白", () => {
+    render(<NetworkToolDesk view="speed" />);
+
+    const downloadSvg = screen.getByRole("img", { name: "下载 / Mbps波形图" });
+    const uploadSvg = screen.getByRole("img", { name: "上传 / Mbps波形图" });
+
+    expect(downloadSvg).toBeInTheDocument();
+    expect(uploadSvg).toBeInTheDocument();
+
+    expect(downloadSvg).toHaveAttribute("viewBox", "0 0 300 72");
+    expect(downloadSvg).toHaveAttribute("preserveAspectRatio", "none");
+    expect(downloadSvg.classList.contains("h-full")).toBe(true);
+    expect(downloadSvg.classList.contains("w-full")).toBe(true);
+  });
 });
