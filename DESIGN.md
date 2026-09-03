@@ -1,736 +1,369 @@
 ---
-version: alpha
-name: Vercel-design-analysis
-description: An inspired interpretation of Vercel's design language — a developer-platform brand whose surface is a stark black-and-ink duet on near-white canvas, broken at hero scale by a multi-color mesh gradient (cyan / blue / magenta / amber) that acts as the entire decorative system, paired with a custom geometric sans for headlines and a monospaced caption face for technical labels.
-
-colors:
-  primary: "#171717"
-  on-primary: "#ffffff"
-  ink: "#171717"
-  body: "#4d4d4d"
-  mute: "#888888"
-  hairline: "#ebebeb"
-  hairline-strong: "#a1a1a1"
-  canvas: "#ffffff"
-  canvas-soft: "#fafafa"
-  canvas-soft-2: "#f5f5f5"
-  link: "#0070f3"
-  link-deep: "#0761d1"
-  link-bg-soft: "#d3e5ff"
-  success: "#0070f3"
-  error: "#ee0000"
-  error-soft: "#f7d4d6"
-  error-deep: "#c50000"
-  warning: "#f5a623"
-  warning-soft: "#ffefcf"
-  warning-deep: "#ab570a"
-  violet: "#7928ca"
-  violet-soft: "#d8ccf1"
-  violet-deep: "#4c2889"
-  cyan: "#50e3c2"
-  cyan-soft: "#aaffec"
-  cyan-deep: "#29bc9b"
-  highlight-pink: "#ff0080"
-  highlight-magenta: "#eb367f"
-  gradient-develop-start: "#007cf0"
-  gradient-develop-end: "#00dfd8"
-  gradient-preview-start: "#7928ca"
-  gradient-preview-end: "#ff0080"
-  gradient-ship-start: "#ff4d4d"
-  gradient-ship-end: "#f9cb28"
-  selection-bg: "#171717"
-  selection-fg: "#f2f2f2"
-
-typography:
-  display-xl:
-    fontFamily: Geist, Inter, system-ui, -apple-system, sans-serif
-    fontSize: 48px
-    fontWeight: 600
-    lineHeight: 48px
-    letterSpacing: -2.4px
-  display-lg:
-    fontFamily: Geist, Inter, system-ui, -apple-system, sans-serif
-    fontSize: 32px
-    fontWeight: 600
-    lineHeight: 40px
-    letterSpacing: -1.28px
-  display-md:
-    fontFamily: Geist, Inter, system-ui, -apple-system, sans-serif
-    fontSize: 24px
-    fontWeight: 600
-    lineHeight: 32px
-    letterSpacing: -0.96px
-  display-sm:
-    fontFamily: Geist, Inter, system-ui, -apple-system, sans-serif
-    fontSize: 20px
-    fontWeight: 600
-    lineHeight: 28px
-    letterSpacing: -0.6px
-  body-lg:
-    fontFamily: Geist, Inter, system-ui, -apple-system, sans-serif
-    fontSize: 18px
-    fontWeight: 400
-    lineHeight: 28px
-    letterSpacing: 0px
-  body-md:
-    fontFamily: Geist, Inter, system-ui, -apple-system, sans-serif
-    fontSize: 16px
-    fontWeight: 400
-    lineHeight: 24px
-  body-md-strong:
-    fontFamily: Geist, Inter, system-ui, -apple-system, sans-serif
-    fontSize: 16px
-    fontWeight: 500
-    lineHeight: 24px
-  body-sm:
-    fontFamily: Geist, Inter, system-ui, -apple-system, sans-serif
-    fontSize: 14px
-    fontWeight: 400
-    lineHeight: 20px
-    letterSpacing: -0.28px
-  body-sm-strong:
-    fontFamily: Geist, Inter, system-ui, -apple-system, sans-serif
-    fontSize: 14px
-    fontWeight: 500
-    lineHeight: 20px
-    letterSpacing: -0.28px
-  caption:
-    fontFamily: Geist, Inter, system-ui, -apple-system, sans-serif
-    fontSize: 12px
-    fontWeight: 400
-    lineHeight: 16px
-  caption-mono:
-    fontFamily: Geist Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, monospace
-    fontSize: 12px
-    fontWeight: 400
-    lineHeight: 16px
-  code:
-    fontFamily: Geist Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, monospace
-    fontSize: 13px
-    fontWeight: 400
-    lineHeight: 20px
-  button-md:
-    fontFamily: Geist, Inter, system-ui, -apple-system, sans-serif
-    fontSize: 14px
-    fontWeight: 500
-    lineHeight: 20px
-  button-lg:
-    fontFamily: Geist, Inter, system-ui, -apple-system, sans-serif
-    fontSize: 16px
-    fontWeight: 500
-    lineHeight: 24px
-
-rounded:
-  none: 0px
-  xs: 4px
-  sm: 6px
-  md: 8px
-  lg: 12px
-  xl: 16px
-  pill-sm: 64px
-  pill: 100px
-  full: 9999px
-
-spacing:
-  xxs: 4px
-  xs: 8px
-  sm: 12px
-  md: 16px
-  lg: 24px
-  xl: 32px
-  2xl: 40px
-  3xl: 48px
-  4xl: 64px
-  5xl: 96px
-  6xl: 128px
-  section: 192px
-
-components:
-  nav-bar:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.ink}"
-    typography: "{typography.body-sm}"
-    height: 64px
-    padding: "{spacing.sm} {spacing.lg}"
-  nav-link:
-    textColor: "{colors.body}"
-    typography: "{typography.body-sm}"
-    rounded: "{rounded.full}"
-    padding: "{spacing.xs} {spacing.sm}"
-  nav-cta-signup:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.on-primary}"
-    typography: "{typography.body-sm-strong}"
-    rounded: "{rounded.sm}"
-    padding: "0px {spacing.xs}"
-    height: 28px
-  nav-cta-login:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.ink}"
-    typography: "{typography.body-sm-strong}"
-    rounded: "{rounded.sm}"
-    padding: "0px {spacing.xs}"
-    height: 28px
-  nav-cta-ask-ai:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.ink}"
-    borderColor: "{colors.hairline}"
-    typography: "{typography.body-sm-strong}"
-    rounded: "{rounded.sm}"
-    padding: "0px {spacing.xs}"
-    height: 28px
-  button-primary:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.on-primary}"
-    typography: "{typography.button-lg}"
-    rounded: "{rounded.pill}"
-    padding: "0px {spacing.sm}"
-  button-secondary:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.ink}"
-    typography: "{typography.button-lg}"
-    rounded: "{rounded.pill}"
-    padding: "0px {spacing.sm}"
-  button-primary-sm:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.on-primary}"
-    typography: "{typography.button-md}"
-    rounded: "{rounded.pill}"
-    padding: "0px {spacing.xs}"
-  button-secondary-sm:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.ink}"
-    typography: "{typography.button-md}"
-    rounded: "{rounded.pill}"
-    padding: "0px {spacing.xs}"
-  tab-ghost:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.ink}"
-    typography: "{typography.body-sm}"
-    rounded: "{rounded.pill-sm}"
-    padding: "0px {spacing.md}"
-  icon-button-circular:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.ink}"
-    borderColor: "{colors.hairline}"
-    rounded: "{rounded.full}"
-  card-marketing:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.ink}"
-    typography: "{typography.body-md}"
-    rounded: "{rounded.md}"
-    padding: "{spacing.lg}"
-  card-marketing-large:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.ink}"
-    typography: "{typography.body-md}"
-    rounded: "{rounded.lg}"
-    padding: "{spacing.xl}"
-  card-soft:
-    backgroundColor: "{colors.canvas-soft}"
-    textColor: "{colors.ink}"
-    typography: "{typography.body-md}"
-    rounded: "{rounded.md}"
-    padding: "{spacing.lg}"
-  template-card:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.ink}"
-    typography: "{typography.body-md}"
-    rounded: "{rounded.md}"
-    padding: "{spacing.md}"
-  code-editor-mockup:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.on-primary}"
-    typography: "{typography.code}"
-    rounded: "{rounded.md}"
-    padding: "{spacing.lg}"
-  form-input:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.ink}"
-    borderColor: "{colors.hairline}"
-    typography: "{typography.body-sm}"
-    rounded: "{rounded.sm}"
-    padding: "0px {spacing.sm}"
-    height: 40px
-  form-input-sm:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.ink}"
-    borderColor: "{colors.hairline}"
-    typography: "{typography.body-sm}"
-    rounded: "{rounded.sm}"
-    padding: "0px {spacing.sm}"
-    height: 32px
-  form-input-lg:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.ink}"
-    borderColor: "{colors.hairline}"
-    typography: "{typography.body-md}"
-    rounded: "{rounded.sm}"
-    padding: "0px {spacing.sm}"
-    height: 48px
-  badge-secondary:
-    backgroundColor: "{colors.canvas-soft}"
-    textColor: "{colors.body}"
-    typography: "{typography.caption}"
-    rounded: "{rounded.full}"
-    padding: "0px {spacing.xs}"
-  pricing-card:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.ink}"
-    typography: "{typography.body-md}"
-    rounded: "{rounded.lg}"
-    padding: "{spacing.xl}"
-  pricing-card-featured:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.on-primary}"
-    typography: "{typography.body-md}"
-    rounded: "{rounded.lg}"
-    padding: "{spacing.xl}"
-  logo-strip:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.body}"
-    typography: "{typography.body-sm}"
-    padding: "{spacing.lg} {spacing.xl}"
-  hero-band:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.ink}"
-    typography: "{typography.display-xl}"
-    padding: "{spacing.4xl} {spacing.lg}"
-  feature-mesh-band:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.ink}"
-    typography: "{typography.display-lg}"
-    padding: "{spacing.5xl} {spacing.lg}"
-  showcase-band-light:
-    backgroundColor: "{colors.canvas-soft}"
-    textColor: "{colors.ink}"
-    typography: "{typography.display-lg}"
-    padding: "{spacing.5xl} {spacing.lg}"
-  showcase-band-dark:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.on-primary}"
-    typography: "{typography.display-lg}"
-    padding: "{spacing.5xl} {spacing.lg}"
-  footer:
-    backgroundColor: "{colors.canvas}"
-    textColor: "{colors.body}"
-    typography: "{typography.body-sm}"
-    padding: "{spacing.4xl} {spacing.lg}"
-  link-inline:
-    textColor: "{colors.link}"
-    typography: "{typography.body-md}"
-  banner-marketing:
-    backgroundColor: "{colors.canvas-soft}"
-    textColor: "{colors.body}"
-    typography: "{typography.body-sm}"
-    rounded: "{rounded.full}"
-    padding: "{spacing.xs} {spacing.sm}"
-
-  # ─── Examples (illustrative) — auto-derived; resolve any TO_FILL markers below ───
-  ex-pricing-tier:
-    description: "Default tier card. Mirrors pricing-card chrome on canvas-soft surface with a hairline border."
-    backgroundColor: "{colors.canvas-soft}"
-    textColor: "{colors.ink}"
-    borderColor: "{colors.hairline}"
-    rounded: "{rounded.lg}"
-    padding: "{spacing.xl}"
-  ex-pricing-tier-featured:
-    description: "Featured tier — polarity-flipped to ink primary with white text and white CTA."
-    backgroundColor: "{colors.ink}"
-    textColor: "{colors.on-primary}"
-    rounded: "{rounded.lg}"
-    padding: "{spacing.xl}"
-  ex-product-selector:
-    description: "What's Included summary card — repurposed for the brand's GPU / inference / Pro feature tiers."
-    backgroundColor: "{colors.canvas-soft}"
-    rounded: "{rounded.md}"
-    padding: "{spacing.lg}"
-  ex-cart-drawer:
-    description: "Subscription summary — line items per add-on (NOT a literal e-commerce cart)."
-    backgroundColor: "{colors.canvas}"
-    rounded: "{rounded.md}"
-    padding: "{spacing.lg}"
-    item-divider: "{colors.hairline}"
-  ex-app-shell-row:
-    description: "Sidebar nav row. Active state uses brand primary as a left-edge indicator bar."
-    backgroundColor: "{colors.canvas}"
-    activeIndicator: "{colors.primary}"
-    rounded: "{rounded.sm}"
-    padding: "{spacing.xs} {spacing.sm}"
-  ex-data-table-cell:
-    description: "Mirrors the brand's table chrome. Header uses caption-mono uppercase mono; body uses body-sm."
-    headerBackground: "{colors.canvas-soft}"
-    headerTypography: "{typography.caption-mono}"
-    bodyTypography: "{typography.body-sm}"
-    cellPadding: "{spacing.xs} {spacing.sm}"
-    rowBorder: "{colors.hairline}"
-  ex-auth-form-card:
-    description: "Sign-in / sign-up card. Mirrors card-marketing-large chrome with form-input primitives inside."
-    backgroundColor: "{colors.canvas-soft}"
-    rounded: "{rounded.lg}"
-    padding: "{spacing.xl}"
-  ex-modal-card:
-    description: "Modal dialog surface — same chrome as card-marketing-large with Level 5 modal shadow."
-    backgroundColor: "{colors.canvas}"
-    rounded: "{rounded.lg}"
-    padding: "{spacing.xl}"
-  ex-empty-state-card:
-    description: "Empty-state illustration frame. Generous padding on canvas-soft."
-    backgroundColor: "{colors.canvas-soft}"
-    rounded: "{rounded.lg}"
-    padding: "{spacing.3xl}"
-    captionTypography: "{typography.body-md}"
-  ex-toast:
-    description: "Toast notification surface — flat-cornered card-marketing chrome with Level 4 shadow."
-    backgroundColor: "{colors.canvas}"
-    rounded: "{rounded.md}"
-    padding: "{spacing.sm} {spacing.md}"
-    typography: "{typography.body-sm}"
-
+name: vercel-brand-guidelines
+description: "Design, build, or substantially improve an official Vercel-authored report website. Use for customer reports, proposals, briefs, benchmarks, comparisons, narrative data pages, pricing or ROI or performance calculators, and bespoke decision pages that need Vercel information architecture, Geist typography, data storytelling, responsive craft, and light and dark themes."
 ---
 
+# Design report websites like Vercel
 
-## Overview
-
-Vercel is a developer-platform brand — the page is a deployment dashboard's marketing surface, written for engineers who already know the syntax. It earns that posture with one of the cleanest stark systems on the web: near-white `{colors.canvas-soft}` body background, ink-near-black `{colors.ink}` text, a 200-step gray scale that gives every divider, border, and disabled state its own deliberate step. The only place the brand introduces colour at marketing scale is the multi-stop mesh gradient (`{colors.gradient-develop-start}` → `{colors.gradient-preview-end}` → `{colors.gradient-ship-start}` → cyan / magenta / amber) that floats in atmospheric backdrops, never miniaturised to a swatch. That gradient is the entire decoration system.
-
-Type is the second decisive voice. The brand's own custom geometric sans (Geist) carries display, body, button — everything narrative — at weight 600 for display, 500 for buttons, 400 for body. A matching monospaced face (Geist Mono) carries technical labels: terminal mockups, code blocks, sometimes filename captions. Headlines are sentence-case with aggressive negative letter-spacing (`-2.4px` at 48 px hero) — the brand never letter-spaces positively, never goes uppercase outside of mono labels.
-
-Surfaces use a four-step ladder: `{colors.canvas}` (pure white for cards), `{colors.canvas-soft}` 98% (the page body), `{colors.canvas-soft-2}` 95% (occasional inset region), `{colors.primary}` (the deep ink-near-black used as the polarity-flipped band when a section needs the dark mode treatment). Shadows are exceptionally subtle — every elevated card carries a stacked shadow built from `0px 1px 1px #00000005` + `0px 2px 2px #0000000a` + an inset border. Cards never float on heavy drop-shadow; they sit on the page held by hairline + soft glow.
-
-**Key Characteristics:**
-- A single black-ink primary CTA `{colors.primary}` carries every conversion target, paired with white-on-white `button-secondary` for the secondary action. The brand uses 100 px pill shape for marketing CTAs and a tight 6 px square shape for in-app nav buttons.
-- A multi-stop mesh gradient (cyan-blue-magenta-amber) is the only decorative chrome — used at hero scale and inside feature-band atmospheric backdrops. It is the brand.
-- Every section eyebrow and small label uses the monospace face `{typography.caption-mono}` or `{typography.code}`; everything else is in the geometric sans.
-- Subtle stacked-shadow elevation — three offsets layered with 4-12 % black opacity — never a single heavy drop-shadow.
-- A complete 100–1000 gray + blue + red + amber + green + teal + purple + pink colour scale exists as a system token set, but the marketing surface uses only the `100`, `1000`, and `700`-level tones; the rest stay in the design-system tokens for in-product surfaces.
-- An "Active CPU" pricing rhythm: `pricing-card` lays out 3-up on the pricing page with `pricing-card-featured` (Pro tier) polarity-flipped to `{colors.primary}` against white-card siblings.
-
-## Colors
-
-### Brand & Accent
-- **Ink** (`{colors.primary}` — `#171717`): The single primary CTA color. Black-near-pure ink that carries every Sign Up pill, every footer CTA, the dark-band polarity-flip. Used as text color throughout the page on light surfaces. (Resolved from `--ds-gray-1000`.)
-- **Cyan** (`{colors.cyan}` — `#50e3c2`): A signature mint-cyan used in the brand gradient and inside Geist-system spotlight tokens. Visible inside the hero gradient stops.
-- **Highlight Pink** (`{colors.highlight-pink}` — `#ff0080`): The brand's highlight magenta, used as the high-saturation stop in the preview-gradient pair.
-- **Violet** (`{colors.violet}` — `#7928ca`): The deep purple used as the start of the preview-gradient and inside developer-console highlights.
-- **Link Blue** (`{colors.link}` — `#0070f3`): The brand's primary link color and the legacy `--geist-success` semantic.
-
-### Surface
-- **Canvas** (`{colors.canvas}` — `#ffffff`): The pure-white card / dialog / modal surface.
-- **Canvas Soft** (`{colors.canvas-soft}` — `#fafafa`): The default page background — 98 % white. Almost every section sits on this tone.
-- **Canvas Soft 2** (`{colors.canvas-soft-2}` — `#f5f5f5`): A slightly deeper inset surface for "code editor inner background", template-card hover states, and dropdown menus.
-- **Hairline** (`{colors.hairline}` — `#ebebeb`): 1 px dividers — table rows, card borders, input borders.
-- **Hairline Strong** (`{colors.hairline-strong}` — `#a1a1a1`): The 500-level gray, used as the slightly-stronger divider on light bands and as the deemphasised text color.
-
-### Text
-- **Ink** (`{colors.ink}` — `#171717`): Every heading and body paragraph on light surfaces.
-- **Body** (`{colors.body}` — `#4d4d4d`): Secondary text — sub-headings, body captions, nav-link inactive text, footer column body.
-- **Mute** (`{colors.mute}` — `#888888`): Lowest-priority text — placeholder text, fine print, low-key labels.
-- **On Primary** (`{colors.on-primary}` — `#ffffff`): All text on `{colors.primary}` surfaces.
-
-### Semantic
-- **Success / Link** (`{colors.success}` — `#0070f3`): The brand's legacy success indicator doubles as the primary link color. Visible underline-on-hover for inline body links.
-- **Link Deep** (`{colors.link-deep}` — `#0761d1`): The pressed / visited tone for inline links.
-- **Link Bg Soft** (`{colors.link-bg-soft}` — `#d3e5ff`): Soft pastel blue fill for "what's new" pill banners and informational badges.
-- **Error** (`{colors.error}` — `#ee0000`): Validation red for destructive actions and form errors.
-- **Error Soft** (`{colors.error-soft}` — `#f7d4d6`): Soft pastel red for destructive-state backgrounds.
-- **Error Deep** (`{colors.error-deep}` — `#c50000`): Pressed / deep destructive state.
-- **Warning** (`{colors.warning}` — `#f5a623`): Caution / pending status indicator.
-- **Warning Soft** (`{colors.warning-soft}` — `#ffefcf`) / **Warning Deep** (`{colors.warning-deep}` — `#ab570a`): Background + pressed variants.
-
-### Brand Gradient
-The brand's signature decoration is a three-pair gradient stack:
-- **Develop** (`{colors.gradient-develop-start}` `#007cf0` → `{colors.gradient-develop-end}` `#00dfd8`) — the blue-to-teal pair used to mark the "deploy" / "develop" rhythm.
-- **Preview** (`{colors.gradient-preview-start}` `#7928ca` → `{colors.gradient-preview-end}` `#ff0080`) — the violet-to-pink pair used for "preview" surfaces.
-- **Ship** (`{colors.gradient-ship-start}` `#ff4d4d` → `{colors.gradient-ship-end}` `#f9cb28`) — the coral-to-amber pair used for "ship" surfaces.
-
-The three pairs collapse into a single multi-color mesh gradient when used as the hero atmospheric backdrop. Treat the gradient as one unified object — do not crop down to a single colour, do not reorder the stops, and do not miniaturise. Used at hero scale only.
-
-## Typography
-
-### Font Family
-Two custom faces carry the entire system:
-
-1. **A custom geometric sans** (extracted as `Geist`) for every display, body, button, link, and label. Weights 400 / 500 / 600 are the working set; the face never appears in 700 or heavier. Display sizes are tracked aggressively negative (`-2.4 px` at 48 px hero, `-1.28 px` at 32 px section); body stays at neutral or slightly-negative tracking.
-2. **A custom monospaced face** (extracted as `Geist Mono`) for terminal mockups, code blocks, and small mono-caption labels — anything that wants to signal "technical." Weight 400 only at 12 – 13 px. Tracking neutral.
-
-A condensed display sans (`Space Grotesk`) is loaded as a third face for occasional editorial moments but does not render as the primary face anywhere in the captured surfaces.
-
-### Hierarchy
-
-| Token | Size | Weight | Line Height | Letter Spacing | Use |
-|---|---|---|---|---|---|
-| `{typography.display-xl}` | 48px | 600 | 48px | -2.4px | Hero headline ("Build and deploy on the AI Cloud."). |
-| `{typography.display-lg}` | 32px | 600 | 40px | -1.28px | Section headlines ("Your frontend, delivered.", "A compute model for all workloads."). |
-| `{typography.display-md}` | 24px | 600 | 32px | -0.96px | Card-cluster headlines, pricing-tier names. |
-| `{typography.display-sm}` | 20px | 600 | 28px | -0.6px | Inline display micro-headings. |
-| `{typography.body-lg}` | 18px | 400 | 28px | 0 | Lead paragraphs under section headlines. |
-| `{typography.body-md}` | 16px | 400 | 24px | 0 | Default body paragraph. |
-| `{typography.body-md-strong}` | 16px | 500 | 24px | 0 | Bolded inline body. |
-| `{typography.body-sm}` | 14px | 400 | 20px | -0.28px | Secondary body, nav-link text, button-md labels. |
-| `{typography.body-sm-strong}` | 14px | 500 | 20px | -0.28px | Nav CTA labels, table-row emphasis. |
-| `{typography.caption}` | 12px | 400 | 16px | 0 | Footer secondary lines, badge labels. |
-| `{typography.caption-mono}` | 12px | 400 | 16px | 0 | Section eyebrows and label captions that want a technical voice. |
-| `{typography.code}` | 13px | 400 | 20px | 0 | Inline code, terminal mockups, command snippets. |
-| `{typography.button-md}` | 14px | 500 | 20px | 0 | Small / nav-scale button labels. |
-| `{typography.button-lg}` | 16px | 500 | 24px | 0 | Marketing-scale pill button labels. |
-
-### Principles
-- **Negative tracking is part of the voice.** Display sizes use aggressive `-2.4` to `-0.6` px tracking. Reverting to default tracking breaks the brand.
-- **Sentence-case headlines, period-terminated.** Headlines like "Build and deploy on the AI Cloud." end with a deliberate period — that punctuation is part of the brand's voice.
-- **Mono for the technical layer only.** Section eyebrows, code blocks, terminal mockups. Body paragraphs never set in mono.
-- **Weight 600 is the display ceiling.** The geometric sans never appears at 700 / 800. The brand reads as a calmer system because of this.
-
-### Note on Font Substitutes
-The two primary faces are proprietary (custom-cut for the brand). Open-source substitutes:
-- **Geometric sans** — *Inter* (400 / 500 / 600) is the closest stylistic match; `font-feature-settings: "ss01", "ss02"` enables the geometric alternates. *Satoshi* is a passable second choice.
-- **Monospace** — *JetBrains Mono* (400) at 12 – 13 px matches the technical voice. *IBM Plex Mono* is the second-best option.
-
-## Layout
-
-### Spacing System
-- **Base unit**: 4 px. The brand's `--geist-space` token is exactly 4 px and every captured value is a multiple of 4.
-- **Tokens**: `{spacing.xxs}` 4 px · `{spacing.xs}` 8 px · `{spacing.sm}` 12 px · `{spacing.md}` 16 px · `{spacing.lg}` 24 px · `{spacing.xl}` 32 px · `{spacing.2xl}` 40 px · `{spacing.3xl}` 48 px · `{spacing.4xl}` 64 px · `{spacing.5xl}` 96 px · `{spacing.6xl}` 128 px · `{spacing.section}` 192 px.
-- **Section padding**: marketing bands use `{spacing.4xl}` to `{spacing.5xl}` top/bottom. Hero bands stretch to `{spacing.section}` to give the mesh gradient room to breathe.
-- **Card interior padding**: marketing cards sit at `{spacing.lg}` to `{spacing.xl}`; template-grid cards stay tighter at `{spacing.md}` because they sit in a denser grid.
-- **Inline gap**: button rows, nav rows, and chip rows use `{spacing.sm}` to `{spacing.md}` between siblings. The brand's `--geist-gap` is exactly 24 px.
-
-### Grid & Container
-- **Max width**: ~1400 px (`--ds-page-width`); the legacy `--geist-page-width` is 1200 px and still appears on some marketing surfaces. Content centres with horizontal gutters of `{spacing.lg}` 24 px on desktop, `{spacing.md}` 16 px on mobile.
-- **Column patterns**:
-  - Three-feature row: 3-up at desktop, 1-up at mobile (rows like "Web Apps / Composable Commerce / Multi-tenant Platforms").
-  - Tab pill row: 5-up centred row of `tab-ghost` pills.
-  - Template-grid cluster: 5-up at desktop, scaling to 1-up at mobile.
-  - Pricing tier grid: 3-up at desktop with the middle tier polarity-flipped.
-  - Logo strip: ~5 logos wide, single row.
-
-### Whitespace Philosophy
-The mesh gradient does most of the heavy decorative lifting; whitespace separates the bands. Section spacing is generous — `{spacing.4xl}` to `{spacing.5xl}` between bands lets the gradient breathe. Inside a card, the headline/paragraph stack is tight (`{spacing.xs}` 8 px gap), then a wider gap before the CTA cluster. The page reads as engineered — large gaps + tight interior, never the other way around.
-
-### Responsive Strategy
-
-#### Breakpoints
-
-| Name | Width | Key Changes |
-|---|---|---|
-| Mobile | < 600px | Hero stacks; nav collapses to hamburger; 3-up feature grids drop to 1-up; tab pill row enables horizontal scroll. |
-| Tablet | 600–959px | 3-up grids drop to 2-up; nav still horizontal. |
-| Desktop | 960–1199px | Full 3-up grids; pricing 3-up. |
-| Wide | 1200–1399px | Container caps at 1400 px content width. |
-| Ultra-wide | ≥ 1400px | Content stays centred at 1400 px; bands stretch edge-to-edge in colour but content holds the max-width. |
-
-#### Touch Targets
-The `button-primary` pill renders at ~32 px tall in nav and ~48 px tall in marketing contexts. Marketing CTAs comfortably meet WCAG AAA at all breakpoints; nav buttons inflate touch area through `{spacing.xs}` padding on mobile to meet the 44 × 44 px floor.
+Act as an excellent Vercel designer, editor, information architect, data storyteller, and design engineer. Turn the available material into an official Vercel-authored website. Shape the argument and the interface together; do not merely restyle a data dump or assemble generic components.
 
-#### Collapsing Strategy
-- **Nav**: full link row + Ask AI / Log In / Sign Up pills at desktop. Collapses to logo + hamburger at mobile with the menu opening as a full-overlay.
-- **Hero**: mesh gradient stays centred; headline + body stack vertically at all breakpoints (the brand doesn't use a split-hero pattern).
-- **Three-feature row**: 3-up → 2-up → 1-up at the breakpoints above; cards keep their `{rounded.md}` 8 px shape across all viewports.
-- **Pricing card grid**: 3-up at desktop, vertical stack at mobile with `pricing-card-featured` always sitting in the middle.
-- **Template grid**: 5-up → 3-up → 2-up → 1-up. Each `template-card` keeps its 16:9 aspect on the image.
+## Vercel product and brand context
 
-#### Image Behavior
-- **Mesh gradient**: rendered as inline SVG or canvas-painted gradient; scales fluidly with the hero container; never crops, never tiles.
-- **Customer logos**: rendered as monochrome SVGs in the logo strip; consistent 24 px height.
-- **Code editor mockup**: dark `{colors.primary}` rectangle with mono text rendered inside; treated as an image at the layout level.
-- **Template thumbnails**: 16:9 landscape inside `{rounded.md}` card chrome; lazy-loaded; consistent grayscale palette in the placeholder state.
+Treat these as official Vercel-authored customer surfaces. Help executives, engineering leaders, security teams, procurement, finance, and other customer stakeholders understand evidence, compare alternatives, test assumptions, and make decisions.
 
-## Elevation & Depth
+Make the artifact precise, calm, direct, technically literate, evidence-led, editorial, and restrained. Build confidence through clarity, proof, and command of the material. Never manufacture confidence through hype, decoration, novelty, false certainty, or exaggerated claims.
 
-| Level | Treatment | Use |
-|---|---|---|
-| Level 0 — Flat | No shadow, no border. | Full-bleed hero bands and the polarity-flipped dark sections. |
-| Level 1 — Inset Hairline | `0 0 0 1px #00000014` inset 1 px border. | Default card chrome — the brand's universal "you can see this card" cue. |
-| Level 2 — Subtle Drop | `0px 1px 1px #00000005, 0px 2px 2px #0000000a` plus inset hairline. | Slightly elevated cards (template-grid, marketing-card). |
-| Level 3 — Soft Stack | `0px 2px 2px #0000000a, 0px 8px 8px -8px #0000000a` plus inset hairline. | The "medium" elevation — feature-grid cards. |
-| Level 4 — Float Stack | `0px 2px 2px #0000000a, 0px 8px 16px -4px #0000000a` plus inset hairline. | "Large" elevation — pricing cards, callout panels. |
-| Level 5 — Modal | `0px 1px 1px #00000005, 0px 8px 16px -4px #0000000a, 0px 24px 32px -8px #0000000f` plus inset hairline. | Modal / dialog surfaces and dropdown menus. |
+Start with the reader's job, not the document category. Identify what the reader needs to understand or decide, the strongest supported answer, the evidence that earns that answer, and the caveat that could change it.
 
-The brand uses STACKED shadows — multiple small offsets layered to fake natural light — never a single 8-px-blur generic drop. Inset hairline rings are always added so the card edge stays crisp.
+Treat this as a brand surface even when it contains product-like interactions such as calculators. Communicate official Vercel authorship without resembling Vercel product UI, a generic SaaS landing page, or a marketing campaign.
 
-### Decorative Depth
-- **Mesh gradient as atmospheric depth**: the hero's multi-stop gradient is the brand's only "atmospheric" effect — applied as a flat 2-D backdrop rather than a 3-D illustration.
-- **Polarity-flipped dark band as section-depth**: switching the surface from `{colors.canvas-soft}` to `{colors.primary}` (the deep ink) is the brand's chief depth cue between bands.
-- **Inset-shadow + drop-shadow combo**: the cards' combination of an inset 1 px ring and a multi-stop drop produces a "card sits on the page" effect without ever feeling material-heavy.
+## Use this priority order
 
-## Shapes
+When requirements compete, protect them in this order:
 
-### Border Radius Scale
+1. Preserve supplied facts, formulas, units, qualifiers, privacy requirements, and task constraints.
+2. Preserve the caller's framework, routes, delivery surface, and established Vercel or Geist foundation.
+3. Make the reader's question, strongest supported answer, and material evidence immediately clear.
+4. Establish unmistakable Vercel authorship through the shell, Geist typography, shared grid, and restraint.
+5. Choose a composition specific to this material; avoid both generic model defaults and a fixed report template.
+6. Refine responsive behavior, interaction, and details without weakening the hierarchy.
 
-| Token | Value | Use |
-|---|---|---|
-| `{rounded.none}` | 0px | Full-bleed hero / footer bands. |
-| `{rounded.xs}` | 4px | Tightest inline pill — the `nav-cta-signup` 6-px-radius button (mapped to `xs/sm`). |
-| `{rounded.sm}` | 6px | The brand's `--geist-radius` token — base UI radius for in-app buttons, form inputs, dropdown menus. |
-| `{rounded.md}` | 8px | The brand's `--geist-marketing-radius` token — feature cards, template cards. |
-| `{rounded.lg}` | 12px | Slightly larger card chrome (pricing-card variants). |
-| `{rounded.xl}` | 16px | Largest card chrome — when a card hosts a hero image cap. |
-| `{rounded.pill-sm}` | 64px | Tab-ghost pills inside the "AI Apps / Web Apps / Ecommerce / Marketing / Platforms" row. |
-| `{rounded.pill}` | 100px | The marketing CTA pill — `button-primary`, `button-secondary`, "Start Deploying" pill. |
-| `{rounded.full}` | 9999px | Icon-button circular containers, nav-link ghost pills. |
+Ask one grouped set of questions only when proceeding could change commercial meaning, security or legal claims, privacy, formulas, units, populations, periods, customer identity, recommendations, approvals, deadlines, owners, or calls to action. Otherwise omit the unknown, label it honestly, and proceed.
 
-### Photography Geometry
-- **Mesh gradient**: full-bleed 2-D atmospheric backdrop, never cropped to a frame; treated as the page's wallpaper.
-- **Customer logos**: monochrome SVG, consistent 24 px height in a flex row.
-- **Code editor mockup**: 16:10 dark rectangle, `{rounded.md}` corners.
-- **Template thumbnails**: 16:9 landscape inside `{rounded.md}` chrome.
-- **Showcase imagery**: 2:1 or 16:9 inside `{rounded.lg}` to `{rounded.xl}` chrome with a stacked shadow.
+## Integrate with the caller's project
 
-## Components
+Preserve the host framework, file structure, routes, component conventions, build system, and output form. Edit the files that naturally own the experience. Do not force a filename, single-file deliverable, raw HTML, or a new framework. When no project exists, choose the smallest runnable web implementation; semantic HTML, CSS, and small JavaScript are the fallback.
 
-### Buttons
+Resolve [assets/vercel-brand.css](https://vercel.com/geist/vercel-brand.css) from this skill's location. If the skill was opened from a URL, resolve the asset against that original URL. Outside an existing Vercel project, link the byte-identical foundation once at the nearest shared report boundary. Use the public API documented below; do not read the stylesheet implementation into context. If the resolved URL is not served as CSS or runtime loading fails, copy the asset into the project or inline its exact bytes. Never emit a `file://` URL, unresolved path, placeholder URL, translated token system, or CSS `@import`.
 
-**`button-primary`** — the canonical 100-px-radius black pill, marketing scale.
-- Background `{colors.primary}`, text `{colors.on-primary}`, label set in `{typography.button-lg}`, padding `0px {spacing.sm}` 12 px, shape `{rounded.pill}` 100 px. Renders ~48 px tall when paired with the marketing flex layout.
+Only when the host is stock v0 or a generic Next.js, Tailwind, and shadcn project: preserve its stack and `components.json`; do not configure a v0 Design System, registry, starter, preset, or parallel theme. Semantic HTML and VBG own report composition; use installed shadcn only for necessary behavior, and verify scope, theme, and states for portaled components. Reuse applied Geist variables or add `Geist` and `Geist_Mono` through `next/font/google` at module scope. Keep the report server-rendered except for stateful controls. In React, omit `<body>`, use `className`, and load `<link rel="stylesheet" href={resolvedVbgCssUrl} precedence="vbg" />` at the nearest report boundary when React 19 supports it. Integration changes syntax, never composition or the public VBG API.
 
-**`button-secondary`** — the white pill paired with the black primary inside marketing bands.
-- Background `{colors.canvas}`, text `{colors.ink}`, same typography + padding as `button-primary`, shape `{rounded.pill}`.
+For standalone HTML that copies the foundation into `assets/`, use:
 
-**`button-primary-sm`** — the smaller-scale primary pill used inside nav and pricing-card CTAs.
-- Background `{colors.primary}`, text `{colors.on-primary}`, label set in `{typography.button-md}` (14 px / 500), shape `{rounded.pill}`.
+```html
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..600&family=Geist+Mono:wght@400..600&display=swap" rel="stylesheet" referrerpolicy="no-referrer">
+<link href="assets/vercel-brand.css" rel="stylesheet">
+```
 
-**`button-secondary-sm`** — the smaller-scale white pill paired with `button-primary-sm`.
-- Background `{colors.canvas}`, text `{colors.ink}`, same typography + shape as `button-primary-sm`.
+In an existing Vercel product project, use its installed Geist, GeistCN, semantic tokens, controls, and theme APIs instead of adding a parallel `vbg-*` layer. Otherwise use the published CSS unchanged for typography, colors, controls, themes, and report primitives. Page-owned CSS may create page-specific topology, density, evidence geometry, and semantic compositions from public tokens when the stock primitives would distort the material. Every page-authored selector names only the page-specific custom namespace; never target a published `.vbg-*` class. A custom class sharing a foundation primitive must not change its layout, typography, surface, border, overflow, or control styling.
 
-**`tab-ghost`** — the centred-row tab pill ("AI Apps / Web Apps / Ecommerce / Marketing / Platforms").
-- Background `{colors.canvas}`, text `{colors.ink}`, label set in `{typography.body-sm}`, padding `0px {spacing.md}`, shape `{rounded.pill-sm}` 64 px.
+The default network allowlist is the foundation stylesheet, the Vercel assets below, the Google Fonts requests above, and user-supplied assets. Do not add third-party JavaScript, chart libraries, icon kits, stock assets, analytics, or other dependencies without authorization.
 
-**`icon-button-circular`** — the circular icon container (often a "?" or arrow inside).
-- Background `{colors.canvas}`, dark icon, 1 px solid hairline border, shape `{rounded.full}`.
+## Work in four passes
 
-**Nav CTAs:**
+### Frame the reader's job
 
-**`nav-cta-signup`** — the small black "Sign Up" button in the nav row.
-- Background `{colors.primary}`, text `{colors.on-primary}`, label `{typography.body-sm-strong}`, padding `0px {spacing.xs}`, height 28 px, shape `{rounded.sm}` 6 px (the brand's `--geist-radius`).
+Inspect all available material before designing. Privately establish:
 
-**`nav-cta-login`** — the white "Log In" button in the nav.
-- Background `{colors.canvas}`, text `{colors.ink}`, same typography / height / shape as `nav-cta-signup`.
+- Who opens this, in what context, to decide or understand what?
+- What is the strongest supported answer?
+- What evidence makes that answer credible?
+- What tradeoff, uncertainty, or limit changes its interpretation?
+- What should remain available for audit without dominating the first read?
 
-**`nav-cta-ask-ai`** — the small "Ask AI" button with a faint border.
-- Background `{colors.canvas}`, text `{colors.ink}`, 1 px solid `{colors.hairline}` border (extracted as `0px solid rgb(235, 235, 235)`), same typography / height / shape.
+Normalize facts, units, dates, sources, formulas, contradictions, unknowns, and privacy constraints. Distinguish observation, derivation, projection, recommendation, and causation. Never invent intent, ownership, urgency, certainty, deadlines, approvals, future behavior, or confidentiality.
 
-### Cards & Containers
+Order by reader need, not source order. Support two reading speeds:
 
-**`card-marketing`** — the canonical marketing feature card (3-up section cards).
-- Background `{colors.canvas}`, text `{colors.ink}`, padding `{spacing.lg}` 24 px, shape `{rounded.md}` 8 px (the `--geist-marketing-radius`). Carries Level 3 soft-stack shadow.
+- **Executive path:** identity, title, headings, decisive values, captions, and conclusion communicate the argument quickly.
+- **Audit path:** exact tables, assumptions, methodology, caveats, and sources preserve the record.
 
-**`card-marketing-large`** — the larger marketing card used for "compute model" / "AI Gateway" callouts.
-- Background `{colors.canvas}`, text `{colors.ink}`, padding `{spacing.xl}`, shape `{rounded.lg}` 12 px. Carries Level 4 float-stack shadow.
+Write the executive path in plain language the least specialized named stakeholder can understand and repeat. Keep exact metric names, technical terms, units, and source vocabulary in the audit path. Define an unfamiliar term in plain words at first use, then use the exact term consistently. Never let this skill's own authoring vocabulary, such as composition, hierarchy, focal relationship, or mediation, leak into page copy.
 
-**`card-soft`** — the soft-tinted card used inside cluster groups (lighter than canvas-soft).
-- Background `{colors.canvas-soft}`, text `{colors.ink}`, padding `{spacing.lg}`, shape `{rounded.md}`.
+Simplify language, never the claim. Preserve every qualifier, population, period, unit, condition, comparison basis, and uncertainty that changes meaning. Do not turn a precise test condition into a broader human claim: for example, “unthrottled” does not establish “a normal computer,” and “within measurement noise” does not establish “as fast.” Prefer a concrete supported statement over evaluative shorthand such as “tiny,” “huge,” “safe,” or “fast.”
 
-**`template-card`** — the deploy-template card in the "Deploy your first app" grid.
-- Background `{colors.canvas}`, text `{colors.ink}`, padding `{spacing.md}` 16 px, shape `{rounded.md}` 8 px. Hosts a 16:9 thumbnail at the top.
+Describe the method actually used and the limits that change its interpretation. Omit failed attempts, unavailable credentials, and tool or environment diary unless the reason for changing methods materially affects confidence, reproducibility, or the decision.
 
-**`code-editor-mockup`** — the dark code-preview surface inside marketing bands.
-- Background `{colors.primary}`, text `{colors.on-primary}`, body in `{typography.code}` (13 px / Geist Mono), padding `{spacing.lg}` 24 px, shape `{rounded.md}` 8 px.
+Keep exhaustive ledgers after the decision path or behind native disclosure when the delivery surface supports it. A filterable audit table with dozens of rows should default to a neutral decision-relevant subset, such as all failures, all exceptions, or every row named in the decision, not “All.” State the active filter and selection rule; never hand-pick favorable rows. Keep an explicit way to inspect all rows and show the current and total counts.
 
-**`pricing-card`** — the default pricing-tier card.
-- Background `{colors.canvas}`, text `{colors.ink}`, padding `{spacing.xl}` 32 px, shape `{rounded.lg}` 12 px. Inside: tier name in `{typography.display-md}`, price in `{typography.display-xl}`, feature list in `{typography.body-md}` rows, CTA at the bottom.
+Every section must answer a new reader question. Combine duplicates. Remove ceremony. Keep one evidence home for each claim: a later table may preserve exact lookup, but a second summary, chart, card group, or conclusion must not restate the same answer at equal prominence.
 
-**`pricing-card-featured`** — the polarity-flipped "Pro" tier card.
-- Background `{colors.primary}`, text `{colors.on-primary}`, same shape + padding as `pricing-card`. CTA inverts to `button-secondary-sm` (white pill on black card).
+### Choose the composition
 
-### Inputs & Forms
+The first viewport is the argument, not a masthead followed by setup. It may be claim-led, evidence-led, comparison-led, or tool-led. Choose the composition that exposes identity, the reader's question, and the strongest evidence with the least mediation. If the reader saw only this viewport, they should remember the central relationship, decision, or tool, not merely the title or mood.
 
-**`form-input`** — the canonical text input.
-- Background `{colors.canvas}`, text `{colors.ink}`, 1 px solid `{colors.hairline}` border, body in `{typography.body-sm}` (14 px), padding `0px {spacing.sm}`, height 40 px (the brand's `--geist-form-height`), shape `{rounded.sm}` 6 px.
+Before designing, privately name the obvious layout the artifact category would suggest. Reject it unless the material earns it. A renewal proposal need not resemble every renewal proposal; a calculator need not resemble every calculator. Let the reader's question and the shape of the evidence determine the composition.
 
-**`form-input-sm`** — small-height variant (32 px tall) for tight forms.
-- Same as `form-input` but height 32 px (the `--geist-form-small-height`).
+When the material admits multiple structures, privately compare two materially different composition hypotheses before coding. Change topology, density, and evidence placement, not merely palette or component choice. Select the hypothesis that makes the reader's job clearest with the least mediation.
 
-**`form-input-lg`** — large-height variant (48 px tall) for hero CTAs.
-- Same as `form-input` but height 48 px (the `--geist-form-large-height`); body in `{typography.body-md}` 16 px.
+Match the opening to the job:
 
-### Navigation
+- **A decisive recommendation or conclusion:** make the answer and its decisive basis co-primary.
+- **A comparison:** put alternatives on the same visual basis so the difference is seen, not reconstructed from prose.
+- **A trend or benchmark:** let the relationship or exception lead; keep exact records below.
+- **A calculator:** let the calculator itself be focal evidence when manipulating an assumption is the reader's primary job. Do not require a separate static proof before it.
+- **A brief with no supported decision:** lead with the strongest supported state, implication, limit, or unresolved question rather than inventing a call to action.
 
-**`nav-bar`** — the sticky top nav.
-- Background `{colors.canvas}`, text `{colors.ink}`, height 64 px (the brand's `--header-height`), padding `{spacing.sm} {spacing.lg}`. Layout: logo left, link row centre, "Ask AI / Log In / Sign Up" cluster right.
+Choose geometry before components. Map the material to a visual variable:
 
-**`nav-link`** — the centred link row inside `nav-bar`.
-- Text `{colors.body}`, set in `{typography.body-sm}`, padding `{spacing.xs} {spacing.sm}`, shape `{rounded.full}` (ghost pill — visible only on hover or active, but the radius is documented).
+- Magnitude or rank → position or length on a common scale.
+- Change over time → horizontal order and aligned position.
+- Composition → proportion.
+- Threshold or range → distance from a boundary.
+- Process or dependency → connection and sequence.
+- Qualitative alternatives → aligned rows or deliberately contrasted columns.
 
-**`footer`** — the bottom 4-column nav.
-- Background `{colors.canvas}`, text `{colors.body}`, padding `{spacing.4xl} {spacing.lg}`. Eyebrow column labels in `{typography.caption-mono}` (uppercase mono effect); link rows in `{typography.body-sm}`.
+Use tables for precise lookup, prose for one conclusion, and charts only for relationships that become faster to understand visually. Do not default to bars because values exist.
 
-### Signature Components
+Compose the page as a field, not a stack of components. Establish one page-level throughline and one focal relationship in each reading moment or major section. Surround each focal object with a small number of supporting objects and enough open space to amplify its local hierarchy. Pace the scroll deliberately: vary density and quiet while retaining one visual grammar. Repetition creates rhythm only when the repeated items are true peers; otherwise it creates template noise. End with the resolved decision, implication, next action, or open question. Let sources and the footer follow quietly; do not let the page simply stop after a ledger or caveat.
 
-**`hero-band`** — the white hero with the mesh gradient backdrop.
-- Background `{colors.canvas}` (or `{colors.canvas-soft}` on some surfaces), text `{colors.ink}`, padding `{spacing.4xl} {spacing.lg}`. Inside: a small mono badge above the headline, the headline in `{typography.display-xl}` (sentence-case, period-terminated), a body lead in `{typography.body-lg}`, then a CTA row with `button-primary` + `button-secondary`. The mesh gradient sits behind, scaled to occupy roughly the top half of the band.
+Give every artifact one evidence-bearing organizing move that belongs to its material and could not be transplanted unchanged into an unrelated report. It may be a comparison geometry, a threshold, a sequence, a customer-specific diagram, a distinctive evidence rhythm, or the interaction itself. It must clarify the subject, not decorate it.
 
-**`feature-mesh-band`** — the secondary section that hosts a mesh-gradient atmospheric backdrop with feature copy on top.
-- Background `{colors.canvas}`, text `{colors.ink}`, padding `{spacing.5xl} {spacing.lg}`. Section headline in `{typography.display-lg}`; supporting body in `{typography.body-md}`.
+Use a squint test: at a glance, the dominant claim or evidence should be obvious and the reading path should be stable. Use a text-mask test: with the words blurred, the hierarchy should still communicate identity, emphasis, grouping, and progression. If every block has equal weight, redesign before coding.
 
-**`showcase-band-light`** — a soft-canvas section ("Deploy your first app in seconds").
-- Background `{colors.canvas-soft}`, text `{colors.ink}`, padding `{spacing.5xl} {spacing.lg}`.
+Create presence through commitment, not additional effects. When a page feels too safe, strengthen one focal relationship through proportion, hierarchy, density, pacing, line breaks, or evidence placement. Make supporting content quieter. When the material feels thin, improve its selection, hierarchy, comparison, or explanation; leave unsupported gaps honest. Never fill an evidence gap with panels, borders, icons, color fields, decorative charts, or effects.
 
-**`showcase-band-dark`** — the polarity-flipped dark band ("A compute model for all workloads").
-- Background `{colors.primary}`, text `{colors.on-primary}`, padding `{spacing.5xl} {spacing.lg}`. Section headline in `{typography.display-lg}` (white on black). Often contains a `code-editor-mockup` flush with the band.
+### Authoritative Vercel visual system
 
-**`logo-strip`** — the customer-logo wrapping row near the top of the page.
-- Background `{colors.canvas}`, text `{colors.body}`, padding `{spacing.lg} {spacing.xl}`. Logos rendered as monochrome SVGs at consistent height.
+Treat this section as the design authority for these artifacts. Use the accompanying CSS for exact tokens, type roles, states, controls, and primitives. Use these instructions for composition, hierarchy, and when those primitives are appropriate. Do not introduce a parallel visual system.
 
-**`badge-secondary`** — the small inline metadata pill ("New", "Beta", "Live").
-- Background `{colors.canvas-soft}`, text `{colors.body}`, body in `{typography.caption}`, padding `0px {spacing.xs}`, shape `{rounded.full}`.
+#### Authorship shell
 
-**`banner-marketing`** — the "Introducing X" announcement pill at the top of pages.
-- Background `{colors.canvas-soft}`, text `{colors.body}`, body in `{typography.body-sm}`, padding `{spacing.xs} {spacing.sm}`, shape `{rounded.full}`.
+Every completed page has the same Vercel authorship outcome. Existing Vercel projects implement the wordmark header and triangle footer with installed primitives; standalone pages use the exact shell below. Put the Vercel wordmark on the left of the header and the triangle logo on the left of the footer. These stable assets use `currentColor`:
 
-**`link-inline`** — body-copy inline links.
-- Text `{colors.link}` (`#0070f3`), body in `{typography.body-md}`, underlined.
+- Wordmark: `https://py8fhxnkzwtsqdo9.public.blob.vercel-storage.com/p/vercel-wordmark.svg`
+- Triangle: `https://py8fhxnkzwtsqdo9.public.blob.vercel-storage.com/p/vercel-logo.svg`
 
-### Examples (illustrative)
+The header's right side may contain at most two sourced fields such as the customer, period, purpose, or confidentiality. Use sentence case. Do not invent metadata. Align the wordmark and metadata to the same baseline. Keep the footer quiet: triangle left, at most one sourced ownership or confidentiality line right. Separate both shell regions with spacing, not routine borders.
 
-> Auto-derived kit-mirror demonstration surfaces (`scripts/derive-examples-block.mjs`). Each `ex-*` entry references brand-native primitives so downstream consumers (`/preview-design`, `/generate-kit`) re-skin the same 10 surfaces consistently. `TO_FILL` markers indicate missing primitives — resolve in the LLM judgment pass.
+Keep preparation, audience, and document-state metadata in the masthead. Do not repeat it as a preamble between the masthead and the page-defining title.
 
-**`ex-pricing-tier`** — Default Pricing tier card. Re-uses feature-card chrome with brand canvas-soft surface.
-- Properties: `backgroundColor`, `textColor`, `borderColor`, `rounded`, `padding`
+When using the standalone CSS, preserve this direct-child order:
 
-**`ex-pricing-tier-featured`** — Featured/highlighted tier — polarity-flipped surface (dark fill + light text in light mode, light fill + dark text in dark mode).
-- Properties: `backgroundColor`, `textColor`, `rounded`, `padding`
+```html
+<body class="vbg-report">
+  <div class="vbg-shell">
+    <a class="vbg-skip-link" href="#main">Skip to content</a>
+    <header class="vbg-header">
+      <div class="vbg-masthead">
+        <span class="vbg-identity"><span class="vbg-wordmark" role="img" aria-label="Vercel"></span></span>
+        <div class="vbg-document-meta">...</div>
+      </div>
+    </header>
+    <main id="main">...</main>
+    <footer class="vbg-footer">
+      <span class="vbg-logo" role="img" aria-label="Vercel"></span>
+      <span>...</span>
+    </footer>
+  </div>
+</body>
+```
 
-**`ex-product-selector`** — What's Included summary card — re-purposed for SaaS / B2B verticals (NOT a literal product gallery).
-- Properties: `backgroundColor`, `rounded`, `padding`
+The CSS supplies the masks and theme behavior. Do not substitute text, inline art, a decorative triangle, or a different logo treatment.
 
-**`ex-cart-drawer`** — Subscription summary — re-purposed for SaaS / B2B (line items per add-on, not literal cart).
-- Properties: `backgroundColor`, `rounded`, `padding`, `item-divider`
+#### Grid and alignment
 
-**`ex-app-shell-row`** — Sidebar nav row inside the App Shell example. Active state uses brand primary as the indicator.
-- Properties: `backgroundColor`, `activeIndicator`, `rounded`, `padding`
+Use the shared outer grid for the masthead, title, sections, evidence, and footer. The foundation is 12 columns on desktop, 6 on tablet, and 4 on mobile. Reading prose normally occupies 6–7 desktop columns. Tables, charts, calculators, diagrams, and major comparisons may use all 12.
 
-**`ex-data-table-cell`** — Default data-table th + td chrome. Header uses mono-caps eyebrow typography; body uses body-sm.
-- Properties: `headerBackground`, `headerTypography`, `bodyTypography`, `cellPadding`, `rowBorder`
+Every object must align to a shared edge, baseline, grid line, or deliberate optical center. Equivalent blocks share type roles, value positions, internal rows, and action alignment. A split heading and paragraph align on their first text baselines. Tables own the full evidence width of their section. Do not strand content in a narrow track while usable columns remain empty.
 
-**`ex-auth-form-card`** — Sign-in / sign-up card. Re-uses feature-card chrome with text-input primitives inside.
-- Properties: `backgroundColor`, `rounded`, `padding`
+Make column gutters unmistakable. Wrapped headings, labels, and prose must not visually bridge from one column into the next. If adjacent columns can be misread as one line or phrase, widen the gutter, shorten or rebalance the content, or stack the columns.
 
-**`ex-modal-card`** — Modal dialog surface — same chrome as feature-card with elevated shadow.
-- Properties: `backgroundColor`, `rounded`, `padding`
+Open space must amplify the focal object. Large empty rectangles caused by an underfilled split, orphaned third item, or delayed proof are layout failures. Reflow or rebalance them. Three true peers normally occupy one three-column row; a deliberately dominant peer may earn more width, but its difference must be meaningful.
 
-**`ex-empty-state-card`** — Empty-state illustration frame.
-- Properties: `backgroundColor`, `rounded`, `padding`, `captionTypography`
+Do not force materially unequal findings into equal cells. Rank them, group them, or give the decisive finding more visual consequence so the geometry matches the argument.
 
-**`ex-toast`** — Toast notification surface — feature-card shape + medium shadow.
-- Properties: `backgroundColor`, `rounded`, `padding`, `typography`
+#### Typography and rhythm
 
+Use Geist Sans for prose, headings, labels, controls, tables, KPIs, dates, counts, percentages, durations, and financial figures. Use Geist Mono only for code, commands, paths, raw tokens, timestamps, and short operational identifiers such as region, plan, SKU, account, or environment IDs. Set only the identifier in Mono, not its sentence or entire table.
 
-## Do's and Don'ts
+Use the published type roles and weight tokens. Do not create arbitrary font sizes or numeric font weights. Use `display` only for the single page-defining statement when scale is earned; `title` for the normal page title; `heading-24` for major section turns; `heading-20` and `heading-16` for nested structure; lede for one short orientation passage; body for reading; label for compact names; caption and metadata only for subordinate evidence context. Headings use the published Geist heading roles at their defined weight; body copy uses regular; emphasis is scarce. Use tabular numerals for aligned comparisons. Equivalent peers always share role, size, weight, line-height, and numeric treatment; never resize one because its string is longer or its value is larger.
 
-### Do
-- Reserve `{colors.primary}` (`#171717`) for primary CTAs across the page. Black ink IS the conversion target.
-- Use `{rounded.pill}` 100 px for every marketing-scale CTA and `{rounded.sm}` 6 px for nav-scale buttons. The two pill scales coexist deliberately.
-- Set every headline in `{typography.display-*}` weight 600, sentence-case, often period-terminated. Aggressive negative tracking is part of the voice.
-- Use the brand mesh gradient as atmospheric decoration at hero scale only — never miniaturise it to an icon, never reduce to a single colour.
-- Layer stacked shadows (multiple small offsets with inset hairline) rather than single heavy drops. The brand's elevation is calmer than Material.
-- Cycle page surfaces in `{colors.canvas-soft}` → `{colors.canvas}` → `{colors.primary}` polarity-flipped bands; the dark band IS the depth cue.
-- Set every code block and technical eyebrow in `{typography.code}` / `{typography.caption-mono}`. Mono is the voice of the platform.
+Build vertical rhythm from relationships:
 
-### Don't
-- Don't introduce a sixth accent colour. The brand operates with ink + gray + the four-pair gradient palette; new accents flatten the voice.
-- Don't render headlines in all-caps. Sentence-case + negative tracking is non-negotiable.
-- Don't drop a single heavy drop-shadow on cards. The brand's elevation is built from stacked small offsets + inset hairline rings.
-- Don't render the brand gradient at icon scale or in a single-colour reduced form. The gradient lives at hero scale only.
-- Don't promote the geometric sans to weight 700. The brand's display ceiling is 600.
-- Don't pair the marketing 100-px pill CTA shape with the 6-px nav radius on the same screen — pick a scale and stay there.
-- Don't set body paragraphs in the mono face. The mono is for code + technical labels only.
+- Heading → its first paragraph: close.
+- Paragraph → paragraph or list: one body rhythm.
+- Label → value → detail: identical across peers.
+- Content group → new section: clearly larger.
+- Caption or source → evidence it qualifies: close enough to read together.
+
+Give every gap one owner. A published flow, stack, grid, or page-owned custom wrapper sets the gap; its children must not add competing default margins. In page-owned CSS, reset the margins of grouped direct children and use the published spacing tokens. Within-group gaps are normally `--vbg-space-2` through `--vbg-space-4`, between-group gaps `--vbg-space-6` through `--vbg-space-8`, and major section turns normally `--vbg-space-8` through `--vbg-space-12`. Reserve `--vbg-space-16` for a true chapter break between two substantial sections, never as the default page-stack gap. These express relationships, not one universal stack rule.
+
+Judge the whole transition, not just its token. A large gap next to an underfilled split, short section, or sparse final row compounds emptiness even when the token is valid. Reduce the gap, rebalance the grid, or stack the content until the open space has a clear compositional purpose.
+
+Do not leave a heading, explanation, and list as unrelated siblings inside a custom grid cell. Group the content, align equivalent roles across peers, and let the group own its internal rhythm. Do not repair one awkward transition with an arbitrary one-off margin; repair the grouping or spacing owner.
+
+Keep body text at a comfortable reading size and line height; never use tiny gray copy to make density fit. Keep prose near 60–68 characters per line. Rewrite before shrinking.
+
+Establish hierarchy through typography before surfaces or color. Separate paragraphs with space; never use first-line indents. Inspect important line breaks. Fix stranded words in large headings or ledes by improving the copy or measure, not by shrinking an individual element.
+
+Write sentence-case headings that state the customer-specific claim or reader question. Avoid all-caps eyebrows, overlines, decorative section numbers, synthetic symmetry, repetitive cadence, generic praise, and internal authoring language. Prefer concrete nouns and active verbs. Avoid em dashes. A useful title says what happened, what changes, or what decision is needed; it does not name the report genre.
+
+#### Color, surfaces, and boundaries
+
+Design in monochrome. Use color only when it adds significant meaning to state, action, or data, and pair it with a non-color cue. Do not turn a recommendation, savings figure, cost component, or longer bar green merely because it is favorable or important. Use chart color only when it is needed to distinguish series or encode a sourced state. Light and dark themes are implicit; do not add a visible switcher.
+
+The page is normally one continuous canvas. Earn a surface or boundary only when it communicates selection, interaction, warning, contrast, or a real grouping that spacing cannot express. Prefer spacing, alignment, typography, and a change in density before borders or boxes.
+
+Do not wrap every section, metric, or comparison in a card. Avoid nested panels. Keep radii restrained and consistent with the foundation.
+
+With the standalone foundation, create a strong contrast field only with `.vbg-band[data-tone="contrast"]`; it owns the correct nested text, border, control, and theme colors. Do not recreate a contrast surface in page CSS.
+
+Diagnose quantity separately from intensity. If the page feels busy, remove, combine, or reorder content. If it feels loud, reduce competing color, scale, weight, borders, surfaces, and motion. Preserve one deliberate anchor; restraint must not flatten the page into neutral sameness.
+
+Hard reject decorative gradients, gradient text, glows, blobs, stripes, textures, grid backgrounds, glass effects, paper simulations, colored side rails, ornamental shadows, and fake depth. A gradient is acceptable only when it is a labelled continuous data scale.
+
+#### Data and evidence
+
+Make the visual encoding honest. Show units, periods, populations, bases, and material comparators near the evidence they qualify. Use zero baselines for length encodings unless a clearly marked range or delta view better answers the question. Do not exaggerate small differences with cropped bars or hide them with nearly identical total bars; show the exact delta on the same basis. Never use a bar track as a divider or ornament. Every peer bar shares one documented scale and its length must encode the value; otherwise use aligned text.
+
+When peer denominators differ, choose count or rate explicitly from the reader's question. Do not compare raw numerators as though the bases were equal. If length encodes a rate, show its count and base; if length encodes a count, explain why volume rather than incidence answers the question. Use aligned text or separate views when neither encoding is sufficient alone.
+
+Size repeated horizontal bars as one layout, never row by row. Give the set one shared label lane, one plot lane, and one shared lane for every aligned value or annotation column. Every bar track starts and ends on the same grid lines; only the fill length varies. A row whose label, value, or annotation changes the plot width is a layout failure. Use a parent grid, subgrid, or fixed shared tracks rather than content-sized columns resolved independently inside each row.
+
+Prefer direct labels to legends. Reserve a clear lane for every chart label so no mark, line, bracket, or annotation crosses its glyph box. Keep chart text legible in both themes. Use a caption to state what the reader should notice and what the chart does not establish. Provide a semantic table or concise text alternative for material chart data.
+
+When a chart is the primary proof, give it enough width, height, and contrast to carry the first read. Visual salience must agree with the argument: the decisive series, exception, or threshold receives the strongest emphasis in both themes, while supporting evidence recedes without becoming illegible.
+
+Tables are evidence, not decoration:
+
+- Use a semantic `<table>` with caption, head, body, and optional foot.
+- Span the full 12-column evidence width by default. Put the section introduction above it; do not strand a ledger beside a heading, note, or empty rail merely to fill a split grid.
+- Match each column header’s alignment to every cell in that column. Left-align text columns and their headers; right-align numerical columns and their headers, including placeholders and totals. In standalone tables, put `class="vbg-numeric"` or `data-align="numeric"` on the numeric `<th>` and every numeric `<td>`; body-cell alignment does not align the header automatically. Never center or left-align a header above right-aligned values.
+- Keep peer units and precision consistent; do not add fake precision.
+- Bottom-align multi-line column headers only. Body cells use `vertical-align: baseline` so every cell aligns to the row's first text baseline, including when one cell wraps; never vertically center or bottom-align body rows.
+- Give the row-label column enough width for ordinary short labels to stay on one line. Do not wrap a short row label while sibling columns hold unused width. If labels genuinely need multiple lines, wrap at word boundaries and preserve the shared first baseline.
+- Do not spend a column repeating the same category for a run of rows. Group related rows with semantic row groups or separate tables when the category changes how the rows are interpreted. Keep the category column only when readers need its value for row-level sorting or filtering.
+- Use normal density for ordinary short tables; compact density is for genuinely dense lookup.
+- Highlight a recommended row only when the source supports the recommendation.
+- Reorder columns around the reader's lookup task before shrinking or wrapping them.
+- Give dense evidence enough width before choosing a split layout. A table with five or more columns, or any table whose headers wrap at normal desktop width, normally owns the full section width. Never clip, truncate, or shrink a header to preserve a neighboring prose rail; move the introduction above the table or simplify the columns.
+
+```html
+<th scope="col">Page</th>
+<th scope="col" class="vbg-numeric">Visitors</th>
+<!-- ... -->
+<th scope="row">Homepage</th>
+<td class="vbg-numeric">12,757</td>
+```
+
+Use a qualitative comparison for concise differences; use a comparison table when exact row-by-row scanning matters. Peer columns must have matching type roles and aligned row starts. If one peer needs a different structure, it is not a peer grid.
+
+#### Calculators and interaction
+
+Treat interaction as evidence, not decoration. A calculator should make one model legible and let the reader test the assumptions that materially change the result.
+
+Define one canonical state model: variables, fixed inputs, formulas, units, full precision, ranges, increments, defaults, display precision, and dependencies. One control owns each variable. Fixed parameters are not controls. Pre-render the default result. Update dependent outputs atomically from full-precision state, then format for display.
+
+Keep the focal result, controls, and supporting outputs in one coherent tool. When using the calculator is the reader's main job, the working tool is the dominant object in the first viewport; do not delay it below oversized orientation copy or a sparse hero. Do not precede it with a ceremonial static version of the same answer or follow it with a default-scenario recap. Explain formulas, assumptions, bounds, or interpretation only when they help the reader trust or use the model.
+
+Use native controls with visible labels, helpers only when needed, clear units, visible focus, and one concise live status. Preserve invalid entries and the last valid result rather than silently clamping or defaulting. Keep all controls and results usable by keyboard and screen reader.
+
+With the standalone foundation, `.vbg-calculator` directly owns `.vbg-calculator-inputs` and `.vbg-calculator-output`; do not interpose a layout wrapper. A unit control uses this nesting so its label and helper stay outside the bordered field:
+
+```html
+<div class="vbg-field">
+  <label class="vbg-label" for="rate">Flex commitment rate</label>
+  <div class="vbg-unit-field">
+    <input id="rate" type="number" value="8">
+    <span class="vbg-unit-suffix">%</span>
+  </div>
+  <p class="vbg-helper">From 4% to 12%.</p>
+</div>
+```
+
+#### Motion and delight
+
+Default to stillness. Never add auto-scrolling marquees, simulated typing cursors, or decorative pulsing status indicators. Add motion only when it explains a state change, preserves continuity, or confirms an action. Never gate reading behind animation, reveal every section on scroll, move imagery on hover, or add bounce, parallax, cinematic transitions, sound, or spectacle. Keep the base experience complete without motion and respect reduced-motion preferences.
+
+For formal Vercel pages, create delight through unusually clear evidence or unusually low interaction friction: a comparison understood immediately, a calculator that makes a model obvious, or a customer-specific interaction that removes work. Do not manufacture personality with jokes, celebration, Easter eggs, decorative motion, or effects.
+
+#### Media and icons
+
+Use supplied screenshots, diagrams, customer media, or logos only when they are evidence or materially improve understanding. Never add stock imagery, decorative AI illustrations, abstract shapes, fake product screenshots, or mandatory hero media. Do not use icons as decoration or place them in colored tiles. Prefer text labels unless an established icon makes an action materially faster to recognize.
+
+### Inspect and revise privately
+
+Render the actual result when tooling exists. Inspect the first viewport, full page, and both light and dark themes. Also verify responsive reflow before handoff, but do not expose an evaluation matrix or critique report unless the user asks for one.
+
+Review in this order:
+
+1. **First read:** Is Vercel authorship immediate? If the reader saw only the first viewport, would they remember the central relationship, decision, or tool rather than only the title or mood?
+2. **Language:** Can the least specialized named stakeholder explain the answer after reading the headings and captions? Is every unfamiliar term defined in plain words? Did simplification preserve every material qualifier and avoid broader claims than the source supports? Does the methodology describe the chosen method and its limits rather than an execution diary?
+3. **Composition:** Is there one dominant object? Does each section advance the argument? Is any empty space accidental?
+4. **Typography:** Are roles consistent, peer values equal, baselines aligned, prose readable, gutters unmistakable, and vertical rhythm relational rather than uniform? Does each visible gap have one owner?
+5. **Evidence:** Does geometry prove the claim? Do repeated rows share exact label, plot, value, and annotation grid lines? Are tables full width? Do headers match the alignment of representative cells in every column? Does a short row label wrap while another column has room? Does a repeated category waste a column? Is any default audit subset neutral and declared? Are chart labels clear? Is anything repeated without a new reader task?
+6. **Restraint:** Can any surface, border, pill, icon, label, color, paragraph, or section be removed without losing meaning, affordance, or rhythm? If yes, remove it.
+7. **Themes and reflow:** Do light and dark have equivalent hierarchy and contrast? Does the page recompose without overflow or character-level wrapping?
+8. **Trust and access:** Are semantics, focus, labels, text alternatives, sources, caveats, and interaction behavior sound?
+
+Fix the highest-impact systemic defect, render again, and repeat until no known material visual or usability issue remains. Keep this work internal. Deliver the requested implementation, not a score, process diary, comparison log, or self-critique.
+
+## Reject generated-design reflexes
+
+Do not ship any of these recognizable defaults:
+
+- All-caps or tracked eyebrows, kickers, overlines, and decorative numbered section labels.
+- Em dashes.
+- Decorative gradients, glows, blobs, stripes, textures, glass, or ornamental shadows.
+- Generic centered hero copy followed by a card grid.
+- Repeated metric boxes when one composed relationship would be clearer.
+- A badge, pill, or rounded capsule for ordinary metadata, chart annotations, or editorial labels.
+- Cards nested inside cards, or borders used to repair weak hierarchy.
+- A dark rounded rectangle around every chart or calculator.
+- Arbitrary icon tiles, oversized icons, or mixed icon styles.
+- Tiny muted prose, arbitrary font sizes, inconsistent peer values, or misaligned baselines.
+- A narrow table floating inside a wide section, or a wide table compressed into broken words.
+- Decorative charts, redundant visualizations, legends that replace direct labels, or color without meaning.
+- Repeated full-width bars that do not share a scale or encode a visible difference.
+- Identical section silhouettes across unrelated reader questions.
+- Repeated recommendation, summary, rationale, and conclusion sections that say the same thing.
+- Authoring-process narration such as how the page was organized, why a representation was chosen, or how source fields were renamed. Keep concise interpretive captions that state an evidence-led takeaway or limitation.
+- Visible theme controls, print-only UI, stock imagery, fake screenshots, or decorative brand marks.
+
+Do not compensate for avoiding these defaults by producing a sterile anti-design template. Vercel restraint is precise hierarchy, excellent typography, clear evidence, strong alignment, and deliberate tension. It is not merely black, white, thin rules, and large empty margins.
+
+## Use the published CSS API
+
+Put `.vbg-report` on the page root and wrap standalone output in `.vbg-shell`. Use semantic HTML and only the primitives earned by the material.
+
+The generator-facing shell and layout classes are:
+
+`vbg-skip-link`, `vbg-header`, `vbg-masthead`, `vbg-identity`, `vbg-wordmark`, `vbg-document-meta`, `vbg-recipient`, `vbg-state`, `vbg-date`, `vbg-confidentiality`, `vbg-context`, `vbg-opening`, `vbg-opening-claim`, `vbg-opening-proof`, `vbg-opening-context`, `vbg-section`, `vbg-chapter`, `vbg-reading`, `vbg-flow`, `vbg-stack`, `vbg-cluster`, `vbg-grid`, `vbg-split`, `vbg-band`, `vbg-span-4`, `vbg-span-5`, `vbg-span-6`, `vbg-span-7`, `vbg-span-8`, `vbg-span-12`, `vbg-footer`, `vbg-logo`.
+
+The generator-facing type and evidence classes are:
+
+`vbg-title`, `vbg-display`, `vbg-heading-24`, `vbg-heading-20`, `vbg-heading-16`, `vbg-lede`, `vbg-label`, `vbg-meta`, `vbg-caption`, `vbg-mono`, `vbg-numeric`, `vbg-visually-hidden`, `vbg-note`, `vbg-formula`, `vbg-sources`, `vbg-stat-strip`, `vbg-stat`, `vbg-stat-label`, `vbg-stat-value`, `vbg-stat-detail`, `vbg-comparison`, `vbg-table-wrap`, `vbg-chart`, `vbg-chart-header`, `vbg-chart-viewport`, `vbg-legend`, `vbg-bar-comparison`, `vbg-bar-list`, `vbg-bar`, `vbg-bar-label`, `vbg-bar-value`, `vbg-bar-track`, `vbg-bar-fill`.
+
+The generator-facing calculator classes are:
+
+`vbg-calculator`, `vbg-calculator-inputs`, `vbg-calculator-output`, `vbg-control-group`, `vbg-field`, `vbg-unit-field`, `vbg-unit-prefix`, `vbg-unit-suffix`, `vbg-helper`, `vbg-error`, `vbg-range-ends`, `vbg-range-min`, `vbg-range-max`, `vbg-result-group`, `vbg-result`, `vbg-result-label`, `vbg-result-value`, `vbg-result-detail`, `vbg-button`.
+
+Use these primitives according to their semantic names. A `.vbg-stat-strip` owns peer `.vbg-stat` blocks with label, value, and optional detail. A `.vbg-table-wrap` directly owns one semantic table. A `figure.vbg-chart` owns its header, focusable viewport with inline SVG, caption, and optional legend. A `.vbg-calculator` keeps its results, inputs, and output group in one coherent subtree. Do not interpose decorative wrappers or restyle foundation controls.
+
+Use the exact public child names. Do not invent synonyms such as `vbg-stat-note` for `vbg-stat-detail`:
+
+```html
+<div class="vbg-stat-strip">
+  <div class="vbg-stat">
+    <p class="vbg-stat-label">Visitors</p>
+    <p class="vbg-stat-value">122,580</p>
+    <p class="vbg-stat-detail">June 17 to August 3</p>
+  </div>
+</div>
+```
+
+Treat only the listed names and visualization names below as the public API. If none fits, use semantic HTML plus a page-owned `vbg-custom-*` or `vbg-viz-*` hook; never inspect the CSS for internal selectors, guess a `vbg-*` class, or extrapolate a name from another primitive.
+
+Published visualization classes include `vbg-chart-axis`, `vbg-chart-gridline`, `vbg-series-stroke`, `vbg-series-fill`, `vbg-data-point`, `vbg-chart-direct-label`, `vbg-chart-value`, `vbg-chart-annotation`, `vbg-chart-annotation-line`, and `vbg-series-1` through `vbg-series-6`. Combine the fill or stroke role with a numbered series class; never synthesize names such as `vbg-series-fill-1`. Use `vbg-custom-*` only for local layout geometry and `vbg-viz-*` only for non-text visualization marks. Never apply custom visualization classes to SVG text.
+
+Page-owned CSS may read only these public token families:
+
+- Surfaces and text: `--vbg-surface-primary`, `--vbg-surface-secondary`, `--vbg-surface-contrast`, `--vbg-text-primary`, `--vbg-text-secondary`, `--vbg-text-on-contrast`, `--vbg-text-on-contrast-secondary`.
+- Borders and state: `--vbg-border-subtle`, `--vbg-border-default`, `--vbg-border-strong`, `--vbg-border-on-contrast`, `--vbg-focus`, `--vbg-color-info`, `--vbg-color-success`, `--vbg-color-warning`, `--vbg-color-error`.
+- Data: `--vbg-chart-1` through `--vbg-chart-6`.
+- Rhythm and shape: `--vbg-space-1`, `--vbg-space-2`, `--vbg-space-3`, `--vbg-space-4`, `--vbg-space-5`, `--vbg-space-6`, `--vbg-space-8`, `--vbg-space-10`, `--vbg-space-12`, `--vbg-space-16`, `--vbg-radius-small`, `--vbg-radius`.
+- Type size: `--vbg-type-display`, `--vbg-type-page-title`, `--vbg-type-title`, `--vbg-type-section`, `--vbg-type-subsection`, `--vbg-type-lede`, `--vbg-type-body`, `--vbg-type-compact`, `--vbg-type-label`, `--vbg-type-metadata`.
+- Type weight and leading: `--vbg-weight-regular`, `--vbg-weight-heading`, `--vbg-weight-medium`, `--vbg-weight-semibold`, `--vbg-leading-body`, `--vbg-leading-compact`, `--vbg-leading-caption`, `--vbg-leading-display`, `--vbg-leading-page-title`, `--vbg-leading-title`, `--vbg-leading-section`, `--vbg-leading-subsection`, `--vbg-leading-lede`.
+
+Use the exact names with `var()`. Never invent, alias, or redeclare a `--vbg-*` token. Prefer `currentColor`, `inherit`, or `transparent` when a custom mark needs no distinct semantic role. Every custom `font-weight` uses a published weight token.
+
+## Accessibility and responsive behavior
+
+Use landmarks, one descriptive `h1`, ordered headings, a skip link, native controls, semantic tables, figures and captions, accessible names, visible focus, and text alternatives. Meet WCAG AA and never rely on color alone. Treat source order as reading order.
+
+Do not conceal page overflow. Give grid and flex children `min-width: 0`; reflow before shrinking. Preserve readable type and control sizes. Short comparisons may stack; long ledgers may scroll locally when reordering and simplification cannot preserve lookup. The page must remain usable in light and dark and across desktop and narrow screens without a visible theme switcher.
+
+The target is Vercel judgment, not Vercel decoration.
