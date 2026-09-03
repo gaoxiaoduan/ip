@@ -408,24 +408,26 @@ const HomePage = ({ networkAdapters }: AppProps) => {
               className="mb-10 sm:mb-12"
             />
 
-            <div className="grid grid-cols-1 overflow-hidden rounded-2xl border border-hairline sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 overflow-hidden rounded-2xl border border-hairline bg-canvas sm:grid-cols-2 lg:grid-cols-3">
               {PRINCIPLES.map((principle, index) => (
                 <article
                   className={cn(
-                    "border-b border-hairline py-7 last:border-b-0 sm:pr-8 sm:pb-9 lg:min-h-[250px] lg:border-b-0 lg:py-8",
-                    index === 1 && "sm:border-l sm:pl-8",
-                    index === 2 && "sm:col-span-full lg:col-span-1 lg:border-l lg:pl-8",
-                    index === 2 && "sm:border-b-0",
+                    "flex flex-col justify-between border-b border-hairline p-6 last:border-b-0 sm:p-8",
+                    index === 1 && "sm:border-l sm:border-hairline",
+                    index === 2 && "sm:col-span-full sm:border-b-0 lg:col-span-1 lg:border-l lg:border-hairline",
+                    "lg:border-b-0",
                   )}
                   key={principle.label}
                 >
                   <MonoLabel>{principle.label}</MonoLabel>
-                  <h3 className="mt-8 mb-2 text-xl font-semibold tracking-[-0.03em]">
-                    {principle.title}
-                  </h3>
-                  <p className="max-w-[34ch] text-[13px] leading-[21px] text-body">
-                    {principle.body}
-                  </p>
+                  <div className="mt-8 sm:mt-10">
+                    <h3 className="mb-2 text-xl font-semibold tracking-[-0.03em]">
+                      {principle.title}
+                    </h3>
+                    <p className="max-w-[42ch] text-[13px] leading-[21px] text-body">
+                      {principle.body}
+                    </p>
+                  </div>
                 </article>
               ))}
             </div>
