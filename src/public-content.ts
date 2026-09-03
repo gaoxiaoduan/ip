@@ -321,14 +321,14 @@ const sourceList = (sources: readonly Source[]) =>
   sources
     .map(
       (source) =>
-        `<li><a href="${source.href}" rel="noreferrer">${source.label}</a></li>`,
+        `<li class="public-source-item"><a class="public-source-link" href="${source.href}" target="_blank" rel="noreferrer"><span>${source.label}</span><span class="public-source-arrow" aria-hidden="true">↗</span></a></li>`,
     )
     .join("");
 
 const pageSections = (page: PublicPage) =>
   page.sections
     .map(
-      (section) => `<section class="public-section"><h2>${section.title}</h2><div>${section.paragraphs
+      (section) => `<section class="public-section"><h2>${section.title}</h2><div class="public-section-content">${section.paragraphs
         .map((paragraph) => `<p>${paragraph}</p>`)
         .join("")}</div></section>`,
     )
@@ -338,7 +338,7 @@ const relatedReading = (page: PublicPage) =>
   PUBLIC_PAGES.filter((otherPage) => otherPage.path !== page.path)
     .map(
       (otherPage) =>
-        `<li><a href="${otherPage.path}">${otherPage.title}</a></li>`,
+        `<li class="public-reading-item"><a class="public-reading-link" href="${otherPage.path}"><div class="public-reading-content"><span class="public-reading-eyebrow">${otherPage.eyebrow}</span><span class="public-reading-title">${otherPage.title}</span></div><span class="public-reading-arrow" aria-hidden="true">→</span></a></li>`,
     )
     .join("");
 
@@ -359,7 +359,7 @@ const jsonLd = (page: PublicPage) =>
   }).replace(/</g, "\\u003c");
 
 const footer = () =>
-  `<footer class="public-footer"><div class="public-footer-inner"><span>IP 出口检测 · 只比较当前页面的出口观测 · 更新于 ${PUBLIC_CONTENT_UPDATED_AT}</span><a href="https://github.com/gaoxiaoduan/ip/issues/new">通过 GitHub Issue 纠正内容</a></div></footer>`;
+  `<footer class="public-footer"><div class="public-footer-inner"><a class="public-footer-brand" href="/" aria-label="IP 出口检测首页"><span class="brand-mark" aria-hidden="true"><span></span></span><span>IP 出口检测</span></a><div class="public-footer-meta"><span>只比较当前页面的出口观测</span><span class="public-footer-divider">·</span><a class="public-footer-link" href="https://github.com/gaoxiaoduan/ip/issues/new" target="_blank" rel="noreferrer">通过 GitHub Issue 纠正内容</a></div><a class="public-back-top" href="#top">回到顶部 ↑</a></div></footer>`;
 
 const INTERACTIVE_PUBLIC_PATHS = new Set<string>([
   "/connectivity",
@@ -368,10 +368,53 @@ const INTERACTIVE_PUBLIC_PATHS = new Set<string>([
 ] as const);
 
 const renderPublicPageContent = (page: PublicPage) => `<div class="public-shell vbg-report">
-  <nav class="public-nav" aria-label="站点导航"><a class="public-brand" href="/">IP 出口检测</a><a href="/methodology">检测方法与隐私边界</a></nav>
-  <main>
-    <header class="public-hero"><div class="public-hero-inner"><span class="public-label">${page.eyebrow}</span><h1>${page.title}</h1><p>${page.intro}</p><div class="public-actions"><a class="public-action" href="/#results">开始本次检测</a><a class="public-action public-action--quiet" href="/guides/ip-differences">阅读相关说明</a></div></div></header>
-    <article class="public-article">${pageSections(page)}<section class="public-sources"><h2>继续阅读</h2><ul>${relatedReading(page)}</ul></section><section class="public-sources"><h2>技术来源</h2><ul>${sourceList(page.sources)}</ul></section></article>
+  <header class="public-header">
+    <div class="public-header-inner">
+      <a class="public-brand" href="/" aria-label="IP 出口检测首页">
+        <span class="brand-mark" aria-hidden="true"><span></span></span>
+        <span>IP 出口检测</span>
+      </a>
+      <nav class="public-nav" aria-label="页面导航">
+        <a class="public-nav-link" href="/#results">检测结果</a>
+        <a class="public-nav-link" href="/#method">检测说明</a>
+        <a class="public-nav-link" href="/#privacy">隐私边界</a>
+      </nav>
+      <div class="public-header-actions">
+        <button class="public-theme-control" id="theme-toggle" type="button" aria-label="当前：跟随系统。点击切换为浅色" title="当前：跟随系统。点击切换为浅色">
+          <svg class="theme-icon theme-icon--system" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><rect x="3" y="3.5" width="14" height="10" rx="1" /><path d="M7.5 16.5h5M10 13.5v3" /></svg>
+          <svg class="theme-icon theme-icon--light" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10" cy="10" r="3.5" /><path d="M10 1.5v2M10 16.5v2M18.5 10h-2M3.5 10h-2M16 4l-1.4 1.4M5.4 14.6 4 16M16 16l-1.4-1.4M5.4 5.4 4 4" /></svg>
+          <svg class="theme-icon theme-icon--dark" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M16.2 12.4A6.9 6.9 0 0 1 7.6 3.8 6.9 6.9 0 1 0 16.2 12.4Z" /></svg>
+        </button>
+        <a class="public-github-link" href="https://github.com/gaoxiaoduan/ip" target="_blank" rel="noreferrer" aria-label="在 GitHub 查看项目（在新标签页打开）">
+          <svg class="public-github-icon" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.58 2 12.23c0 4.52 2.87 8.35 6.84 9.7.5.1.68-.22.68-.49 0-.24-.01-1.05-.01-1.91-2.78.62-3.37-1.2-3.37-1.2-.46-1.18-1.11-1.49-1.11-1.49-.91-.64.07-.63.07-.63 1 .08 1.53 1.06 1.53 1.06.9 1.57 2.35 1.12 2.92.86.09-.67.35-1.12.64-1.38-2.22-.26-4.56-1.14-4.56-5.06 0-1.12.39-2.03 1.03-2.75-.1-.26-.45-1.3.1-2.72 0 0 .84-.28 2.75 1.05A9.3 9.3 0 0 1 12 6.36a9.3 9.3 0 0 1 2.5.35c1.91-1.33 2.75-1.05 2.75-1.05.55 1.42.2 2.46.1 2.72.64.72 1.03 1.63 1.03 2.75 0 3.93-2.35 4.79-4.58 5.05.36.32.68.93.68 1.87 0 1.35-.01 2.44-.01 2.77 0 .27.18.59.69.49A10.25 10.25 0 0 0 22 12.23C22 6.58 17.52 2 12 2Z" /></svg>
+        </a>
+        <a class="public-nav-action" href="/#results">查看本次结果</a>
+      </div>
+    </div>
+  </header>
+  <main id="top">
+    <header class="public-hero">
+      <div class="public-hero-inner">
+        <div class="public-hero-badge"><span class="public-mono-label">${page.eyebrow}</span></div>
+        <h1 class="public-hero-title">${page.title}</h1>
+        <p class="public-hero-intro">${page.intro}</p>
+        <div class="public-actions">
+          <a class="public-action public-action--primary" href="/#results">开始本次检测</a>
+          <a class="public-action public-action--secondary" href="/">返回检测首页</a>
+        </div>
+      </div>
+    </header>
+    <article class="public-article">
+      ${pageSections(page)}
+      <section class="public-sources">
+        <h2>继续阅读</h2>
+        <ul class="public-reading-list">${relatedReading(page)}</ul>
+      </section>
+      <section class="public-sources">
+        <h2>技术来源</h2>
+        <ul class="public-sources-list">${sourceList(page.sources)}</ul>
+      </section>
+    </article>
   </main>
   ${footer()}
 </div>`;
@@ -402,6 +445,7 @@ export const renderPublicPage = (
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..600&family=Geist+Mono:wght@400..600&display=swap" rel="stylesheet" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="/vercel-brand.css" />
     <link rel="stylesheet" href="/public-content.css" />
+    <script src="/theme.js"></script>
     <script type="application/ld+json">${jsonLd(page)}</script>
     <title>${page.title}｜IP 出口检测</title>
   </head>
@@ -459,15 +503,15 @@ const homeJsonLd = JSON.stringify({
 }).replace(/</g, "\\u003c");
 
 export const renderHomeFallback = () => `<div class="public-shell vbg-report">
-  <main>
-    <header class="public-hero"><div class="public-hero-inner"><span class="public-label">IP.33338888.xyz · BROWSER-DIRECT / SESSION-ONLY</span><h1>IP 出口检测：一次看清，网站看到你从哪里来。</h1><p>IP.33338888.xyz 同时比较国内网站路径、普通海外网站路径与受限海外服务路径实际观察到的公网出口。只描述出口差异，不替你判断网络配置。</p><div class="public-actions"><a class="public-action" href="#results">开始本次检测</a></div></div></header>
+  <main id="top">
+    <header class="public-hero"><div class="public-hero-inner"><div class="public-hero-badge"><span class="public-mono-label">IP.33338888.xyz · BROWSER-DIRECT / SESSION-ONLY</span></div><h1 class="public-hero-title">IP 出口检测：一次看清，网站看到你从哪里来。</h1><p class="public-hero-intro">IP.33338888.xyz 同时比较国内网站路径、普通海外网站路径与受限海外服务路径实际观察到的公网出口。只描述出口差异，不替你判断网络配置。</p><div class="public-actions"><a class="public-action public-action--primary" href="#results">开始本次检测</a></div></div></header>
     <article class="public-article">
-      <section class="public-section" id="results"><h2>三条路径，一次对照</h2><div><p>浏览器直接访问不同目的网络类别的检测端点。每张路径卡片都会标明本次实际采用的数据来源和返回时间。</p><p>国内网站路径用于观察访问中国大陆常见网站时的出口结果；普通海外网站路径用于观察一般跨境访问；受限海外服务路径只提供可能受访问策略影响的代表性观测，不等同于任何指定服务。</p></div></section>
-      <section class="public-section"><h2>结果如何比较</h2><div><p>至少两条成功路径才可以比较。若成功路径观察到不同的公网 IP 或出口归属地，页面会显示出口差异；成功路径不足两条时，页面会显示数据不足。</p><p>每条路径只会在主检测端点失败后尝试备用端点。不可达不证明没有公网出口，也不证明服务被封锁。</p></div></section>
-      <section class="public-section"><h2>网络工具台</h2><div><p>首页下方提供三种可直接操作的新工具，默认等待，不会自动启动 WebRTC 或消耗测速流量。</p><p><a href="/connectivity">网络连通性</a>显示八个固定网站的资源请求；<a href="/webrtc">WebRTC 泄漏测试</a>展示四个 STUN 服务的连接证据；<a href="/speed-test">网速测试</a>测量下载、上传、延迟和抖动。</p></div></section>
-      <section class="public-section"><h2>把观测和判断分开</h2><div><p>浏览器直连：出口结果来自检测端点，本站不会代替访客转发请求。检测会话只停留在当前页面，刷新或关闭后结果消失，不形成账户历史。</p><p>出口差异不是诊断结论。页面只比较各检测端点看到的出口结果，不据此判断代理配置正常、异常或是否生效。</p></div></section>
-      <section class="public-section"><h2>隐私边界</h2><div><p>出口归属地来自各检测端点自己的 IP 地理数据库，可能存在差异。它不代表设备的精确物理位置，也不代表设备全部网络流量。</p><p>项目不需要账户、不保存个人检测结果，也不请求额外定位。</p></div></section>
-      <section class="public-section"><h2>继续了解</h2><div><p><a href="/guides/ip-differences">为什么不同网站会看到不同的出口 IP？</a></p><p><a href="/guides/ip-mismatch">国内和海外看到的 IP 不一致，该怎么理解？</a></p><p><a href="/guides/traffic-split-observation">三条检测路径，观察的是什么？</a></p><p><a href="/methodology">检测方法与隐私边界</a></p></div></section>
+      <section class="public-section" id="results"><h2>三条路径，一次对照</h2><div class="public-section-content"><p>浏览器直接访问不同目的网络类别的检测端点。每张路径卡片都会标明本次实际采用的数据来源和返回时间。</p><p>国内网站路径用于观察访问中国大陆常见网站时的出口结果；普通海外网站路径用于观察一般跨境访问；受限海外服务路径只提供可能受访问策略影响的代表性观测，不等同于任何指定服务。</p></div></section>
+      <section class="public-section"><h2>结果如何比较</h2><div class="public-section-content"><p>至少两条成功路径才可以比较。若成功路径观察到不同的公网 IP 或出口归属地，页面会显示出口差异；成功路径不足两条时，页面会显示数据不足。</p><p>每条路径只会在主检测端点失败后尝试备用端点。不可达不证明没有公网出口，也不证明服务被封锁。</p></div></section>
+      <section class="public-section"><h2>网络工具台</h2><div class="public-section-content"><p>首页下方提供三种可直接操作的新工具，默认等待，不会自动启动 WebRTC 或消耗测速流量。</p><p><a href="/connectivity">网络连通性</a>显示八个固定网站的资源请求；<a href="/webrtc">WebRTC 泄漏测试</a>展示四个 STUN 服务的连接证据；<a href="/speed-test">网速测试</a>测量下载、上传、延迟和抖动。</p></div></section>
+      <section class="public-section"><h2>把观测和判断分开</h2><div class="public-section-content"><p>浏览器直连：出口结果来自检测端点，本站不会代替访客转发请求。检测会话只停留在当前页面，刷新或关闭后结果消失，不形成账户历史。</p><p>出口差异不是诊断结论。页面只比较各检测端点看到的出口结果，不据此判断代理配置正常、异常或是否生效。</p></div></section>
+      <section class="public-section"><h2>隐私边界</h2><div class="public-section-content"><p>出口归属地来自各检测端点自己的 IP 地理数据库，可能存在差异。它不代表设备的精确物理位置，也不代表设备全部网络流量。</p><p>项目不需要账户、不保存个人检测结果，也不请求额外定位。</p></div></section>
+      <section class="public-section"><h2>继续了解</h2><div class="public-section-content"><p><a href="/guides/ip-differences">为什么不同网站会看到不同的出口 IP？</a></p><p><a href="/guides/ip-mismatch">国内和海外看到的 IP 不一致，该怎么理解？</a></p><p><a href="/guides/traffic-split-observation">三条检测路径，观察的是什么？</a></p><p><a href="/methodology">检测方法与隐私边界</a></p></div></section>
     </article>
   </main>
   ${footer()}

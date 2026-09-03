@@ -68,7 +68,8 @@ for (const [relativePath, heading, pathname] of publicPages) {
   assert.match(html, new RegExp(heading));
   assert.match(html, /rel="canonical"/);
   assert.match(html, /application\/ld\+json/);
-  assert.match(html, /更新于 2026-07-29/);
+  assert.match(html, /只比较当前页面的出口观测/);
+  assert.doesNotMatch(html, /更新于 2026-07-29/);
   assert.doesNotMatch(html, /<style>/);
 
   if (pathname !== "/") {
