@@ -45,6 +45,14 @@ assert.match(
   contentSecurityPolicy,
   /script-src[^;]*https:\/\/static\.cloudflareinsights\.com/,
 );
+assert.match(
+  builtHeaders,
+  /\/.well-known\/ard\.json\n  Access-Control-Allow-Origin: \*/,
+);
+assert.match(
+  builtHeaders,
+  /\/.well-known\/ai-catalog\.json\n  Access-Control-Allow-Origin: \*/,
+);
 
 for (const [relativePath, heading, pathname] of publicPages) {
   const html = await readBuiltFile(relativePath);
@@ -114,3 +122,21 @@ assert.equal(
   "https://ip.33338888.xyz/mcp",
 );
 assert.equal(mcpManifest.tools[0].name, "observe_ip");
+
+for (const catalogPath of [
+  ".well-known/ard.json",
+  ".well-known/ai-catalog.json",
+]) {
+  const catalog = JSON.parse(await readBuiltFile(catalogPath));
+  assert.equal(catalog.specVersion, "1.0");
+  assert.equal(catalog.entries.length, 1);
+
+  const [entry] = catalog.entries;
+  assert.equal(entry.identifier, "urn:air:ip.33338888.xyz:server:ip-exit-observer");
+  assert.equal(entry.displayName, "IP 出口检测 MCP Server");
+  assert.equal(entry.type, "application/mcp-server-card+json");
+  assert.equal(entry.url, "https://ip.33338888.xyz/.well-known/mcp/server-card.json");
+  assert.equal("data" in entry, false);
+  assert.ok(entry.representativeQueries.length >= 2);
+  assert.ok(entry.representativeQueries.length <= 5);
+}

@@ -1,0 +1,21 @@
+{
+  "specVersion": "1.0",
+  "entries": [
+    {
+      "@context": "https://agenticresourcediscovery.org/context/v1",
+      "identifier": "urn:air:ip.33338888.xyz:server:ip-exit-observer",
+      "displayName": "IP 出口检测 MCP Server",
+      "type": "application/mcp-server-card+json",
+      "url": "https://ip.33338888.xyz/.well-known/mcp/server-card.json",
+      "capabilities": ["IPObservation", "NetworkMetadata"],
+      "description": "无需认证的 MCP 服务，用于读取当前请求被 Cloudflare 观察到的公网 IP、国家/地区、城市、网络组织、ASN 和边缘机房。",
+      "representativeQueries": [
+        "查询当前 MCP 请求的公网 IP",
+        "查看当前请求的国家、城市和 ASN",
+        "读取当前请求的 Cloudflare 网络元数据"
+      ],
+      "version": "0.1.0",
+      "tags": ["ip", "network", "cloudflare", "mcp", "diagnostics"]
+    }
+  ]
+}

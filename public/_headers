@@ -4,3 +4,9 @@
   Referrer-Policy: no-referrer
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
+
+/.well-known/ard.json
+  Access-Control-Allow-Origin: *
+
+/.well-known/ai-catalog.json
+  Access-Control-Allow-Origin: *
