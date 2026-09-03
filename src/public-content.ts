@@ -367,7 +367,7 @@ const INTERACTIVE_PUBLIC_PATHS = new Set<string>([
   "/speed-test",
 ] as const);
 
-const renderPublicPageContent = (page: PublicPage) => `<div class="public-shell">
+const renderPublicPageContent = (page: PublicPage) => `<div class="public-shell vbg-report">
   <nav class="public-nav" aria-label="站点导航"><a class="public-brand" href="/">IP 出口检测</a><a href="/methodology">检测方法与隐私边界</a></nav>
   <main>
     <header class="public-hero"><div class="public-hero-inner"><span class="public-label">${page.eyebrow}</span><h1>${page.title}</h1><p>${page.intro}</p><div class="public-actions"><a class="public-action" href="/#results">开始本次检测</a><a class="public-action public-action--quiet" href="/guides/ip-differences">阅读相关说明</a></div></div></header>
@@ -391,12 +391,16 @@ export const renderPublicPage = (
     <meta name="google-site-verification" content="dbkmP20PYh627D7oubVVvJBTt8mtJq1Ge1Id1blG6WI" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="${page.description}" />
-    <meta name="theme-color" content="#f7f8fa" />
+    <meta name="theme-color" content="#ffffff" />
     <meta property="og:type" content="article" />
     <meta property="og:locale" content="zh_CN" />
     <meta property="og:title" content="${page.title}｜IP 出口检测" />
     <meta property="og:description" content="${page.description}" />
     <link rel="canonical" href="${SITE_ORIGIN}${page.path}" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..600&family=Geist+Mono:wght@400..600&display=swap" rel="stylesheet" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="/vercel-brand.css" />
     <link rel="stylesheet" href="/public-content.css" />
     <script type="application/ld+json">${jsonLd(page)}</script>
     <title>${page.title}｜IP 出口检测</title>
@@ -454,7 +458,7 @@ const homeJsonLd = JSON.stringify({
   ],
 }).replace(/</g, "\\u003c");
 
-export const renderHomeFallback = () => `<div class="public-shell">
+export const renderHomeFallback = () => `<div class="public-shell vbg-report">
   <main>
     <header class="public-hero"><div class="public-hero-inner"><span class="public-label">IP.33338888.xyz · BROWSER-DIRECT / SESSION-ONLY</span><h1>IP 出口检测：一次看清，网站看到你从哪里来。</h1><p>IP.33338888.xyz 同时比较国内网站路径、普通海外网站路径与受限海外服务路径实际观察到的公网出口。只描述出口差异，不替你判断网络配置。</p><div class="public-actions"><a class="public-action" href="#results">开始本次检测</a></div></div></header>
     <article class="public-article">

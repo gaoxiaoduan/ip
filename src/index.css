@@ -6,11 +6,8 @@
   --breakpoint-md: 761px;
   --breakpoint-lg: 960px;
 
-  --font-sans:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", sans-serif;
-  --font-mono:
-    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+  --font-sans: Geist, ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
 
   --color-ink: #171717;
   --color-body: #4d4d4d;
@@ -20,30 +17,17 @@
   --color-canvas: #ffffff;
   --color-canvas-soft: #fafafa;
   --color-canvas-soft-2: #f5f5f5;
-  --color-link: #0070f3;
-  --color-error: #ee0000;
-  --color-warning: #f5a623;
-  --color-warning-soft: #ffefcf;
-  --color-cyan: #50e3c2;
-  --color-violet: #7928ca;
-  --color-pink: #ff0080;
-  --color-amber: #f9cb28;
+  --color-link: #171717;
+  --color-error: #171717;
+  --color-warning: #171717;
+  --color-warning-soft: #f5f5f5;
+  --color-cyan: #171717;
+  --color-violet: #171717;
+  --color-pink: #171717;
+  --color-amber: #171717;
 
-  --animate-hero-enter: hero-enter 680ms cubic-bezier(0.22, 1, 0.36, 1) both;
   --animate-status-pulse: status-pulse 1.35s ease-in-out infinite;
   --animate-skeleton: skeleton 1.35s ease-in-out infinite;
-
-  @keyframes hero-enter {
-    from {
-      opacity: 0;
-      transform: translateY(14px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
 
   @keyframes status-pulse {
     50% {
@@ -63,7 +47,7 @@
   color: var(--color-ink);
   background: var(--color-canvas-soft);
   font-family: var(--font-sans);
-  font-feature-settings: "ss01", "ss02";
+  font-feature-settings: "ss01", "ss02", "tnum";
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   --primary: #171717;
@@ -78,7 +62,109 @@
   --accent-foreground: #171717;
   --input: #ebebeb;
   --ring: #171717;
-  --radius: 0.375rem;
+  --radius: 0.875rem;
+}
+
+.site-report {
+  --color-ink: var(--vbg-text-primary);
+  --color-body: var(--vbg-text-secondary);
+  --color-mute: var(--vbg-text-secondary);
+  --color-hairline: var(--vbg-border-subtle);
+  --color-hairline-strong: var(--vbg-border-default);
+  --color-canvas: var(--vbg-surface-primary);
+  --color-canvas-soft: var(--vbg-surface-secondary);
+  --color-canvas-soft-2: var(--vbg-surface-secondary);
+  --color-link: var(--vbg-text-primary);
+  --color-error: var(--vbg-text-primary);
+  --color-warning: var(--vbg-text-primary);
+  --color-warning-soft: var(--vbg-surface-secondary);
+  --color-cyan: var(--vbg-text-primary);
+  --color-violet: var(--vbg-text-primary);
+  --color-pink: var(--vbg-text-primary);
+  --color-amber: var(--vbg-text-primary);
+  --primary: var(--vbg-surface-contrast);
+  --primary-foreground: var(--vbg-text-on-contrast);
+  --secondary: var(--vbg-surface-secondary);
+  --secondary-foreground: var(--vbg-text-primary);
+  --background: var(--vbg-surface-primary);
+  --foreground: var(--vbg-text-primary);
+  --accent: var(--vbg-surface-secondary);
+  --accent-foreground: var(--vbg-text-primary);
+  --input: var(--vbg-border-default);
+  --ring: var(--vbg-focus);
+}
+
+.site-report .bg-ink.text-white {
+  background-color: var(--vbg-surface-contrast);
+  color: var(--vbg-text-on-contrast);
+}
+
+.site-report pre.bg-ink {
+  background-color: var(--vbg-surface-secondary);
+  color: var(--vbg-text-primary);
+}
+
+.site-report .site-hero-mesh {
+  --hero-fade: var(--vbg-surface-primary);
+  --hero-grid: var(--vbg-border-subtle);
+}
+
+.site-report .theme-control {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.site-report button {
+  border-radius: var(--radius);
+}
+
+.site-report .tool-header-action {
+  inline-size: 2.5rem;
+  block-size: 2.5rem;
+  padding: 0;
+  border-radius: 0.75rem;
+}
+
+.site-report .speed-pulse-button {
+  inline-size: 9rem;
+  block-size: 9rem;
+  padding: 0;
+  border-radius: 9999px;
+}
+
+@media (min-width: 640px) {
+  .site-report .speed-pulse-button {
+    inline-size: 10rem;
+    block-size: 10rem;
+  }
+}
+
+body:has(.vbg-report) {
+  color-scheme: light dark;
+  background: Canvas;
+}
+
+html.light body:has(.vbg-report) {
+  color-scheme: light;
+}
+
+html.dark body:has(.vbg-report) {
+  color-scheme: dark;
+}
+
+.site-report .site-contrast {
+  background-color: var(--vbg-surface-contrast);
+  color: var(--vbg-text-on-contrast);
+}
+
+.site-report .site-contrast :is(h1, h2, h3, h4, a, dd) {
+  color: var(--vbg-text-on-contrast);
+}
+
+.site-report .site-contrast :is(p, dt, .text-hairline-strong) {
+  color: var(--vbg-text-on-contrast-secondary);
 }
 
 @theme inline {

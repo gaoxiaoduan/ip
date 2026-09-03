@@ -1,16 +1,20 @@
 :root {
-  color: #171717;
-  background: #f7f8fa;
-  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--vbg-text-primary, #171717);
+  background: var(--vbg-surface-primary, #fff);
+  font-family: Geist, ui-sans-serif, system-ui, sans-serif;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
-  margin: 0;
   min-width: 320px;
+  margin: 0;
+  background: var(--vbg-surface-primary, #fff);
+}
+
+body:has(.vbg-report) {
+  color-scheme: light dark;
+  background: Canvas;
 }
 
 a {
@@ -19,42 +23,34 @@ a {
   text-underline-offset: 3px;
 }
 
-.public-shell {
-  min-height: 100vh;
-}
+.public-shell { min-height: 100vh; }
 
-.public-nav {
+.public-nav,
+.public-footer-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  max-width: 72rem;
+  gap: var(--vbg-space-4, 1rem);
+  width: min(100% - 3rem, 75rem);
   margin: 0 auto;
-  padding: 1.2rem 1.5rem;
+}
+
+.public-nav {
+  min-height: 4rem;
+  padding: var(--vbg-space-3, .75rem) 0;
 }
 
 .public-brand {
-  font-size: 0.875rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-size: var(--vbg-type-label, .875rem);
+  font-weight: var(--vbg-weight-heading, 600);
+  letter-spacing: -.02em;
   text-decoration: none;
 }
 
-.public-nav a {
-  color: #555;
-  font-size: 0.8125rem;
-}
+.public-nav a:not(.public-brand),
+.public-footer { color: var(--vbg-text-secondary, #666); font-size: var(--vbg-type-compact, .8125rem); }
 
-.public-hero {
-  border-top: 1px solid #e4e7eb;
-  border-bottom: 1px solid #d9dee5;
-  background: linear-gradient(
-    135deg,
-    #f9fbff 0%,
-    #edf4ff 50%,
-    #f6f1ff 100%
-  );
-}
+.public-hero { border-block: 1px solid var(--vbg-border-default, #eaeaea); }
 
 .public-hero-inner,
 .public-article {
@@ -62,134 +58,99 @@ a {
   margin: 0 auto;
 }
 
-.public-hero-inner {
-  padding: 5rem 0 4rem;
-}
+.public-hero-inner { padding: clamp(3.5rem, 10vw, 7rem) 0 clamp(3rem, 8vw, 5rem); }
 
 .public-label {
-  display: inline-flex;
-  border: 1px solid #cbd6e6;
-  border-radius: 999px;
-  padding: 0.3rem 0.6rem;
-  color: #345;
-  font: 0.6875rem/1.1 "JetBrains Mono", ui-monospace, monospace;
-  letter-spacing: 0.04em;
+  display: block;
+  color: var(--vbg-text-secondary, #666);
+  font-size: var(--vbg-type-label, .875rem);
+  line-height: var(--vbg-leading-compact, 1.4);
 }
 
 h1 {
-  max-width: 18ch;
-  margin: 1rem 0;
-  font-size: clamp(2.25rem, 7vw, 4.75rem);
-  line-height: 0.98;
-  letter-spacing: -0.065em;
+  max-width: 15ch;
+  margin: var(--vbg-space-4, 1rem) 0;
+  font-size: clamp(2.75rem, 7vw, 5rem);
+  font-weight: var(--vbg-weight-heading, 600);
+  line-height: var(--vbg-leading-display, .95);
+  letter-spacing: -.065em;
 }
 
 .public-hero p {
   max-width: 43rem;
   margin: 0;
-  color: #3f4650;
-  font-size: 1.05rem;
-  line-height: 1.7;
+  color: var(--vbg-text-secondary, #555);
+  font-size: var(--vbg-type-lede, 1.125rem);
+  line-height: var(--vbg-leading-lede, 1.5);
 }
 
-.public-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-top: 1.75rem;
-}
+.public-actions { display: flex; flex-wrap: wrap; gap: var(--vbg-space-3, .75rem); margin-top: var(--vbg-space-6, 1.5rem); }
 
 .public-action {
   display: inline-flex;
   align-items: center;
   min-height: 2.8rem;
-  border-radius: 0.45rem;
-  padding: 0.7rem 1rem;
-  background: #171717;
-  color: #fff;
-  font-size: 0.875rem;
-  font-weight: 600;
+  padding: .7rem 1rem;
+  background: var(--vbg-surface-contrast, #171717);
+  color: var(--vbg-text-on-contrast, #fff);
+  font-size: var(--vbg-type-compact, .875rem);
+  font-weight: var(--vbg-weight-medium, 500);
   text-decoration: none;
 }
 
 .public-action--quiet {
+  border: 1px solid var(--vbg-border-default, #d9d9d9);
   background: transparent;
-  color: #171717;
-  box-shadow: inset 0 0 0 1px #bfc7d2;
+  color: var(--vbg-text-primary, #171717);
 }
 
-.public-article {
-  padding: 3.5rem 0 4.5rem;
-}
+.public-article { padding: var(--vbg-space-12, 4rem) 0; }
 
 .public-section {
   display: grid;
   grid-template-columns: minmax(0, 13rem) minmax(0, 1fr);
-  gap: 1.25rem 3rem;
-  border-top: 1px solid #d9dee5;
-  padding: 2rem 0;
+  gap: var(--vbg-space-4, 1rem) clamp(2rem, 6vw, 4rem);
+  border-top: 1px solid var(--vbg-border-default, #d9d9d9);
+  padding: var(--vbg-space-8, 2rem) 0;
 }
 
-.public-section h2 {
+.public-section h2,
+.public-sources h2 {
   margin: 0;
-  font-size: 1rem;
-  letter-spacing: -0.02em;
+  font-size: var(--vbg-type-compact, 1rem);
+  font-weight: var(--vbg-weight-heading, 600);
+  letter-spacing: -.02em;
 }
 
 .public-section p {
-  margin: 0 0 1rem;
-  color: #414852;
-  font-size: 0.975rem;
-  line-height: 1.8;
+  margin: 0 0 var(--vbg-space-4, 1rem);
+  color: var(--vbg-text-secondary, #555);
+  font-size: var(--vbg-type-body, 1rem);
+  line-height: var(--vbg-leading-body, 1.65);
 }
 
-.public-section p:last-child {
-  margin-bottom: 0;
-}
+.public-section p:last-child { margin-bottom: 0; }
 
 .public-sources {
-  margin: 1rem 0 0;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  background: #edf1f6;
+  border-top: 1px solid var(--vbg-border-default, #d9d9d9);
+  padding: var(--vbg-space-6, 1.5rem) 0;
 }
 
-.public-sources h2 {
-  margin: 0 0 0.75rem;
-  font-size: 0.875rem;
-}
+.public-sources + .public-sources { margin-top: var(--vbg-space-4, 1rem); }
 
 .public-sources ul {
-  margin: 0;
+  margin: var(--vbg-space-3, .75rem) 0 0;
   padding-left: 1.1rem;
-  color: #414852;
-  font-size: 0.875rem;
-  line-height: 1.8;
+  color: var(--vbg-text-secondary, #555);
+  font-size: var(--vbg-type-compact, .875rem);
+  line-height: var(--vbg-leading-body, 1.65);
 }
 
-.public-footer {
-  border-top: 1px solid #d9dee5;
-  color: #667085;
-}
-
-.public-footer-inner {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 1rem;
-  width: min(100% - 3rem, 72rem);
-  margin: 0 auto;
-  padding: 1.75rem 0;
-  font-size: 0.75rem;
-}
+.public-footer { border-top: 1px solid var(--vbg-border-default, #d9d9d9); }
+.public-footer-inner { padding: var(--vbg-space-6, 1.5rem) 0; }
 
 @media (max-width: 680px) {
-  .public-hero-inner {
-    padding: 3.5rem 0 3rem;
-  }
-
-  .public-section {
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-  }
+  .public-nav, .public-footer-inner { width: min(100% - 2rem, 75rem); }
+  .public-hero-inner, .public-article { width: min(100% - 2rem, 52rem); }
+  .public-section { grid-template-columns: 1fr; gap: var(--vbg-space-3, .75rem); }
 }

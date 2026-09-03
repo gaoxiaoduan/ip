@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Tooltip } from "@/components/tooltip";
 import { useNetworkTools } from "@/hooks/use-network-tools";
 import {
   CONNECTIVITY_TARGETS,
@@ -42,32 +43,24 @@ const OBSERVATION_LABELS: Record<ToolObservationStatus, string> = {
   undetermined: "暂时无法判断",
 };
 
-const STATUS_DOT_CLASSES: Record<NetworkToolSessionStatus, string> = {
-  idle: "bg-hairline-strong",
-  running: "bg-link animate-status-pulse",
-  complete: "bg-cyan",
-  stopped: "bg-warning",
-  undetermined: "bg-violet",
-};
-
 const OBSERVATION_DOT_CLASSES: Record<ToolObservationStatus, string> = {
-  observed: "bg-cyan",
-  unobserved: "bg-warning",
-  undetermined: "bg-violet",
+  observed: "bg-ink",
+  unobserved: "bg-ink",
+  undetermined: "bg-ink",
 };
 
 const OBSERVATION_TEXT_CLASSES: Record<ToolObservationStatus, string> = {
   observed: "text-body",
   unobserved: "text-body",
-  undetermined: "text-violet",
+  undetermined: "text-body",
 };
 
 const STATUS_TEXT_CLASSES: Record<NetworkToolSessionStatus, string> = {
   idle: "text-body",
-  running: "text-link",
+  running: "text-body",
   complete: "text-body",
   stopped: "text-body",
-  undetermined: "text-violet",
+  undetermined: "text-body",
 };
 
 const formatBytes = (bytes: number) => `${Math.round(bytes / 1_000_000)} MB`;
@@ -114,16 +107,9 @@ const ChevronIcon = () => (
 
 const ToolStatus = ({ status }: { status: NetworkToolSessionStatus }) => (
   <span
-    className={cn(
-      "inline-flex items-center gap-2 text-xs",
-      STATUS_TEXT_CLASSES[status],
-    )}
+    className={cn("text-xs", STATUS_TEXT_CLASSES[status])}
     aria-label={`工具状态：${STATUS_LABELS[status]}`}
   >
-    <span
-      className={cn("size-1.5 rounded-full", STATUS_DOT_CLASSES[status])}
-      aria-hidden="true"
-    />
     {STATUS_LABELS[status]}
   </span>
 );
@@ -133,16 +119,7 @@ const ObservationStatus = ({
 }: {
   status: ToolObservationStatus;
 }) => (
-  <span
-    className={cn(
-      "inline-flex items-center gap-2 text-xs",
-      OBSERVATION_TEXT_CLASSES[status],
-    )}
-  >
-    <span
-      className={cn("size-1.5 rounded-full", OBSERVATION_DOT_CLASSES[status])}
-      aria-hidden="true"
-    />
+  <span className={cn("text-xs", OBSERVATION_TEXT_CLASSES[status])}>
     {OBSERVATION_LABELS[status]}
   </span>
 );
@@ -186,7 +163,7 @@ const ToolHeader = ({
   <header className="flex flex-col gap-5 border-b border-hairline px-5 py-5 sm:flex-row sm:items-start sm:justify-between sm:gap-8 sm:px-7 sm:py-6">
     <div className="max-w-[700px]">
       <div className="flex flex-wrap items-center gap-3 sm:gap-3.5">
-        <span className="flex-none text-link" aria-hidden="true">
+        <span className="flex-none text-ink" aria-hidden="true">
           {icon}
         </span>
         <h3
@@ -202,32 +179,30 @@ const ToolHeader = ({
       </p>
     </div>
     <div className="flex items-center justify-between gap-3 sm:justify-end">
-      {running ? (
+      <Tooltip label={running ? stopLabel : startLabel}>
         <Button
-          className="h-10 rounded-full border border-hairline bg-canvas px-4 text-sm text-body shadow-none hover:bg-canvas-soft-2 hover:text-ink cursor-pointer"
+          className={cn(
+            "tool-header-action size-10 rounded-xl p-0 shadow-none cursor-pointer",
+            running
+              ? "border border-hairline bg-canvas text-body hover:bg-canvas-soft-2 hover:text-ink"
+              : "bg-ink text-white hover:bg-black",
+          )}
           type="button"
-          onClick={onStop}
+          onClick={running ? onStop : onStart}
+          aria-label={running ? stopLabel : startLabel}
         >
-          <StopIcon />
-          {stopLabel}
+          {running ? <StopIcon /> : <PlayIcon />}
         </Button>
-      ) : (
-        <Button
-          className="h-10 rounded-full bg-ink px-4 text-sm text-white shadow-[0_1px_1px_rgb(0_0_0/5%),0_3px_8px_rgb(0_0_0/12%)] hover:bg-black cursor-pointer"
-          type="button"
-          onClick={onStart}
+      </Tooltip>
+      <Tooltip label="在独立页面打开">
+        <a
+          className="grid size-10 place-items-center text-body transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-link"
+          href={href}
+          aria-label="在独立页面打开"
         >
-          <PlayIcon />
-          {startLabel}
-        </Button>
-      )}
-      <a
-        className="inline-flex min-h-10 items-center gap-1.5 rounded-full px-2.5 text-xs text-body underline-offset-4 hover:text-ink hover:underline"
-        href={href}
-      >
-        独立页面
-        <ExternalIcon />
-      </a>
+          <ExternalIcon />
+        </a>
+      </Tooltip>
     </div>
   </header>
 );
@@ -256,7 +231,7 @@ const ConnectivityRow = ({
               status
                 ? OBSERVATION_DOT_CLASSES[status]
                 : running
-                  ? "animate-status-pulse bg-link"
+                  ? "animate-status-pulse bg-ink"
                   : "bg-hairline-strong",
             )}
             aria-hidden="true"
@@ -286,11 +261,11 @@ const ConnectivityRow = ({
           className={cn(
             "block h-full rounded-full transition-[width] duration-300",
             status === "observed"
-              ? "bg-link"
+              ? "bg-ink"
               : status === "unobserved"
-                ? "bg-warning"
+                ? "bg-ink"
                 : status === "undetermined"
-                  ? "bg-violet"
+                  ? "bg-ink"
                   : "bg-hairline-strong",
           )}
           style={{ width: `${timingWidth}%` }}
@@ -363,7 +338,7 @@ const ConnectivityTool = ({
 
   return (
     <section
-      className="overflow-hidden rounded-2xl border border-hairline bg-canvas shadow-[0_1px_3px_rgb(0_0_0/3%),0_6px_20px_rgb(0_0_0/4%)]"
+      className="overflow-hidden rounded-2xl border border-hairline bg-canvas shadow-[0_1px_2px_rgb(0_0_0/3%)]"
       id="connectivity-tool"
       aria-labelledby="connectivity-title"
     >
@@ -521,11 +496,11 @@ const WebRtcCard = ({
   const isCopied = copiedIp === result?.ip;
 
   return (
-    <article className="flex flex-col justify-between rounded-xl border border-hairline bg-canvas p-5 transition-shadow hover:shadow-md sm:p-5">
+    <article className="flex flex-col justify-between border-t border-hairline bg-canvas p-5 sm:p-5">
       <div>
         <div className="flex items-center justify-between gap-2 border-b border-hairline pb-3">
           <div className="flex min-w-0 items-center gap-2">
-            <span className="flex-none text-link" aria-hidden="true">
+            <span className="flex-none text-ink" aria-hidden="true">
               <WebRtcCardIcon />
             </span>
             <h4 className="truncate text-sm font-semibold text-ink">WebRTC 连接</h4>
@@ -539,25 +514,12 @@ const WebRtcCard = ({
           {server.host}
         </p>
 
-        <div className="my-4 flex items-center justify-between gap-2 rounded-lg bg-canvas-soft p-3">
+        <div className="my-4 flex items-center justify-between gap-2 bg-canvas-soft p-3">
           <div className="flex min-w-0 items-center gap-2.5">
-            <span
-              className={cn(
-                "size-2.5 flex-none rounded-full transition-colors",
-                running
-                  ? "animate-status-pulse bg-link"
-                  : hasIp
-                    ? "bg-cyan shadow-[0_0_0_3px_rgb(80_227_194/24%)]"
-                    : result
-                      ? "bg-warning"
-                      : "bg-hairline-strong",
-              )}
-              aria-hidden="true"
-            />
             {running && !hasIp ? (
               <span className="animate-pulse text-xs text-mute">正在检测...</span>
             ) : hasIp ? (
-              <code className="truncate font-mono text-[17px] font-semibold tracking-tight text-ink">
+              <code className="min-w-0 whitespace-nowrap font-mono text-sm font-semibold tracking-normal text-ink">
                 {result!.ip}
               </code>
             ) : result ? (
@@ -568,16 +530,16 @@ const WebRtcCard = ({
           </div>
 
           {hasIp ? (
-            <button
-              className="inline-flex min-h-7 cursor-pointer items-center gap-1 rounded border border-hairline bg-canvas px-2 text-[11px] text-body hover:bg-canvas-soft-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-link"
-              type="button"
-              onClick={() => onCopy(result!.ip!)}
-              aria-label={`复制 IP ${result!.ip}`}
-              title="复制 IP"
-            >
-              <CopyIconSmall />
-              <span>{isCopied ? "已复制" : "复制"}</span>
-            </button>
+            <Tooltip label={isCopied ? "已复制" : `复制 IP ${result!.ip}`}>
+              <button
+                className="grid size-7 shrink-0 cursor-pointer place-items-center rounded-lg border border-hairline bg-canvas text-body hover:bg-canvas-soft-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-link"
+                type="button"
+                onClick={() => onCopy(result!.ip!)}
+                aria-label={`复制 IP ${result!.ip}`}
+              >
+                <CopyIconSmall />
+              </button>
+            </Tooltip>
           ) : null}
         </div>
 
@@ -670,7 +632,7 @@ const WebRtcTool = ({
 
   return (
     <section
-      className="overflow-hidden rounded-2xl border border-hairline bg-canvas shadow-[0_1px_3px_rgb(0_0_0/3%),0_6px_20px_rgb(0_0_0/4%)]"
+      className="overflow-hidden rounded-2xl border border-hairline bg-canvas shadow-[0_1px_2px_rgb(0_0_0/3%)]"
       id="webrtc-tool"
       aria-labelledby="webrtc-title"
     >
@@ -689,7 +651,7 @@ const WebRtcTool = ({
       />
 
       <div className="p-5 sm:p-7">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {WEBRTC_SERVERS.map((server, index) => (
             <WebRtcCard
               key={server.id}
@@ -733,35 +695,32 @@ const generateBezierPath = (points: { x: number; y: number }[]) => {
 const SpeedWaveform = ({
   samples,
   currentValue,
-  theme = "cyan",
   label,
   active = false,
 }: {
   readonly samples: readonly number[];
   readonly currentValue: number | null;
-  readonly theme?: "cyan" | "link";
   readonly label: string;
   readonly active?: boolean;
 }) => {
-  const isCyan = theme === "cyan";
-  const strokeColor = isCyan ? "#50e3c2" : "#0070f3";
-  const gradientId = isCyan ? "grad-cyan-speed" : "grad-link-speed";
+  const strokeColor = "var(--color-ink)";
+  const chartHeight = 64;
+  const baselineY = 60;
 
   const points = (() => {
     if (samples.length === 0) {
       return [];
     }
     const maxVal = Math.max(...samples, 10);
-    const allSamples = [0, ...samples];
-    return allSamples.map((sample, idx) => ({
-      x: (idx / (allSamples.length - 1)) * 300,
-      y: 65 - (sample / maxVal) * 50,
+    return samples.map((sample, idx) => ({
+      x: samples.length === 1 ? 0 : (idx / (samples.length - 1)) * 300,
+      y: baselineY - (sample / maxVal) * 50,
     }));
   })();
 
   const linePath = generateBezierPath(points);
   const areaPath =
-    points.length > 0 ? `${linePath} L 300 70 L 0 70 Z` : "";
+    points.length > 0 ? `${linePath} L 300 ${chartHeight} L 0 ${chartHeight} Z` : "";
 
   return (
     <div className="relative flex flex-col justify-between overflow-hidden rounded-xl border border-hairline bg-canvas p-4 sm:p-5">
@@ -771,9 +730,7 @@ const SpeedWaveform = ({
             className={cn(
               "size-2 rounded-full",
               active
-                ? isCyan
-                  ? "animate-pulse bg-cyan shadow-[0_0_8px_rgb(80_227_194/60%)]"
-                  : "animate-pulse bg-link shadow-[0_0_8px_rgb(0_112_243/60%)]"
+                ? "animate-pulse bg-ink"
                 : "bg-mute/40",
             )}
           />
@@ -789,44 +746,35 @@ const SpeedWaveform = ({
         </div>
       </div>
 
-      <div className="relative z-10 mt-3 h-16 w-full">
+      <div className="relative z-10 mt-3 h-16 w-full overflow-hidden">
         <svg
-          className="h-full w-full overflow-visible"
-          viewBox="0 0 300 70"
+          className="block h-full w-full"
+          viewBox={`0 0 300 ${chartHeight}`}
           preserveAspectRatio="none"
           role="img"
           aria-label={`${label}波形图`}
         >
-          <defs>
-            <linearGradient id={gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop
-                offset="0%"
-                stopColor={strokeColor}
-                stopOpacity="0.25"
-              />
-              <stop offset="100%" stopColor={strokeColor} stopOpacity="0" />
-            </linearGradient>
-          </defs>
-
           <line
             x1="0"
-            y1="68"
+            y1={baselineY}
             x2="300"
-            y2="68"
+            y2={baselineY}
             className="stroke-hairline"
             strokeWidth="1"
           />
           <line
             x1="0"
-            y1="35"
+            y1="30"
             x2="300"
-            y2="35"
+            y2="30"
             className="stroke-hairline"
             strokeWidth="1"
             strokeDasharray="4 4"
           />
 
-          {areaPath ? <path d={areaPath} fill={`url(#${gradientId})`} /> : null}
+          {areaPath ? (
+            <path d={areaPath} fill="var(--color-canvas-soft-2)" opacity="0.6" />
+          ) : null}
 
           {linePath ? (
             <path
@@ -840,9 +788,9 @@ const SpeedWaveform = ({
           ) : (
             <line
               x1="0"
-              y1="68"
+              y1={baselineY}
               x2="300"
-              y2="68"
+              y2={baselineY}
               stroke={strokeColor}
               strokeWidth="1.5"
               strokeDasharray="4 4"
@@ -885,10 +833,10 @@ const SpeedPulseButton = ({
     <div className="relative flex flex-col items-center justify-center">
       <div
         className={cn(
-          "pointer-events-none absolute -inset-3 rounded-full transition-all duration-700",
+          "pointer-events-none absolute -inset-2 rounded-full border border-ink/20 transition-opacity duration-200",
           running
-            ? "animate-status-pulse bg-cyan/20 opacity-60 blur-md"
-            : "opacity-0 group-hover:opacity-40 bg-ink/5 blur-lg",
+            ? "opacity-100"
+            : "opacity-0",
         )}
       />
 
@@ -897,15 +845,12 @@ const SpeedPulseButton = ({
         onClick={onClick}
         aria-label={running ? "停止测速" : status === "idle" ? "开始测速" : "重新测速"}
         className={cn(
-          "group relative flex size-32 cursor-pointer flex-col items-center justify-center rounded-full bg-ink text-white transition-all duration-200 focus-visible:outline-2 focus-visible:outline-ink focus-visible:outline-offset-4 active:scale-95 sm:size-36",
-          running
-            ? "shadow-[0_0_0_2px_rgb(23_23_23),0_0_0_5px_rgb(80_227_194/40%),0_8px_24px_rgb(0_0_0/20%)]"
-            : "shadow-[0_1px_2px_rgb(0_0_0/6%),0_8px_20px_rgb(0_0_0/12%)] hover:bg-black hover:shadow-[0_2px_4px_rgb(0_0_0/8%),0_12px_28px_rgb(0_0_0/18%)]",
+          "speed-pulse-button group relative flex size-36 cursor-pointer flex-col items-center justify-center rounded-full border border-hairline bg-canvas text-ink shadow-[0_1px_2px_rgb(0_0_0/3%)] transition-colors duration-200 hover:bg-canvas-soft-2 focus-visible:outline-2 focus-visible:outline-ink focus-visible:outline-offset-4 active:bg-canvas-soft sm:size-40",
         )}
       >
         {running ? (
           <svg
-            className="absolute inset-0 size-full -rotate-90 animate-spin [animation-duration:4s]"
+            className="absolute inset-0 m-auto size-[78%] -rotate-90 animate-spin [animation-duration:4s]"
             viewBox="0 0 100 100"
             aria-hidden="true"
           >
@@ -930,16 +875,16 @@ const SpeedPulseButton = ({
           </svg>
         ) : null}
 
-        <span className="relative z-10 text-lg font-bold tracking-tight text-white sm:text-xl">
+        <span className="relative z-10 text-base font-semibold tracking-tight sm:text-lg">
           {statusText}
         </span>
 
         {running ? (
-          <span className="relative z-10 mt-0.5 font-mono text-[11px] font-semibold text-hairline-strong tabular-nums">
+          <span className="relative z-10 mt-0.5 font-mono text-[11px] font-semibold text-mute tabular-nums">
             {Math.round(progress * 100)}%
           </span>
         ) : (
-          <span className="relative z-10 mt-0.5 text-[10px] font-medium text-hairline-strong">
+          <span className="relative z-10 mt-0.5 text-[10px] font-medium text-mute">
             {status === "idle" ? "点击开始" : "再次测试"}
           </span>
         )}
@@ -976,7 +921,7 @@ const SpeedTool = ({
 
   return (
     <section
-      className="overflow-hidden rounded-2xl border border-hairline bg-canvas shadow-[0_1px_3px_rgb(0_0_0/3%),0_6px_20px_rgb(0_0_0/4%)]"
+      className="overflow-hidden rounded-2xl border border-hairline bg-canvas shadow-[0_1px_2px_rgb(0_0_0/3%)]"
       id="speed-tool"
       aria-labelledby="speed-title"
     >
@@ -997,7 +942,7 @@ const SpeedTool = ({
       <div className="p-5 sm:p-7">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[300px_1fr] lg:gap-8">
           {/* Left Column: Console */}
-          <div className="flex flex-col items-center justify-between gap-6 rounded-xl border border-hairline bg-canvas-soft/60 p-6">
+          <div className="flex flex-col items-center justify-between gap-8 rounded-2xl border border-hairline bg-canvas-soft p-6 sm:p-7">
             <SpeedPulseButton
               status={speed.status}
               phase={speed.phase}
@@ -1048,7 +993,7 @@ const SpeedTool = ({
                       disabled={running}
                       onClick={() => onSelect(profileId)}
                       className={cn(
-                        "rounded-lg border px-3 py-2 text-center transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-link cursor-pointer",
+                        "rounded-xl border px-3 py-2 text-center transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-link cursor-pointer",
                         selected
                           ? "border-ink bg-ink text-white"
                           : "border-hairline bg-canvas text-body hover:border-hairline-strong hover:text-ink",
@@ -1068,7 +1013,7 @@ const SpeedTool = ({
           {/* Right Column: Dashboard */}
           <div className="flex flex-col justify-between gap-4">
             {/* Top Banner Summary */}
-            <div className="flex min-h-12 items-center justify-between rounded-xl border border-hairline bg-canvas-soft/60 px-4 py-3 text-xs">
+            <div className="flex min-h-12 items-center justify-between rounded-xl border border-hairline bg-canvas-soft px-4 py-3 text-xs">
               <div className="flex items-center gap-2">
                 <span className="text-base" aria-hidden="true">
                   {result?.status === "complete" ? "🎉" : running ? "🚀" : "💡"}
@@ -1098,14 +1043,12 @@ const SpeedTool = ({
             <div className="grid grid-cols-1 gap-4">
               <SpeedWaveform
                 label="下载 / Mbps"
-                theme="cyan"
                 samples={downloadSamples}
                 currentValue={downloadCurrentValue}
                 active={speed.phase === "download"}
               />
               <SpeedWaveform
                 label="上传 / Mbps"
-                theme="link"
                 samples={uploadSamples}
                 currentValue={uploadCurrentValue}
                 active={speed.phase === "upload"}
@@ -1113,7 +1056,7 @@ const SpeedTool = ({
             </div>
 
             {/* Bottom Metrics Bar */}
-            <dl className="grid grid-cols-3 gap-2 rounded-xl border border-hairline bg-canvas-soft/60 p-3 sm:p-4">
+            <dl className="grid grid-cols-3 gap-2 rounded-xl border border-hairline px-2 py-4 sm:py-5">
               <div className="px-2 text-center sm:text-left">
                 <dt className="text-[11px] text-mute">空闲延迟</dt>
                 <dd className="mt-1 font-mono text-base font-semibold tabular-nums text-ink sm:text-lg">
@@ -1224,7 +1167,7 @@ export function NetworkToolDesk({
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <Button
-              className="h-11 rounded-full bg-ink px-5 text-sm text-white shadow-[0_1px_1px_rgb(0_0_0/5%),0_3px_8px_rgb(0_0_0/12%)] hover:bg-black"
+              className="h-11 rounded-xl bg-ink px-5 text-sm text-white shadow-none hover:bg-black"
               type="button"
               disabled={allRunning}
               onClick={startAll}

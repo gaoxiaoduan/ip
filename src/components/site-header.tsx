@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+import { Tooltip } from "@/components/tooltip";
 import { cn } from "@/lib/utils";
 
 const NAVIGATION = [
@@ -22,7 +23,7 @@ const Brand = ({ homeHref }: { homeHref: string }) => (
 
 const GithubLink = () => (
   <a
-    className="grid size-9 place-items-center rounded-full text-body transition-colors duration-[160ms] hover:bg-canvas-soft-2 hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-link"
+    className="grid size-9 place-items-center text-body transition-colors duration-[160ms] hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-link"
     href="https://github.com/gaoxiaoduan/ip"
     target="_blank"
     rel="noreferrer"
@@ -52,7 +53,82 @@ export const BrandMark = () => (
 );
 
 const navItemClassName =
-  "min-h-9 rounded-full px-3 py-2 text-sm leading-5 text-body transition-colors duration-[160ms]";
+  "min-h-9 px-3 py-2 text-sm leading-5 text-body transition-colors duration-[160ms]";
+
+type ThemePreference = "system" | "light" | "dark";
+
+const THEME_STORAGE_KEY = "ip-exit-observer-theme";
+
+const NEXT_THEME: Record<ThemePreference, ThemePreference> = {
+  system: "light",
+  light: "dark",
+  dark: "system",
+};
+
+const THEME_LABELS: Record<ThemePreference, string> = {
+  system: "当前：跟随系统。点击切换为浅色",
+  light: "当前：浅色。点击切换为深色",
+  dark: "当前：深色。点击切换为跟随系统",
+};
+
+const initialThemePreference = (): ThemePreference => {
+  if (typeof window === "undefined") {
+    return "system";
+  }
+
+  const saved = window.localStorage.getItem(THEME_STORAGE_KEY);
+  return saved === "light" || saved === "dark" ? saved : "system";
+};
+
+const ThemeControl = () => {
+  const [theme, setTheme] = useState<ThemePreference>(initialThemePreference);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.toggle("light", theme === "light");
+    root.classList.toggle("dark", theme === "dark");
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+  }, [theme]);
+
+  return (
+    <Tooltip label={THEME_LABELS[theme]}>
+      <button
+        className="theme-control grid size-9 cursor-pointer place-items-center p-0 text-body transition-colors duration-[160ms] hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-link"
+        type="button"
+        aria-label={THEME_LABELS[theme]}
+        onClick={() => setTheme(NEXT_THEME[theme])}
+      >
+        {theme === "system" ? (
+          <svg
+            className="size-[18px] fill-none stroke-current stroke-[1.7]"
+            viewBox="0 0 20 20"
+            aria-hidden="true"
+          >
+            <rect x="3" y="3.5" width="14" height="10" rx="1" />
+            <path d="M7.5 16.5h5M10 13.5v3" />
+          </svg>
+        ) : theme === "light" ? (
+          <svg
+            className="size-[18px] fill-none stroke-current stroke-[1.7]"
+            viewBox="0 0 20 20"
+            aria-hidden="true"
+          >
+            <circle cx="10" cy="10" r="3.5" />
+            <path d="M10 1.5v2M10 16.5v2M18.5 10h-2M3.5 10h-2M16 4l-1.4 1.4M5.4 14.6 4 16M16 16l-1.4-1.4M5.4 5.4 4 4" />
+          </svg>
+        ) : (
+          <svg
+            className="size-[18px] fill-none stroke-current stroke-[1.7]"
+            viewBox="0 0 20 20"
+            aria-hidden="true"
+          >
+            <path d="M16.2 12.4A6.9 6.9 0 0 1 7.6 3.8 6.9 6.9 0 1 0 16.2 12.4Z" />
+          </svg>
+        )}
+      </button>
+    </Tooltip>
+  );
+};
 
 export function SiteHeader({
   brandHref,
@@ -63,30 +139,13 @@ export function SiteHeader({
   readonly homeHref: string;
   readonly isDetecting: boolean;
 }) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigation = NAVIGATION.map((item) => ({
     ...item,
     href: `${homeHref}${item.href}`,
   }));
 
-  useEffect(() => {
-    if (!mobileMenuOpen) {
-      return;
-    }
-
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [mobileMenuOpen]);
-
-  const closeMobileMenu = () => setMobileMenuOpen(false);
-
   return (
-    <>
-      <header className="sticky top-0 z-30 grid h-[60px] grid-cols-[1fr_auto] items-center border-b border-[rgb(235_235_235/82%)] bg-[rgb(255_255_255/86%)] px-4 backdrop-blur-[18px] sm:h-16 sm:grid-cols-[1fr_auto_1fr] sm:px-6">
+    <header className="sticky top-0 z-30 grid h-[60px] grid-cols-[1fr_auto] items-center border-b border-hairline bg-canvas px-4 sm:h-16 sm:grid-cols-[1fr_auto_1fr] sm:px-6">
         <Brand homeHref={brandHref} />
         <nav
           className="hidden items-center gap-1 sm:flex sm:justify-self-center"
@@ -106,6 +165,7 @@ export function SiteHeader({
           ))}
         </nav>
         <div className="flex items-center gap-1 justify-self-end sm:gap-2">
+          <ThemeControl />
           <GithubLink />
           <a
             className={cn(
@@ -114,64 +174,9 @@ export function SiteHeader({
             )}
             href={`${homeHref}#results`}
           >
-            <span
-              className={cn(
-                "size-[7px] rounded-full bg-link shadow-[0_0_0_4px_rgb(0_112_243/9%)]",
-                isDetecting && "animate-status-pulse",
-              )}
-            />
             {isDetecting ? "检测进行中" : "查看本次结果"}
           </a>
-          <button
-            className="relative grid size-11 cursor-pointer place-items-center rounded-full hover:bg-canvas-soft-2 sm:hidden"
-            type="button"
-            aria-controls="mobile-navigation"
-            aria-expanded={mobileMenuOpen}
-            aria-label={mobileMenuOpen ? "关闭导航" : "打开导航"}
-            onClick={() => setMobileMenuOpen((open) => !open)}
-          >
-            <span
-              className={cn(
-                "absolute h-[1.5px] w-[19px] bg-ink transition-transform duration-[160ms]",
-                mobileMenuOpen ? "rotate-45" : "-translate-y-1",
-              )}
-            />
-            <span
-              className={cn(
-                "absolute h-[1.5px] w-[19px] bg-ink transition-transform duration-[160ms]",
-                mobileMenuOpen ? "-rotate-45" : "translate-y-1",
-              )}
-            />
-          </button>
         </div>
       </header>
-
-      {mobileMenuOpen ? (
-        <div
-          className="fixed inset-[60px_0_0] z-[29] flex flex-col justify-between bg-[rgb(255_255_255/98%)] px-5 pt-10 pb-6 backdrop-blur-[20px] sm:hidden"
-          id="mobile-navigation"
-        >
-          <nav className="flex flex-col" aria-label="移动端导航">
-            {navigation.map((item, index) => (
-              <a
-                className="grid min-h-[72px] grid-cols-[40px_1fr] items-center border-b border-hairline text-2xl leading-8 font-semibold tracking-[-0.96px] first:border-t"
-                href={item.href}
-                key={item.href}
-                aria-label={item.label}
-                onClick={closeMobileMenu}
-              >
-                <span className="font-mono text-[11px] font-normal tracking-normal text-mute">
-                  0{index + 1}
-                </span>
-                {item.label}
-              </a>
-            ))}
-          </nav>
-          <p className="font-mono text-[11px] text-mute">
-            当前页面 · 不持久保存检测会话
-          </p>
-        </div>
-      ) : null}
-    </>
   );
 }

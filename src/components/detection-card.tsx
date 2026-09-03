@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import { MonoLabel } from "@/components/mono-label";
+import { Tooltip } from "@/components/tooltip";
 import type { PathState } from "@/hooks/use-detection-session";
 import type { DetectionPathId, SuccessfulDetection } from "@/lib/detection";
 import { DETECTION_PATHS } from "@/lib/endpoints";
@@ -48,10 +49,10 @@ const locationText = (result: SuccessfulDetection) => {
 };
 
 const SKELETON_CLASS =
-  "block h-3.5 animate-skeleton rounded-sm bg-[linear-gradient(90deg,var(--color-canvas-soft-2)_0%,#ececec_48%,var(--color-canvas-soft-2)_100%)] bg-[size:220%_100%]";
+  "block h-3.5 animate-skeleton bg-[linear-gradient(90deg,var(--color-canvas-soft-2)_0%,#ececec_48%,var(--color-canvas-soft-2)_100%)] bg-[size:220%_100%]";
 
 const FALLBACK_NOTE_CLASS =
-  "mt-3 rounded-md bg-[#fff8e8] px-3 py-2 text-[11px] leading-[17px] text-[#6b4a0b]";
+  "mt-3 rounded-xl border border-hairline bg-canvas-soft px-3 py-2 text-[11px] leading-[17px] text-body";
 
 const CopyIcon = () => (
   <svg
@@ -86,19 +87,6 @@ const STATE_LABELS: Record<PathState["status"], string> = {
   loading: "检测中",
   success: "已返回",
   unreachable: "不可达",
-};
-
-const STATE_DOT_CLASSES: Record<PathState["status"], string> = {
-  idle: "before:bg-hairline-strong",
-  loading: "before:animate-status-pulse before:bg-link",
-  success: "before:bg-cyan",
-  unreachable: "before:bg-warning",
-};
-
-const PATH_SIGNAL_CLASSES: Record<DetectionPathId, string> = {
-  domestic: "bg-link",
-  "ordinary-overseas": "bg-cyan",
-  "restricted-overseas": "bg-pink",
 };
 
 type DetectionStateBodyProps = Pick<
@@ -137,17 +125,22 @@ const DetectionStateBody = ({
               <code className="min-w-0 overflow-hidden break-all font-mono text-[clamp(20px,2.2vw,28px)] font-semibold leading-8 tracking-[-0.03em] text-ellipsis text-ink">
                 {state.observation.ip}
               </code>
-              <button
-                className="inline-flex min-h-9 min-w-[58px] cursor-pointer items-center justify-center gap-1.5 rounded-md border border-hairline bg-canvas px-2 text-xs text-body transition-colors hover:bg-canvas-soft hover:text-ink active:bg-canvas-soft-2 focus-visible:outline-2 focus-visible:outline-ink"
-                type="button"
-                onClick={() => void onCopy(state.observation.ip)}
-                aria-label={`复制 ${state.observation.ip}`}
+              <Tooltip
+                label={
+                  copiedIp === state.observation.ip
+                    ? "已复制"
+                    : `复制 ${state.observation.ip}`
+                }
               >
-                <CopyIcon />
-                <span>
-                  {copiedIp === state.observation.ip ? "已复制" : "复制"}
-                </span>
-              </button>
+                <button
+                  className="grid size-9 shrink-0 cursor-pointer place-items-center rounded-xl border border-hairline bg-canvas text-body transition-colors hover:bg-canvas-soft hover:text-ink active:bg-canvas-soft-2 focus-visible:outline-2 focus-visible:outline-ink"
+                  type="button"
+                  onClick={() => void onCopy(state.observation.ip)}
+                  aria-label={`复制 ${state.observation.ip}`}
+                >
+                  <CopyIcon />
+                </button>
+              </Tooltip>
             </div>
             <p className="mt-2 text-sm leading-[21px] text-ink">
               {locationText(state)}
@@ -202,7 +195,7 @@ const DetectionStateBody = ({
       return (
         <div className="mt-1 grid grid-cols-[40px_1fr] gap-4 border-t border-hairline py-4 sm:py-5">
           <span
-            className="grid size-10 place-items-center rounded-full bg-warning-soft font-mono text-[#8a5500] forced-colors:border forced-colors:border-[CanvasText]"
+            className="grid size-10 place-items-center rounded-xl border border-hairline bg-warning-soft font-mono text-ink forced-colors:border forced-colors:border-[CanvasText]"
             aria-hidden="true"
           >
             !
@@ -229,16 +222,12 @@ export function DetectionCard({
 
   return (
     <article
-      className="flex min-h-[360px] flex-col rounded-[14px] border border-hairline bg-canvas p-4 sm:min-h-[420px] sm:p-6"
+      className="flex min-h-[360px] flex-col rounded-2xl border border-hairline bg-canvas p-4 shadow-[0_1px_2px_rgb(0_0_0/3%)] sm:min-h-[420px] sm:p-6"
       aria-labelledby={titleId}
     >
       <header className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <span
-              className={cn("size-2 rounded-full", PATH_SIGNAL_CLASSES[path.id])}
-              aria-hidden="true"
-            />
             <MonoLabel>{PATH_MARKS[path.id]}</MonoLabel>
           </div>
           <h3
@@ -249,10 +238,7 @@ export function DetectionCard({
           </h3>
         </div>
         <span
-          className={cn(
-            "inline-flex flex-none items-center gap-2 font-mono text-[11px] leading-5 text-body before:size-1.5 before:rounded-full before:content-['']",
-            STATE_DOT_CLASSES[state.status],
-          )}
+          className="inline-flex flex-none items-center font-mono text-[11px] leading-5 text-body"
         >
           {STATE_LABELS[state.status]}
         </span>

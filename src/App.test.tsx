@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { StrictMode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -179,32 +179,19 @@ describe("App", () => {
     });
   });
 
-  it("可通过移动端菜单访问所有页内入口", async () => {
+  it("页眉提供图标主题切换且不再渲染菜单按钮", () => {
     const fetcher = vi.fn<typeof fetch>(async (input) => responseFor(input));
     vi.stubGlobal("fetch", fetcher);
-    const user = userEvent.setup();
 
     render(<App />);
 
-    await user.click(screen.getByRole("button", { name: "打开导航" }));
-
-    const navigation = screen.getByRole("navigation", {
-      name: "移动端导航",
-    });
-    expect(navigation).toBeInTheDocument();
-    expect(navigation).toHaveTextContent("检测结果");
-    expect(navigation).toHaveTextContent("检测说明");
-    expect(navigation).toHaveTextContent("隐私边界");
-
-    await user.click(
-      within(navigation).getByRole("link", {
-        name: "隐私边界",
-      }),
-    );
     expect(
-      screen.queryByRole("navigation", {
-        name: "移动端导航",
+      screen.getByRole("button", {
+        name: "当前：跟随系统。点击切换为浅色",
       }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "打开导航" }),
     ).not.toBeInTheDocument();
   });
 

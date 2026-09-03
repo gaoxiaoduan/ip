@@ -1,7 +1,7 @@
 export function HeroMesh() {
   return (
     <svg
-      className="pointer-events-none absolute bottom-[-1px] left-1/2 z-0 h-auto min-w-[760px] w-[min(1280px,100vw)] -translate-x-1/2 overflow-visible opacity-[.82] sm:min-w-[900px] lg:min-w-0"
+      className="site-hero-mesh pointer-events-none absolute bottom-[-1px] left-1/2 z-0 h-auto min-w-[760px] w-[min(1280px,100vw)] -translate-x-1/2 overflow-visible opacity-[.82] sm:min-w-[900px] lg:min-w-0"
       viewBox="0 0 1080 510"
       preserveAspectRatio="xMidYMax meet"
       aria-hidden="true"
@@ -35,12 +35,12 @@ export function HeroMesh() {
           <stop offset="1" stopColor="#f9cb28" stopOpacity="0" />
         </radialGradient>
         <linearGradient id="mesh-fade" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#fff" stopOpacity=".5" />
-          <stop offset=".55" stopColor="#fff" stopOpacity=".38" />
-          <stop offset="1" stopColor="#fff" stopOpacity=".95" />
+          <stop offset="0" stopColor="var(--hero-fade)" stopOpacity=".5" />
+          <stop offset=".55" stopColor="var(--hero-fade)" stopOpacity=".38" />
+          <stop offset="1" stopColor="var(--hero-fade)" stopOpacity=".95" />
         </linearGradient>
         <pattern id="mesh-grid" width="40" height="40" patternUnits="userSpaceOnUse">
-          <path d="M40 0H0V40" fill="none" stroke="#171717" strokeOpacity=".06" />
+          <path d="M40 0H0V40" fill="none" stroke="var(--hero-grid)" strokeOpacity=".65" />
         </pattern>
       </defs>
       <g filter="url(#mesh-blur)">
