@@ -99,6 +99,13 @@ for (const [relativePath, heading, pathname] of publicPages) {
 const publicContentCss = await readBuiltFile("public-content.css");
 assert.match(publicContentCss, /\.public-hero/);
 
+const homePage = await readBuiltFile("index.html");
+assert.match(homePage, /<title>IP\.33338888\.xyz｜IP 出口检测<\/title>/);
+assert.match(homePage, /<meta name="application-name" content="IP\.33338888\.xyz"/);
+assert.match(homePage, /property="og:site_name" content="IP\.33338888\.xyz"/);
+assert.match(homePage, /"@type":"WebSite"/);
+assert.match(homePage, /"name":"IP\.33338888\.xyz"/);
+
 const sitemap = await readBuiltFile("sitemap.xml");
 for (const [, , pathname] of publicPages) {
   assert.match(sitemap, new RegExp(`https://ip\\.33338888\\.xyz${pathname}`));
