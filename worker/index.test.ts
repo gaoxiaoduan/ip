@@ -44,10 +44,70 @@ describe("GET /api/observe", () => {
   });
 });
 
+describe("agent discovery endpoints", () => {
+  it("serves a structured agent-mode view instead of homepage HTML", async () => {
+    const request = new Request("https://ip.33338888.xyz/?mode=agent");
+    const ctx = createExecutionContext();
+    const response = await worker.fetch(request, env, ctx);
+    await waitOnExecutionContext(ctx);
+
+    expect(response.headers.get("Content-Type")).toContain("text/html");
+    expect(response.headers.get("Link")).toContain('rel="sitemap"');
+    const html = await response.text();
+    expect(html).toContain("API、MCP 和 A2A endpoint 均无需认证。");
+    expect(html).toContain('href="/api/observe"');
+    expect(html).toContain('href="/.well-known/agent-card.json"');
+    expect(html).toContain('href="/.well-known/agent-skills/index.json"');
+  });
+
+  it("returns a completed read-only observation task through A2A", async () => {
+    const request = new Request("https://ip.33338888.xyz/a2a", {
+      method: "POST",
+      headers: { "Content-Type": "application/a2a+json" },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: "request-1",
+        method: "message/send",
+        params: { message: { parts: [{ text: "observe this request" }] } },
+      }),
+    });
+    Object.defineProperty(request, "cf", {
+      value: { asn: 64500, country: "JP" },
+    });
+    const ctx = createExecutionContext();
+    const response = await worker.fetch(request, env, ctx);
+    await waitOnExecutionContext(ctx);
+
+    expect(response.headers.get("Content-Type")).toContain("application/a2a+json");
+    expect(await response.json()).toMatchObject({
+      id: "request-1",
+      jsonrpc: "2.0",
+      result: {
+        status: { state: "TASK_STATE_COMPLETED" },
+        artifacts: expect.arrayContaining([
+          expect.objectContaining({
+            parts: expect.arrayContaining([
+              expect.objectContaining({
+                data: expect.objectContaining({
+                  countryCode: "JP",
+                  network: "AS64500",
+                }),
+                kind: "data",
+              }),
+            ]),
+          }),
+        ]),
+      },
+    });
+  });
+});
+
 describe("POST /api/analytics", () => {
   it("仅聚合允许的检测完成事件", async () => {
     const writeDataPoint = vi.fn();
     const analyticsEnv = {
+      ASSETS: {
+      } as Fetcher,
       OPTIMIZATION_EVENTS: {
         writeDataPoint,
       },
@@ -81,6 +141,8 @@ describe("POST /api/analytics", () => {
   it("拒绝包含敏感字段的匿名优化事件", async () => {
     const writeDataPoint = vi.fn();
     const analyticsEnv = {
+      ASSETS: {
+      } as Fetcher,
       OPTIMIZATION_EVENTS: {
         writeDataPoint,
       },

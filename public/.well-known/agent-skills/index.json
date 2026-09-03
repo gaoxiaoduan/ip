@@ -1,0 +1,12 @@
+{
+  "$schema": "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
+  "skills": [
+    {
+      "name": "observe-current-ip",
+      "type": "skill-md",
+      "description": "Read the public IP and Cloudflare network metadata observed for the current request.",
+      "url": "https://ip.33338888.xyz/.well-known/agent-skills/observe-current-ip/SKILL.md",
+      "digest": "sha256:599f12f13aadf562aea96a50b47af108ae12439dbefa3c75aa07816d4a72ade2"
+    }
+  ]
+}

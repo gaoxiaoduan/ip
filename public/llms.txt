@@ -20,19 +20,21 @@ Do not use one result as proof of a device's precise physical location, the rout
 
 ## Developer resources
 
-- Developer hub: `https://ip.33338888.xyz/developers/` — the canonical index for API and agent integrations.
-- OpenAPI specification: `https://ip.33338888.xyz/openapi.json` — describes the unauthenticated `GET /api/observe` endpoint.
-- MCP manifest: `https://ip.33338888.xyz/.well-known/mcp/manifest.json` — machine-readable server metadata and connection URL.
-- MCP server card: `https://ip.33338888.xyz/.well-known/mcp/server-card.json` — server capabilities, tools, resources, and MCP Apps MIME type.
+- [Developer hub](https://ip.33338888.xyz/developers/) — the canonical index for API and agent integrations.
+- [OpenAPI specification](https://ip.33338888.xyz/openapi.json) — describes the unauthenticated `GET /api/observe` endpoint.
+- [MCP manifest](https://ip.33338888.xyz/.well-known/mcp/manifest.json) — machine-readable server metadata and connection URL.
+- [MCP server card](https://ip.33338888.xyz/.well-known/mcp/server-card.json) — server capabilities, tools, resources, and MCP Apps MIME type.
+- [A2A agent card](https://ip.33338888.xyz/.well-known/agent-card.json) — describes the read-only A2A observation agent.
+- [Agent Skills index](https://ip.33338888.xyz/.well-known/agent-skills/index.json) — machine-readable list of agent skills.
 - MCP Apps resource: `ui://ip-exit-observer/observe.html` — interactive view for the `observe_ip` tool.
 
 The public API and MCP server require no authentication. They observe only the request reaching this service; they do not provide a precise device location, diagnose proxy configuration, or represent every destination's network path.
 
 ## Public references
 
-- Homepage: https://ip.33338888.xyz/
-- Developer hub: https://ip.33338888.xyz/developers/
-- OpenAPI: https://ip.33338888.xyz/openapi.json
-- Methodology and privacy: https://ip.33338888.xyz/methodology
-- Sitemap: https://ip.33338888.xyz/sitemap.xml
-- MCP Apps extension: https://github.com/modelcontextprotocol/ext-apps
+- [Homepage](https://ip.33338888.xyz/)
+- [Agent-mode view](https://ip.33338888.xyz/?mode=agent)
+- [Markdown agent documentation](https://ip.33338888.xyz/llms.md)
+- [Methodology and privacy](https://ip.33338888.xyz/methodology)
+- [Sitemap](https://ip.33338888.xyz/sitemap.xml)
+- [MCP Apps extension](https://github.com/modelcontextprotocol/ext-apps)

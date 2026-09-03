@@ -4,9 +4,21 @@
   Referrer-Policy: no-referrer
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
+  Link: </sitemap.xml>; rel="sitemap", </llms.md>; rel="alternate"; type="text/markdown", </openapi.json>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1", </.well-known/ai-catalog.json>; rel="alternate"; type="application/ai-catalog+json"
 
 /.well-known/ard.json
   Access-Control-Allow-Origin: *
 
 /.well-known/ai-catalog.json
   Access-Control-Allow-Origin: *
+
+/.well-known/agent-card.json
+  Access-Control-Allow-Origin: *
+  Content-Type: application/a2a+json; charset=utf-8
+
+/.well-known/agent-skills/index.json
+  Access-Control-Allow-Origin: *
+
+/.well-known/agent-skills/observe-current-ip/SKILL.md
+  Access-Control-Allow-Origin: *
+  Content-Type: text/markdown; charset=utf-8

@@ -53,6 +53,14 @@ assert.match(
   builtHeaders,
   /\/.well-known\/ai-catalog\.json\n  Access-Control-Allow-Origin: \*/,
 );
+assert.match(
+  builtHeaders,
+  /\/.well-known\/agent-skills\/index\.json\n  Access-Control-Allow-Origin: \*/,
+);
+assert.match(
+  builtHeaders,
+  /\/.well-known\/agent-skills\/observe-current-ip\/SKILL\.md\n  Access-Control-Allow-Origin: \*\n  Content-Type: text\/markdown; charset=utf-8/,
+);
 
 for (const [relativePath, heading, pathname] of publicPages) {
   const html = await readBuiltFile(relativePath);
@@ -100,6 +108,15 @@ const robots = await readBuiltFile("robots.txt");
 assert.match(robots, /User-agent: GPTBot\nDisallow: \//);
 assert.match(robots, /Disallow: \/api\//);
 
+const llms = await readBuiltFile("llms.txt");
+assert.match(llms, /^# IP 出口检测/m);
+assert.match(llms, /\[OpenAPI specification\]\(https:\/\/ip\.33338888\.xyz\/openapi\.json\)/);
+assert.match(llms, /\[Agent Skills index\]\(https:\/\/ip\.33338888\.xyz\/\.well-known\/agent-skills\/index\.json\)/);
+
+const markdownAgentDocs = await readBuiltFile("llms.md");
+assert.match(markdownAgentDocs, /^# IP 出口检测/m);
+assert.match(markdownAgentDocs, /\[GET \/api\/observe\]/);
+
 const openApi = JSON.parse(await readBuiltFile("openapi.json"));
 assert.equal(openApi.openapi, "3.1.0");
 assert.equal(openApi.info.title, "IP 出口检测 API");
@@ -122,6 +139,31 @@ assert.equal(
   "https://ip.33338888.xyz/mcp",
 );
 assert.equal(mcpManifest.tools[0].name, "observe_ip");
+
+const agentCard = JSON.parse(
+  await readBuiltFile(".well-known/agent-card.json"),
+);
+assert.equal(agentCard.name, "IP 出口检测 Agent");
+assert.equal(agentCard.url, "https://ip.33338888.xyz/a2a");
+assert.equal(agentCard.supportedInterfaces[0].protocolBinding, "JSONRPC");
+assert.equal(agentCard.skills[0].id, "observe-current-ip");
+
+const skill = await readBuiltFile(
+  ".well-known/agent-skills/observe-current-ip/SKILL.md",
+);
+assert.match(skill, /^---\nname: observe-current-ip\ndescription: /);
+const skillIndex = JSON.parse(
+  await readBuiltFile(".well-known/agent-skills/index.json"),
+);
+assert.equal(
+  skillIndex.$schema,
+  "https://schemas.agentskills.io/discovery/0.2.0/schema.json",
+);
+assert.equal(skillIndex.skills[0].name, "observe-current-ip");
+assert.equal(
+  skillIndex.skills[0].digest,
+  `sha256:${createHash("sha256").update(skill).digest("hex")}`,
+);
 
 for (const catalogPath of [
   ".well-known/ard.json",

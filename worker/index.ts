@@ -29,6 +29,17 @@ const API_HEADERS = {
   "Content-Type": "application/json; charset=utf-8",
 } as const;
 
+const A2A_HEADERS = {
+  "Access-Control-Allow-Headers": "Content-Type, A2A-Version",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Origin": "*",
+  "Cache-Control": "no-store, max-age=0",
+  "Content-Type": "application/a2a+json; charset=utf-8",
+} as const;
+
+const DISCOVERY_LINK_HEADER =
+  '</sitemap.xml>; rel="sitemap", </llms.md>; rel="alternate"; type="text/markdown", </openapi.json>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1", </.well-known/ai-catalog.json>; rel="alternate"; type="application/ai-catalog+json"';
+
 type OptimizationEvent = {
   event: AnalyticsEventName;
   pageType: PageType;
@@ -107,7 +118,148 @@ const json = (body: unknown, init: ResponseInit = {}) =>
     },
   });
 
+const a2aJson = (body: unknown, init: ResponseInit = {}) =>
+  Response.json(body, {
+    ...init,
+    headers: {
+      ...A2A_HEADERS,
+      ...init.headers,
+    },
+  });
+
 const observeRequest = (request: Request) => json(observe(request));
+
+const AGENT_MODE_HTML = `<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="IP 出口检测的机器可读 agent 资源入口。" />
+    <link rel="canonical" href="https://ip.33338888.xyz/?mode=agent" />
+    <title>IP 出口检测 Agent 资源</title>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebAPI","name":"IP 出口检测 API","description":"读取当前请求被 Cloudflare 观察到的公网 IP 和网络元数据。","url":"https://ip.33338888.xyz/api/observe","documentation":"https://ip.33338888.xyz/openapi.json"}</script>
+  </head>
+  <body>
+    <main>
+      <h1>IP 出口检测 Agent 资源</h1>
+      <p>读取当前请求被 Cloudflare 观察到的公网 IP、国家/地区、城市、网络组织、ASN 和边缘机房。不保存个人检测结果。</p>
+
+      <h2>认证</h2>
+      <p>API、MCP 和 A2A endpoint 均无需认证。</p>
+
+      <h2>能力</h2>
+      <ul>
+        <li>读取当前请求的公网 IP 与 Cloudflare 网络元数据。</li>
+        <li>用户明确启动后，可执行浏览器侧路径、WebRTC、连通性和测速观测。</li>
+      </ul>
+
+      <h2>API</h2>
+      <ul>
+        <li><a href="/api/observe">GET /api/observe</a>：当前请求出口观测。</li>
+        <li><a href="/openapi.json" rel="service-desc" type="application/vnd.oai.openapi+json;version=3.1">OpenAPI 3.1 规范</a>。</li>
+      </ul>
+
+      <h2>Agent 协议</h2>
+      <ul>
+        <li><a href="/mcp">Streamable HTTP MCP endpoint</a> 与 <a href="/.well-known/mcp/manifest.json">MCP manifest</a>。</li>
+        <li><a href="/a2a">JSON-RPC A2A endpoint</a> 与 <a href="/.well-known/agent-card.json">A2A Agent Card</a>。</li>
+        <li><a href="/.well-known/agent-skills/index.json">Agent Skills index</a>。</li>
+      </ul>
+
+      <h2>文档</h2>
+      <nav aria-label="Agent documentation">
+        <a href="/llms.md">Markdown agent docs</a>
+        <a href="/llms.txt">llms.txt</a>
+        <a href="/developers/">Developer hub</a>
+        <a href="/sitemap.xml" rel="sitemap">Sitemap</a>
+      </nav>
+    </main>
+  </body>
+</html>`;
+
+const agentModeResponse = () =>
+  new Response(AGENT_MODE_HTML, {
+    headers: {
+      "Cache-Control": "no-store, max-age=0",
+      "Content-Type": "text/html; charset=utf-8",
+      Link: DISCOVERY_LINK_HEADER,
+    },
+  });
+
+const handleA2aRequest = async (request: Request): Promise<Response> => {
+  if (request.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: A2A_HEADERS });
+  }
+
+  if (request.method !== "POST") {
+    return a2aJson(
+      { error: { code: -32600, message: "Method not allowed" } },
+      { status: 405, headers: { Allow: "POST, OPTIONS" } },
+    );
+  }
+
+  const contentLength = Number(request.headers.get("Content-Length"));
+  if (Number.isFinite(contentLength) && contentLength > 64 * 1024) {
+    return a2aJson(
+      { error: { code: -32600, message: "A2A request body is too large" } },
+      { status: 413 },
+    );
+  }
+
+  let payload: unknown;
+  try {
+    payload = await request.json();
+  } catch {
+    return a2aJson(
+      { error: { code: -32700, message: "Parse error" }, id: null, jsonrpc: "2.0" },
+      { status: 400 },
+    );
+  }
+
+  if (typeof payload !== "object" || payload === null || Array.isArray(payload)) {
+    return a2aJson(
+      { error: { code: -32600, message: "Invalid request" }, id: null, jsonrpc: "2.0" },
+      { status: 400 },
+    );
+  }
+
+  const body = payload as Record<string, unknown>;
+  const id =
+    typeof body.id === "string" || typeof body.id === "number" || body.id === null
+      ? body.id
+      : null;
+  if (body.jsonrpc !== "2.0" || !["message/send", "SendMessage"].includes(String(body.method))) {
+    return a2aJson({
+      error: { code: -32601, message: "Method not found" },
+      id,
+      jsonrpc: "2.0",
+    });
+  }
+
+  const observation = observe(request);
+  return a2aJson({
+    id,
+    jsonrpc: "2.0",
+    result: {
+      artifacts: [
+        {
+          artifactId: crypto.randomUUID(),
+          name: "Current IP observation",
+          parts: [
+            { data: observation, kind: "data" },
+            {
+              kind: "text",
+              text: "This observation describes only the current request and is not a precise location or a diagnosis of all traffic.",
+            },
+          ],
+        },
+      ],
+      contextId: crypto.randomUUID(),
+      id: crypto.randomUUID(),
+      status: { state: "TASK_STATE_COMPLETED" },
+    },
+  });
+};
 
 const createMcpServer = (request: Request) => {
   const serverOptions: AppsServerOptions = {
@@ -340,6 +492,14 @@ export default {
         return await handleMcpRequest(request);
       }
 
+      if (url.pathname === "/a2a") {
+        return await handleA2aRequest(request);
+      }
+
+      if (url.pathname === "/" && url.searchParams.get("mode") === "agent") {
+        return agentModeResponse();
+      }
+
       if (url.pathname === "/api/observe") {
         if (request.method !== "GET") {
           return json(
@@ -395,6 +555,10 @@ export default {
           status: 204,
           headers: API_HEADERS,
         });
+      }
+
+      if (url.pathname === "/") {
+        return env.ASSETS.fetch(request);
       }
 
       return json(

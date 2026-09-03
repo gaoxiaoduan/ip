@@ -1,0 +1,35 @@
+{
+  "name": "IP 出口检测 Agent",
+  "description": "读取当前请求被 Cloudflare 观察到的公网 IP、国家/地区、城市、网络组织、ASN 和边缘机房。",
+  "provider": {
+    "organization": "IP 出口检测",
+    "url": "https://ip.33338888.xyz/"
+  },
+  "version": "0.1.0",
+  "documentationUrl": "https://ip.33338888.xyz/developers/",
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "extendedAgentCard": false
+  },
+  "defaultInputModes": ["text/plain", "application/json"],
+  "defaultOutputModes": ["application/json", "text/plain"],
+  "skills": [
+    {
+      "id": "observe-current-ip",
+      "name": "Observe current request IP",
+      "description": "Return the current request's public IP and Cloudflare network metadata without storing personal results.",
+      "tags": ["ip", "network", "cloudflare", "diagnostics"],
+      "examples": ["What public IP do you observe for this request?"]
+    }
+  ],
+  "supportedInterfaces": [
+    {
+      "url": "https://ip.33338888.xyz/a2a",
+      "protocolBinding": "JSONRPC",
+      "protocolVersion": "1.0"
+    }
+  ],
+  "url": "https://ip.33338888.xyz/a2a",
+  "preferredTransport": "JSONRPC"
+}
