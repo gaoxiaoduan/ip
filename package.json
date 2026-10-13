@@ -22,8 +22,8 @@
     "test:watch": "vitest --config vitest.config.ts",
     "test:worker:watch": "vitest --config vitest.worker.config.ts",
     "preview": "vite preview",
-    "deploy": "pnpm run build && wrangler deploy",
-    "cf-typegen": "wrangler types",
+    "deploy": "pnpm run build && cf deploy",
+    "cf-typegen": "cf workers types",
     "check": "pnpm run typecheck && pnpm run lint && pnpm run test && pnpm run build && pnpm run check:public-build"
   },
   "dependencies": {
@@ -41,7 +41,7 @@
     "zod": "4.1.13"
   },
   "devDependencies": {
-    "@cloudflare/vite-plugin": "^1.47.0",
+    "@cloudflare/vite-plugin": "beta",
     "@cloudflare/vitest-pool-workers": "^0.18.8",
     "@cloudflare/workers-types": "^5.20260726.1",
     "@tailwindcss/vite": "^4.3.3",
@@ -52,6 +52,7 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.4",
+    "cf": "1.0.0-beta.14",
     "jsdom": "^29.1.1",
     "oxlint": "^1.75.0",
     "tailwindcss": "^4.3.3",

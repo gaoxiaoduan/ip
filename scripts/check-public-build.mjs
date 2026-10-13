@@ -3,7 +3,10 @@ import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
-const distPath = path.resolve(import.meta.dirname, "../dist/client");
+const distPath = path.resolve(
+  import.meta.dirname,
+  "../.cloudflare/output/v0/workers/default/assets",
+);
 const readBuiltFile = (relativePath) =>
   readFile(path.join(distPath, relativePath), "utf8");
 

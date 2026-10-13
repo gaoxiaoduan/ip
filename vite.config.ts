@@ -13,7 +13,6 @@ import {
 } from "./src/public-content";
 
 const prerenderPublicContent = (): Plugin => {
-  let outDir = "";
   let command: "build" | "serve" = "serve";
 
   const normalizePathname = (pathname: string) =>
@@ -22,7 +21,6 @@ const prerenderPublicContent = (): Plugin => {
   return {
     name: "prerender-public-content",
     configResolved(config) {
-      outDir = config.build.outDir;
       command = config.command;
     },
     configureServer(server) {
@@ -59,8 +57,13 @@ const prerenderPublicContent = (): Plugin => {
       if (command !== "build") {
         return;
       }
+      if (this.environment && this.environment.name !== "client") {
+        return;
+      }
 
-      const clientOutDir = path.join(path.dirname(outDir), "client");
+      const clientOutDir =
+        this.environment?.config?.build?.outDir ??
+        path.resolve(import.meta.dirname, ".cloudflare/output/v0/workers/default/assets");
       const indexHtml = await readFile(path.join(clientOutDir, "index.html"), "utf8");
       const appScriptMatch = indexHtml.match(
         /<script type="module" crossorigin src="([^"]+)"><\/script>/,
