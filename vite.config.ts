@@ -94,6 +94,12 @@ const prerenderPublicContent = (): Plugin => {
         );
       }
       const appScript = appScriptMatch[1];
+      const appStylesheets = [...indexHtml.matchAll(
+        /<link\b[^>]*rel="stylesheet"[^>]*href="(\/assets\/[^"]+\.css)"[^>]*>/g,
+      )].map((match) => match[1]);
+      if (appStylesheets.length === 0) {
+        throw new Error("Unable to locate the client entry CSS in index.html");
+      }
 
       await Promise.all(
         PUBLIC_PAGES.map(async (page) => {
@@ -101,7 +107,7 @@ const prerenderPublicContent = (): Plugin => {
           await mkdir(path.dirname(outputPath), { recursive: true });
           await writeFile(
             outputPath,
-            renderPublicPage(page, appScript),
+            renderPublicPage(page, appScript, appStylesheets),
             "utf8",
           );
         }),

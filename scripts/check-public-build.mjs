@@ -10,6 +10,12 @@ const distPath = path.resolve(
 const readBuiltFile = (relativePath) =>
   readFile(path.join(distPath, relativePath), "utf8");
 
+const entryHtml = await readBuiltFile("index.html");
+const appStylesheets = [...entryHtml.matchAll(
+  /<link\b[^>]*rel="stylesheet"[^>]*href="(\/assets\/[^"]+\.css)"[^>]*>/g,
+)].map((match) => match[1]);
+assert.ok(appStylesheets.length > 0, "The app entry must include its built CSS");
+
 const publicPages = [
   ["index.html", "一次看清，网站看到你从哪里来。", "/"],
   [
@@ -82,6 +88,12 @@ for (const [relativePath, heading, pathname] of publicPages) {
 
   if (["/connectivity", "/webrtc", "/speed-test", "/ping"].includes(pathname)) {
     assert.match(html, /<script type="module" src="\/assets\//);
+    for (const stylesheet of appStylesheets) {
+      assert.ok(
+        html.includes(`href="${stylesheet}"`),
+        `${pathname} must load the shared app stylesheet ${stylesheet}`,
+      );
+    }
   }
 
   for (const script of html.matchAll(

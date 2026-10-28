@@ -470,9 +470,16 @@ const renderPublicPageContent = (page: PublicPage) => `<div class="public-shell 
 export const renderPublicPage = (
   page: PublicPage,
   scriptSrc = "/src/main.tsx",
+  stylesheetHrefs: readonly string[] = [],
 ) => {
-  const appScript = INTERACTIVE_PUBLIC_PATHS.has(page.path)
+  const isInteractive = INTERACTIVE_PUBLIC_PATHS.has(page.path);
+  const appScript = isInteractive
     ? `<script type="module" src="${scriptSrc}"></script>`
+    : "";
+  const appStyles = isInteractive
+    ? stylesheetHrefs
+      .map((href) => `<link rel="stylesheet" crossorigin href="${href}" />`)
+      .join("\n    ")
     : "";
 
   return `<!doctype html>
@@ -493,6 +500,7 @@ export const renderPublicPage = (
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..600&family=Geist+Mono:wght@400..600&display=swap" rel="stylesheet" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="/vercel-brand.css" />
     <link rel="stylesheet" href="/public-content.css" />
+    ${appStyles}
     <script src="/theme.js"></script>
     <script type="application/ld+json">${jsonLd(page)}</script>
     <title>${page.title}｜IP 出口检测</title>
