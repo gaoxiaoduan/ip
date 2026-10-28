@@ -19,16 +19,18 @@ import "./ping-page.css";
 const Summary = ({
   label,
   rows,
+  unidentified = 0,
 }: {
   label: string;
   rows: readonly PingRow[];
+  unidentified?: number;
 }) => {
   const stats = summarizePing(rows);
   return (
     <tr>
       <th scope="row">{label}</th>
       <td>
-        {rows.length} / {stats.responding}
+        {rows.length + unidentified} / {stats.responding}
       </td>
       <td>
         {pingTime(stats.fastest?.result.stats?.avg)}
@@ -41,7 +43,7 @@ const Summary = ({
       <td>{pingTime(stats.average)}</td>
       <td>{stats.loss === null ? "—" : `${stats.loss.toFixed(1)}%`}</td>
       <td>
-        {stats.unanswered} / {stats.unknown}
+        {stats.unanswered} / {stats.unknown + unidentified}
       </td>
     </tr>
   );
@@ -61,9 +63,13 @@ export default function PingPage() {
   });
   const selected = selectPingLocations(session.probes, selection);
   const rows = session.measurement?.results ?? [];
-  const completed = rows.filter(
-    (row) => row.result.status !== "in-progress",
-  ).length;
+  const unidentified =
+    session.measurement?.status === "finished" || session.error
+      ? Math.max(0, (session.measurement?.probesCount ?? 0) - rows.length)
+      : 0;
+  const completed =
+    rows.filter((row) => row.result.status !== "in-progress").length +
+    unidentified;
   return (
     <div className="site-report vbg-report ping-page min-h-screen bg-canvas-soft">
       <SiteHeader brandHref="/" homeHref="/" isDetecting={false} />
@@ -79,6 +85,14 @@ export default function PingPage() {
           <p>从各地探针出发，比较同一目标的延迟与丢包。</p>
         </header>
         <section className="ping-controls" aria-label="测量设置">
+          <p className="ping-privacy">
+            测量目标和结果公开：提交给{" "}
+            <a href="https://globalping.io" target="_blank" rel="noreferrer">
+              Globalping
+            </a>{" "}
+            后，任何知道任务 ID
+            的人均可读取，数据可能被发现或发布，通常保留最多六个月。本站只在当前页面展示。
+          </p>
           <form
             onSubmit={(event) => {
               event.preventDefault();
@@ -213,14 +227,31 @@ export default function PingPage() {
               })}
             </div>
           ) : null}
-          <p className="ping-privacy">
-            测量目标和结果公开：提交给{" "}
-            <a href="https://globalping.io" target="_blank" rel="noreferrer">
-              Globalping
-            </a>{" "}
-            后，任何知道任务 ID
-            的人均可读取，数据可能被发现或发布，通常保留最多六个月。本站只在当前页面展示。
-          </p>
+          {!session.loading ? (
+            <div className="ping-coverage">
+              {(
+                [
+                  ["regional", "港澳台", selection.overseas ? 1 : 3],
+                  ["overseas", "海外", selection.regional ? 2 : 3],
+                ] as const
+              ).map(([key, label, maximum]) => {
+                if (!selection[key]) return null;
+                const count = selected.filter((node) =>
+                  key === "regional"
+                    ? ["HK", "MO", "TW"].includes(node.country)
+                    : node.country !== "CN" &&
+                      !["HK", "MO", "TW"].includes(node.country),
+                ).length;
+                return count < maximum ? (
+                  <span key={key}>
+                    {count
+                      ? `${label}：本轮可选 ${count} / ${maximum} 个节点`
+                      : `${label}：当前无可用节点`}
+                  </span>
+                ) : null;
+              })}
+            </div>
+          ) : null}
         </section>
         <div className="ping-run-status" role="status">
           <span>
@@ -272,7 +303,11 @@ export default function PingPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  <Summary label="全部节点" rows={rows} />
+                  <Summary
+                    label="全部节点"
+                    rows={rows}
+                    unidentified={unidentified}
+                  />
                   {CARRIERS.map((carrier) => (
                     <Summary
                       key={carrier}
@@ -294,8 +329,14 @@ export default function PingPage() {
         <section className="ping-panel ping-details">
           <div className="ping-panel-heading">
             <h2>节点明细</h2>
-            <span>{rows.length} 个实际节点</span>
+            <span>{rows.length} 个位置已知节点</span>
           </div>
+          {unidentified ? (
+            <p className="ping-footnote">
+              {unidentified}{" "}
+              个节点的元数据或结果缺失，无法判断；未将其分配到地图地区。
+            </p>
+          ) : null}
           <div className="ping-table-scroll">
             <table aria-label="节点明细">
               <thead>

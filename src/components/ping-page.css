@@ -24,7 +24,7 @@
 }
 .ping-tag {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   border: 1px solid var(--color-hairline);
   border-radius: 5px;
   padding: 5px 8px;
@@ -81,7 +81,7 @@
 }
 .ping-options legend,
 .ping-version {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-body);
 }
 .ping-options legend {
@@ -102,7 +102,7 @@
 .ping-option-count {
   color: var(--color-mute);
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 12px;
 }
 .ping-options .ping-version {
   display: grid;
@@ -127,11 +127,12 @@
   color: var(--color-body);
 }
 .ping-privacy {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-body);
   line-height: 1.8;
-  border-top: 1px solid var(--color-hairline);
-  padding-top: 12px;
+  border-bottom: 1px solid var(--color-hairline);
+  padding-bottom: 16px;
+  margin-bottom: 20px;
 }
 .ping-privacy a,
 .ping-method > a {
@@ -179,7 +180,7 @@
   font-weight: 600;
 }
 .ping-panel-heading > span {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-body);
 }
 .ping-panel svg {
@@ -193,7 +194,7 @@
 .ping-page table {
   border-collapse: collapse;
   width: 100%;
-  font-size: 11px;
+  font-size: 12px;
   text-align: left;
   white-space: nowrap;
 }
@@ -207,7 +208,7 @@
 .ping-page thead th {
   background: var(--color-canvas-soft);
   color: var(--color-body);
-  font-size: 10px;
+  font-size: 12px;
 }
 .ping-page tbody th {
   font-weight: 500;
@@ -215,7 +216,7 @@
 .ping-page td small,
 .ping-page th small {
   display: block;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--color-body);
   margin-top: 4px;
   font-weight: 400;
@@ -225,7 +226,7 @@
 }
 .ping-footnote {
   padding: 14px 20px;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.8;
   color: var(--color-body);
 }
@@ -305,25 +306,25 @@
     margin-top: 22px;
   }
   .ping-tag {
-    font-size: 10px;
+    font-size: 12px;
   }
   .ping-panel-heading {
     padding: 16px;
   }
   .ping-availability {
-    font-size: 11px;
+    font-size: 12px;
   }
   .ping-page th,
   .ping-page td {
     padding: 12px;
   }
   .ping-privacy {
-    font-size: 11px;
+    font-size: 12px;
   }
 }
 .ping-map figcaption {
   padding: 12px 20px 20px;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.8;
   color: var(--color-body);
 }
@@ -370,7 +371,7 @@
   --ping-map-fill: #da8b89;
 }
 .ping-region-label {
-  font-size: 10px;
+  font-size: 12px;
   fill: #171717;
   pointer-events: none;
 }
@@ -378,7 +379,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px 16px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-body);
   margin-bottom: 12px;
 }
@@ -388,4 +389,13 @@
 }
 .ping-page {
   overflow-x: clip;
+}
+
+.ping-region-label--empty {
+  fill: var(--color-ink);
+}
+@media (max-width: 599px) {
+  .ping-region-label {
+    display: none;
+  }
 }

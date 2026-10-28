@@ -123,6 +123,83 @@ afterEach(() => {
 });
 
 describe("多地 Ping 独立页面", () => {
+  it("补充地区缺少在线探针时明确说明，不把大陆节点当作这些地区的覆盖", async () => {
+    installApi();
+    openPage();
+    await screen.findByText(/3 个可选节点/);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("checkbox", { name: "港澳台" }));
+    await user.click(screen.getByRole("checkbox", { name: "海外" }));
+    expect(screen.getByText("港澳台：当前无可用节点")).toBeInTheDocument();
+    expect(screen.getByText("海外：当前无可用节点")).toBeInTheDocument();
+    expect(screen.getByText(/3 个可选节点/)).toBeInTheDocument();
+  });
+  it("轮询中断后保留成功节点，等待中的节点变为无法判断", async () => {
+    const read = vi
+      .fn<() => unknown>()
+      .mockReturnValueOnce(
+        measurement(
+          [
+            result(0),
+            { ...result(1), result: { status: "in-progress", rawOutput: "" } },
+            {
+              ...result(2),
+              result: {
+                status: "failed",
+                failureSource: "resolver",
+                rawOutput: "",
+              },
+            },
+          ],
+          "in-progress",
+        ),
+      )
+      .mockImplementation(() => {
+        throw new Error("offline");
+      });
+    installApi(read);
+    openPage();
+    await screen.findByText(/3 个可选节点/);
+    await submit();
+    await screen.findByText(/Globalping API 不可达或请求超时/);
+    expect(screen.queryByText("等待结果")).not.toBeInTheDocument();
+    expect(screen.getByText("等待中断，无法判断")).toBeInTheDocument();
+    expect(
+      within(screen.getByRole("table", { name: "节点明细" })).getByText(
+        "8.8.8.8",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(screen.getByRole("row", { name: /^全部节点/ })).getByText("0 / 2"),
+    ).toBeInTheDocument();
+  });
+
+  it("缺少探针元数据时保留无法判断数量，不伪造身份或地图位置", async () => {
+    installApi(() =>
+      measurement([
+        result(0),
+        { probe: {}, result: { status: "finished" } },
+        result(2),
+      ]),
+    );
+    openPage();
+    await screen.findByText(/3 个可选节点/);
+    await submit();
+    await screen.findByText("本轮已完成");
+    expect(
+      screen.getByText(/1 个节点的元数据或结果缺失，无法判断/),
+    ).toBeInTheDocument();
+    const all = within(screen.getByRole("row", { name: /^全部节点/ }));
+    expect(all.getByText("3 / 2")).toBeInTheDocument();
+    expect(all.getByText("0 / 1")).toBeInTheDocument();
+    expect(
+      within(screen.getByRole("table", { name: "节点明细" })).getAllByRole(
+        "row",
+      ),
+    ).toHaveLength(3);
+    expect(screen.getByText("湖北省：未测，无数据")).toBeInTheDocument();
+  });
+
   it("只在明确提交后创建一次真实 ICMP 任务，并展示同一轮节点、地图和汇总", async () => {
     const fetcher = installApi();
     openPage();

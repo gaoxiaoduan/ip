@@ -47,7 +47,7 @@ export function PingMap({ rows }: { rows: readonly PingRow[] }) {
                 <text
                   x={region.center[0]}
                   y={region.center[1]}
-                  className="ping-region-label"
+                  className={`ping-region-label${band === "empty" ? " ping-region-label--empty" : ""}`}
                   textAnchor="middle"
                 >
                   {region.name.replace(/省|市|自治区|壮族|回族|维吾尔/g, "")}

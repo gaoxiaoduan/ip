@@ -24,7 +24,7 @@ const prerenderPublicContent = (): Plugin => {
       command = config.command;
     },
     configureServer(server) {
-      server.middlewares.use((request, response, next) => {
+      server.middlewares.use(async (request, response, next) => {
         if (request.method !== "GET" && request.method !== "HEAD") {
           next();
           return;
@@ -33,25 +33,39 @@ const prerenderPublicContent = (): Plugin => {
         const pathname = normalizePathname(
           new URL(request.url ?? "/", "http://localhost").pathname,
         );
-        const page = PUBLIC_PAGES.find((candidate) => candidate.path === pathname);
+        const page = PUBLIC_PAGES.find(
+          (candidate) => candidate.path === pathname,
+        );
 
         if (!page) {
           next();
           return;
         }
 
-        response.statusCode = 200;
-        response.setHeader("Content-Type", "text/html; charset=utf-8");
-        response.end(request.method === "HEAD" ? undefined : renderPublicPage(page));
+        try {
+          const html = await server.transformIndexHtml(
+            pathname,
+            renderPublicPage(page),
+          );
+          response.statusCode = 200;
+          response.setHeader("Content-Type", "text/html; charset=utf-8");
+          response.end(request.method === "HEAD" ? undefined : html);
+        } catch (error) {
+          next(error);
+        }
       });
     },
-    transformIndexHtml(html) {
+    transformIndexHtml(html, context) {
+      if (!["/", "/index.html"].includes(context.path)) return html;
       return html
         .replace(
           "</head>",
           `<script type="application/ld+json">${renderHomeJsonLd()}</script></head>`,
         )
-        .replace('<div id="root"></div>', `<div id="root">${renderHomeFallback()}</div>`);
+        .replace(
+          '<div id="root"></div>',
+          `<div id="root">${renderHomeFallback()}</div>`,
+        );
     },
     async closeBundle() {
       if (command !== "build") {
@@ -63,13 +77,21 @@ const prerenderPublicContent = (): Plugin => {
 
       const clientOutDir =
         this.environment?.config?.build?.outDir ??
-        path.resolve(import.meta.dirname, ".cloudflare/output/v0/workers/default/assets");
-      const indexHtml = await readFile(path.join(clientOutDir, "index.html"), "utf8");
+        path.resolve(
+          import.meta.dirname,
+          ".cloudflare/output/v0/workers/default/assets",
+        );
+      const indexHtml = await readFile(
+        path.join(clientOutDir, "index.html"),
+        "utf8",
+      );
       const appScriptMatch = indexHtml.match(
         /<script type="module" crossorigin src="([^"]+)"><\/script>/,
       );
       if (!appScriptMatch?.[1]) {
-        throw new Error("Unable to locate the client entry script in index.html");
+        throw new Error(
+          "Unable to locate the client entry script in index.html",
+        );
       }
       const appScript = appScriptMatch[1];
 
@@ -77,7 +99,11 @@ const prerenderPublicContent = (): Plugin => {
         PUBLIC_PAGES.map(async (page) => {
           const outputPath = path.join(clientOutDir, page.path, "index.html");
           await mkdir(path.dirname(outputPath), { recursive: true });
-          await writeFile(outputPath, renderPublicPage(page, appScript), "utf8");
+          await writeFile(
+            outputPath,
+            renderPublicPage(page, appScript),
+            "utf8",
+          );
         }),
       );
     },

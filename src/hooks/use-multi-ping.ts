@@ -99,15 +99,38 @@ export function useMultiPing() {
             setMeasurement(result);
         },
       );
-      if (!controller.signal.aborted)
-        setLimits(await readPingLimits(controller.signal).catch(() => null));
-    } catch (cause) {
+      const refreshedLimits = await readPingLimits(controller.signal).catch(
+        () => null,
+      );
       if (!controller.signal.aborted && active.current === controller)
+        setLimits(refreshedLimits);
+    } catch (cause) {
+      if (!controller.signal.aborted && active.current === controller) {
         setError(
           cause instanceof GlobalpingError
             ? cause.message
             : "Globalping API 不可达或请求超时，无法判断；请手动重试。",
         );
+        setMeasurement((current) =>
+          current
+            ? {
+                ...current,
+                results: current.results.map((row) =>
+                  row.result.status === "in-progress"
+                    ? {
+                        probe: row.probe,
+                        result: {
+                          status: "failed",
+                          failureSource: "local-wait",
+                          resolvedAddress: row.result.resolvedAddress,
+                        },
+                      }
+                    : row,
+                ),
+              }
+            : null,
+        );
+      }
     } finally {
       if (active.current === controller) {
         active.current = null;

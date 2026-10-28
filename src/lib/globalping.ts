@@ -264,6 +264,7 @@ export function pingRowState(row: PingRow) {
   if (row.result.status === "in-progress") return "等待结果";
   if (row.result.status === "offline") return "探针离线";
   if (row.result.status === "failed") {
+    if (row.result.failureSource === "local-wait") return "等待中断，无法判断";
     if (row.result.failureSource === "invalid-data")
       return "节点数据无效，无法判断";
     if (row.result.failureSource === "resolver")
