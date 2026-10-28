@@ -38,6 +38,17 @@ function cancelSession(session: QuerySession | null) {
   session?.geo?.abort();
 }
 
+function describeLookup(state: LookupState): string {
+  switch (state.status) {
+    case "loading": return `正在查询 ${state.ip}…`;
+    case "success": return `${state.info.ip} 归属查询完成。`;
+    case "error": return `${state.ip} 归属查询失败。`;
+    case "local": return `${state.ip}：${state.addressType}，无公网归属地。`;
+    case "internal": return "内部名称不支持公共 DNS 查询。";
+    default: return "";
+  }
+}
+
 export function useIpQuery() {
   const [state, setState] = useState<LookupState>({ status: "idle" });
   const [domain, setDomain] = useState<DomainQuery | null>(null);
@@ -109,5 +120,11 @@ export function useIpQuery() {
     }
   }
 
-  return { state, domain, submit, queryAddress };
+  const dnsProgress = domain ? ([ ["IPv4", domain.records.A], ["IPv6", domain.records.AAAA] ] as const).map(([label, record]) => {
+    if (record.status === "loading") return `${label} 解析中`;
+    if (record.status === "error") return `${label} 解析失败`;
+    return `${label} ${record.addresses.length} 个地址`;
+  }).join("；") + "。" : "";
+
+  return { state, domain, submit, queryAddress, announcement: dnsProgress + describeLookup(state) };
 }

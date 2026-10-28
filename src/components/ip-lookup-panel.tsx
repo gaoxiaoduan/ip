@@ -1,13 +1,17 @@
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { IP_GEO_SOURCE } from "@/lib/ip-lookup";
-import { DNS_SOURCE } from "@/lib/dns-lookup";
 import { useIpQuery } from "@/hooks/use-ip-query";
+import { DNS_SOURCE } from "@/lib/dns-lookup";
+import { IP_GEO_SOURCE } from "@/lib/ip-lookup";
 
 export function IpLookupPanel() {
   const [input, setInput] = useState("");
-  const { state, domain, submit, queryAddress } = useIpQuery();
+  const { state, domain, submit, queryAddress, announcement } = useIpQuery();
+  const selectedIp = state.status === "success" ? state.info.ip : "ip" in state ? state.ip : null;
+  const records = domain ? Object.values(domain.records) : [];
+  const hasPartialFailure = records.some((record) => record.status === "error")
+    && records.some((record) => record.status === "success" && record.addresses.length > 0);
 
   return (
     <section
@@ -49,8 +53,14 @@ export function IpLookupPanel() {
             </p>
           </form>
           {state.status === "invalid" ? <p className="mt-4 text-sm text-error" id="ip-query-error" role="alert">请输入一个完整的 IPv4、IPv6、域名或 HTTP/HTTPS 网址。</p> : null}
-          <div className="mt-6" role="status" aria-live="polite" aria-atomic="true">
-            {state.status === "internal" ? <div className="border-t border-hairline pt-6"><h3 className="break-all text-xl font-medium">{state.hostname}</h3><p className="mt-3 text-sm text-body">内部名称不支持公共 DNS 查询。此名称未提交给第三方。</p></div> : null}
+          <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">{announcement}</p>
+          <div className="mt-6">
+            {state.status === "internal" ? (
+              <div className="border-t border-hairline pt-6">
+                <h3 className="break-all text-xl font-medium">{state.hostname}</h3>
+                <p className="mt-3 text-sm text-body">内部名称不支持公共 DNS 查询。此名称未提交给第三方。</p>
+              </div>
+            ) : null}
             {domain ? (
               <div className="mb-6 border-t border-hairline pt-6">
                 <h3 className="break-all text-xl font-medium">{domain.hostname}</h3>
@@ -59,18 +69,29 @@ export function IpLookupPanel() {
                   <div className="mt-4" key={label} role="group" aria-label={`${label} 解析地址`}>
                     <h4 className="text-xs text-mute">{label}</h4>
                     <div className="mt-2 flex flex-wrap gap-2">
-                      {record.status === "success" ? record.addresses.map((ip) => <button className="min-h-11 max-w-full rounded-lg border border-hairline-strong px-3 py-2 text-left font-mono text-sm break-all aria-pressed:bg-ink aria-pressed:text-canvas" type="button" aria-pressed={state.status === "success" ? state.info.ip === ip : "ip" in state && state.ip === ip} onClick={() => void queryAddress(ip)} key={ip}>{ip}</button>) : null}
+                      {record.status === "success" ? record.addresses.map((ip) => (
+                        <button
+                          className="min-h-11 max-w-full rounded-lg border border-hairline-strong px-3 py-2 text-left font-mono text-sm break-all focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-link aria-pressed:bg-ink aria-pressed:text-canvas"
+                          type="button"
+                          aria-pressed={selectedIp === ip}
+                          onClick={() => void queryAddress(ip)}
+                          key={ip}
+                        >
+                          {ip}
+                        </button>
+                      )) : null}
                       {record.status === "loading" ? <p className="text-sm text-body">正在解析 {label}…</p> : null}
                       {record.status === "error" ? <p className="text-sm text-error" role="alert">{record.message}</p> : null}
                       {record.status === "success" && record.addresses.length === 0 ? <p className="text-sm text-body">无 {label} 地址记录</p> : null}
                     </div>
                   </div>
                 ))}
-                {Object.values(domain.records).some((record) => record.status === "error") && Object.values(domain.records).some((record) => record.status === "success" && record.addresses.length > 0) ? <p className="mt-4 text-sm text-body">本轮解析结果可能不完整，可重新解析。</p> : null}
+                {hasPartialFailure ? <p className="mt-4 text-sm text-body">本轮解析结果可能不完整，可重新解析。</p> : null}
                 <button className="mt-4 min-h-11 text-sm underline underline-offset-4" type="button" onClick={() => submit(domain.hostname)}>重新解析</button>
                 <p className="mt-4 text-xs leading-5 text-mute">公共解析结果可能与本机 DNS 不同，也不代表浏览器最终连接地址；地址可能指向 CDN，并非网站源服务器或经营者的位置。</p>
               </div>
             ) : null}
+            {domain && selectedIp ? <p className="mb-2 text-xs text-mute">当前 IP</p> : null}
             {state.status === "idle" && !domain ? <p className="text-sm text-mute">支持单个 IPv4、IPv6、公开域名或 HTTP/HTTPS 网址。</p> : null}
             {state.status === "loading" ? <p className="break-all text-sm text-body">正在查询 {state.ip}…</p> : null}
             {state.status === "local" ? (
@@ -82,7 +103,8 @@ export function IpLookupPanel() {
             {state.status === "error" ? (
               <div className="border-t border-hairline pt-6">
                 <h3 className="break-all font-mono text-2xl leading-9 font-medium">{state.ip}</h3>
-                <p className="mt-3 text-sm text-error" role="alert">{state.message}</p><button className="mt-3 min-h-11 text-sm underline underline-offset-4" type="button" onClick={() => void queryAddress(state.ip)}>重试归属查询</button>
+                <p className="mt-3 text-sm text-error" role="alert">{state.message}</p>
+                <button className="mt-3 min-h-11 text-sm underline underline-offset-4" type="button" onClick={() => void queryAddress(state.ip)}>重试归属查询</button>
               </div>
             ) : null}
             {state.status === "success" ? (

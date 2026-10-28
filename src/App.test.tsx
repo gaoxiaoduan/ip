@@ -130,6 +130,10 @@ describe("App", () => {
     expect(lookup.getByRole("link", { name: "Cloudflare DNS" })).toHaveAttribute("href", "https://developers.cloudflare.com/1.1.1.1/");
     expect(lookup.getByText(/本轮查询时间/)).toBeInTheDocument();
     expect(lookup.getByText(/可能与本机 DNS 不同/)).toBeInTheDocument();
+    const announcement = lookup.getByRole("status");
+    expect(announcement).toHaveTextContent("8.8.8.8 归属查询完成");
+    expect(within(announcement).queryByRole("button")).not.toBeInTheDocument();
+    expect(within(announcement).queryByRole("link")).not.toBeInTheDocument();
     expect(screen.getByText("112.10.247.224")).toBeInTheDocument();
   });
 
