@@ -165,9 +165,11 @@ export const PUBLIC_PAGES: readonly PublicPage[] = [
       {
         title: "手动 IP 查询与第三方数据",
         paragraphs: [
-          "首页支持主动输入单个完整 IPv4 或 IPv6，点击查询或按回车后，由浏览器向已接入的 IPWhois 提交目标地址，显示国家/地区、省州/城市、运营商或组织、ASN 与实际来源。内网、回环及保留地址在本地说明类型和无公网归属地，不提交给第三方。",
+          "首页支持主动输入单个完整 IPv4、IPv6、公开域名或 HTTP/HTTPS 网址，包括中文域名和带路径裸网址。点击查询或按回车后才发送请求；网址只提取主机名，不访问网页或跟随跳转，端口、路径、参数和片段不发送给查询服务。内部名称在本地说明不支持公共 DNS 查询。",
+          "域名由浏览器直接向 Cloudflare DNS 查询 A、AAAA，分别限时 6 秒，每次主动提交重新解析。本轮有效地址去重并按 IPv4/IPv6 分组；默认查询首个 IPv4 的归属，没有 IPv4 时使用首个 IPv6，其他地址按选择查询。分别说明无记录、域名不存在及解析失败，保留部分成功结果并允许重试。",
+          "所选公网 IP 由浏览器向已接入的 IPWhois 提交，显示国家/地区、省州/城市、运营商或组织、ASN 与实际来源，缺失字段显示未知。内网、回环及保留地址在本地说明类型和无公网归属地，不提交归属服务。公共 DNS 结果可能与本机 DNS 不同，不保证等于浏览器最终连接地址；解析地址可能指向 CDN，并非网站源服务器或经营者的位置。",
           "手动 IP 查询和 WebRTC 公网地址的归属查询复用同一查询能力。这些归属资料来自 IP 地理数据库，不是三条检测路径的出口结果，也不是设备的精确物理位置。出口检测仍直接采用各端点返回的归属地，不另交数据库统一。",
-          "本站不保存手动输入或查询历史，不生成指定 IP 的分享链接，不把目标 IP 写入页面网址或匿名优化事件；刷新或关闭后清空。第三方服务的留存政策由其自身规定。服务限流、超时或不可用时，页面会说明失败，不把失败解释为目标地址不存在。",
+          "本站不保存手动输入或查询历史，不生成查询分享链接，不把目标 IP、域名或输入网址写入页面网址、持久存储或匿名优化事件；刷新或关闭后清空。第三方服务的留存政策由其自身规定。服务限流、超时或不可用时，页面会说明失败，不把失败解释为目标地址不存在。",
         ],
       },
       {
@@ -190,6 +192,14 @@ export const PUBLIC_PAGES: readonly PublicPage[] = [
       {
         label: "IPWhois：指定 IP 查询与额度说明",
         href: "https://ipwhois.io/documentation",
+      },
+      {
+        label: "Cloudflare：公共 DNS 的 HTTPS JSON 查询接口",
+        href: "https://developers.cloudflare.com/1.1.1.1/encryption/dns-over-https/make-api-requests/dns-json/",
+      },
+      {
+        label: "Cloudflare：公共 DNS 隐私政策",
+        href: "https://developers.cloudflare.com/1.1.1.1/privacy/public-dns-resolver/",
       },
       {
         label: "Cloudflare：Web Analytics",
@@ -500,7 +510,7 @@ const homeJsonLd = JSON.stringify({
       isAccessibleForFree: true,
       featureList: [
         "国内、普通海外与受限海外路径的出口观测",
-        "单个 IPv4 / IPv6 的手动归属查询",
+        "通过单个 IPv4、IPv6、域名或 HTTP/HTTPS 网址查询 IP 归属",
         "网络连通性检查",
         "WebRTC 泄漏测试",
         "下载、上传、延迟与抖动测试",
@@ -521,7 +531,7 @@ export const renderHomeFallback = () => `<div class="public-shell vbg-report">
     <article class="public-article">
       <section class="public-section" id="results"><h2>三条路径，一次对照</h2><div class="public-section-content"><p>浏览器直接访问不同目的网络类别的检测端点。每张路径卡片都会标明本次实际采用的数据来源和返回时间。</p><p>国内网站路径用于观察访问中国大陆常见网站时的出口结果；普通海外网站路径用于观察一般跨境访问；受限海外服务路径只提供可能受访问策略影响的代表性观测，不等同于任何指定服务。</p></div></section>
       <section class="public-section"><h2>结果如何比较</h2><div class="public-section-content"><p>至少两条成功路径才可以比较。若成功路径观察到不同的公网 IP 或出口归属地，页面会显示出口差异；成功路径不足两条时，页面会显示数据不足。</p><p>每条路径只会在主检测端点失败后尝试备用端点。不可达不证明没有公网出口，也不证明服务被封锁。</p></div></section>
-      <section class="public-section" id="ip-query"><h2>IP 查询</h2><div class="public-section-content"><p>首页支持主动输入单个完整 IPv4 或 IPv6，查询国家/地区、省州/城市、运营商或组织、ASN 与数据来源。启用 JavaScript 后可直接输入并查询，结果在当前页面展示。</p><p>查询时目标 IP 会提交给 IPWhois；内网、回环及保留地址在本地说明类型和无公网归属地。归属信息来自数据库，不是设备的精确物理位置。本站不保存查询历史、不生成分享链接，刷新后清空。</p></div></section>
+      <section class="public-section" id="ip-query"><h2>IP 查询</h2><div class="public-section-content"><p>首页支持主动输入单个完整 IPv4、IPv6、公开域名或 HTTP/HTTPS 网址，包括中文域名及带路径裸网址，查看国家/地区、省州/城市、运营商或组织、ASN 与数据来源。启用 JavaScript 后可直接输入并查询，结果在当前页面展示。</p><p>域名只将主机名提交给 Cloudflare DNS，网址的端口、路径、参数和片段不发送，也不访问网页或跟随跳转。A/AAAA 地址去重分组展示，默认查询首个 IPv4（没有则为首个 IPv6），其他地址按选择查询；每次提交重新解析，每类限时 6 秒，部分成功结果可保留并重试。</p><p>查询时目标 IP 会提交给 IPWhois；内部名称不提交公共 DNS，内网、回环及保留地址在本地说明类型和无公网归属地。公共 DNS 可能与本机 DNS 不同，地址可能指向 CDN，并非网站源服务器或经营者的位置；归属信息不是设备的精确物理位置。本站不保存查询历史、不生成分享链接，不将目标写入网址或匿名优化事件，刷新后清空。</p></div></section>
       <section class="public-section"><h2>网络工具台</h2><div class="public-section-content"><p>首页下方提供三种可直接操作的新工具，默认等待，不会自动启动 WebRTC 或消耗测速流量。</p><p><a href="/connectivity">网络连通性</a>显示八个固定网站的资源请求；<a href="/webrtc">WebRTC 泄漏测试</a>展示四个 STUN 服务的连接证据；<a href="/speed-test">网速测试</a>测量下载、上传、延迟和抖动。</p></div></section>
       <section class="public-section"><h2>把观测和判断分开</h2><div class="public-section-content"><p>浏览器直连：出口结果来自检测端点，本站不会代替访客转发请求。检测会话只停留在当前页面，刷新或关闭后结果消失，不形成账户历史。</p><p>出口差异不是诊断结论。页面只比较各检测端点看到的出口结果，不据此判断代理配置正常、异常或是否生效。</p></div></section>
       <section class="public-section"><h2>隐私边界</h2><div class="public-section-content"><p>出口归属地来自各检测端点自己的 IP 地理数据库，可能存在差异。它不代表设备的精确物理位置，也不代表设备全部网络流量。</p><p>项目不需要账户、不保存个人检测结果，也不请求额外定位。</p></div></section>

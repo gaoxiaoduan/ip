@@ -53,6 +53,15 @@ const responseFor = (input: RequestInfo | URL) => {
   });
 };
 
+const dnsResponse = (hostname: string, type: "A" | "AAAA", addresses: string[] = [], status = 0) => {
+  const code = type === "A" ? 1 : 28;
+  return Response.json({
+    Status: status,
+    Question: [{ name: `${hostname}.`, type: code }],
+    Answer: addresses.map((data) => ({ name: `${hostname}.`, type: code, data })),
+  });
+};
+
 const createNetworkAdapters = (): NetworkToolAdapterOverrides => ({
   connectivity: {
     supported: true,
@@ -90,6 +99,423 @@ describe("App", () => {
     vi.restoreAllMocks();
   });
 
+  it("提交域名后展示 DNS 地址并查询默认 IPv4 的归属", async () => {
+    const fetcher = vi.fn<typeof fetch>(async (input) => {
+      const url = new URL(String(input), window.location.href);
+      if (url.origin === "https://cloudflare-dns.com") {
+        const type = url.searchParams.get("type") === "A" ? 1 : 28;
+        return Response.json({
+          Status: 0,
+          Question: [{ name: "www.example.com.", type }],
+          Answer: type === 1 ? [{ name: "www.example.com.", type: 1, data: "8.8.8.8" }] : [],
+        });
+      }
+      if (url.origin === "https://ipwho.is") {
+        return Response.json({ success: true, ip: "8.8.8.8", country: "美国", connection: { isp: "Google LLC", asn: 15169 } });
+      }
+      return responseFor(input);
+    });
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<App />);
+    const lookup = within(screen.getByRole("region", { name: "IP 查询" }));
+    await user.type(lookup.getByRole("textbox"), "www.example.com");
+    expect(fetcher.mock.calls.some(([url]) => String(url).includes("cloudflare-dns.com"))).toBe(false);
+    await user.click(lookup.getByRole("button", { name: "查询" }));
+
+    expect(await lookup.findByText("Google LLC")).toBeInTheDocument();
+    expect(lookup.getByRole("heading", { name: "www.example.com" })).toBeInTheDocument();
+    expect(lookup.getByRole("button", { name: "8.8.8.8" })).toHaveAttribute("aria-pressed", "true");
+    expect(lookup.getByText("无 IPv6 地址记录")).toBeInTheDocument();
+    expect(lookup.getByRole("link", { name: "Cloudflare DNS" })).toHaveAttribute("href", "https://developers.cloudflare.com/1.1.1.1/");
+    expect(lookup.getByText(/本轮查询时间/)).toBeInTheDocument();
+    expect(lookup.getByText(/可能与本机 DNS 不同/)).toBeInTheDocument();
+    expect(screen.getByText("112.10.247.224")).toBeInTheDocument();
+  });
+
+  it.each([
+    ["  WWW.Example.COM.  ", "www.example.com"],
+    ["example.com/path?q=private#secret", "example.com"],
+    ["https://Sub.Example.com:8443/path?q=private#secret", "sub.example.com"],
+    ["http://sub.example.com/path", "sub.example.com"],
+    ["example.com:8443/path", "example.com"],
+    ["例子.中国", "xn--fsqu00a.xn--fiqs8s"],
+    ["https://例子.中国/path", "xn--fsqu00a.xn--fiqs8s"],
+  ])("查询 %s 时仅提交规范化主机名 %s", async (value, hostname) => {
+    const fetcher = vi.fn<typeof fetch>(async (input) => {
+      const url = new URL(String(input), window.location.href);
+      if (url.origin === "https://cloudflare-dns.com") {
+        return dnsResponse(hostname, url.searchParams.get("type") as "A" | "AAAA", url.searchParams.get("type") === "A" ? ["8.8.8.8"] : []);
+      }
+      if (url.origin === "https://ipwho.is") return Response.json({ success: true, ip: "8.8.8.8", country: "归属结果" });
+      return responseFor(input);
+    });
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<App />);
+    const lookup = within(screen.getByRole("region", { name: "IP 查询" }));
+    await user.click(lookup.getByRole("textbox"));
+    await user.paste(value);
+    await user.keyboard("{Enter}");
+    expect(await lookup.findByText("归属结果")).toBeInTheDocument();
+    expect(lookup.getByRole("heading", { name: hostname })).toBeInTheDocument();
+    const requests = fetcher.mock.calls.filter(([input]) => String(input).startsWith("https://cloudflare-dns.com/"));
+    expect(requests).toHaveLength(2);
+    expect(requests.map(([input]) => String(input))).toEqual([
+      `https://cloudflare-dns.com/dns-query?name=${hostname}&type=A`,
+      `https://cloudflare-dns.com/dns-query?name=${hostname}&type=AAAA`,
+    ]);
+    for (const [, init] of requests) {
+      expect(init).toMatchObject({ headers: { Accept: "application/dns-json" }, referrerPolicy: "no-referrer", cache: "no-store" });
+    }
+    expect(fetcher.mock.calls.some(([input]) => String(input).includes("private") || String(input).includes("secret"))).toBe(false);
+  });
+
+  it.each([
+    ["https://8.8.8.8:8443/path?q=private", "8.8.8.8"],
+    ["http://[2606:4700:4700::1111]:8080/path", "2606:4700:4700::1111"],
+  ])("网址 %s 中的 IP 直接查询，不经过 DNS", async (value, ip) => {
+    const fetcher = vi.fn<typeof fetch>(async (input) => String(input).startsWith("https://ipwho.is/")
+      ? Response.json({ success: true, ip, country: "直接 IP 归属" }) : responseFor(input));
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<App />);
+    const lookup = within(screen.getByRole("region", { name: "IP 查询" }));
+    await user.click(lookup.getByRole("textbox"));
+    await user.paste(value);
+    await user.keyboard("{Enter}");
+    expect(await lookup.findByText("直接 IP 归属")).toBeInTheDocument();
+    expect(fetcher.mock.calls.some(([input]) => String(input).includes("cloudflare-dns.com"))).toBe(false);
+    expect(fetcher).toHaveBeenCalledWith(`https://ipwho.is/${ip}?lang=zh-CN`, expect.anything());
+  });
+
+  it.each(["localhost", "app.localhost", "printer.local", "app.internal", "home.arpa", "router.home.arpa", "intranet", "https://APP.INTERNAL:8080/private", "https://打印机.local/path"])("内部名称 %s 仅在本地说明，不提交外部查询", async (value) => {
+    const fetcher = vi.fn<typeof fetch>(async (input) => responseFor(input));
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<App />);
+    const lookup = within(screen.getByRole("region", { name: "IP 查询" }));
+    await user.click(lookup.getByRole("textbox"));
+    await user.paste(value);
+    await user.keyboard("{Enter}");
+    expect(lookup.getByRole("status")).toHaveTextContent("内部名称不支持公共 DNS 查询");
+    expect(fetcher.mock.calls.some(([url]) => /cloudflare-dns\.com|ipwho\.is/.test(String(url)))).toBe(false);
+  });
+
+  it("仅列出本域名 CNAME 链上的去重双栈地址，按选择查询并本地说明特殊 IP", async () => {
+    const fetcher = vi.fn<typeof fetch>(async (input) => {
+      const url = new URL(String(input), window.location.href);
+      if (url.origin === "https://cloudflare-dns.com") {
+        const type = url.searchParams.get("type") === "A" ? 1 : 28;
+        return Response.json({
+          Status: 0, Question: [{ name: "www.example.com.", type }],
+          Answer: [
+            { name: "edge.example.net.", type, data: type === 1 ? "8.8.8.8" : "2606:4700:4700:0000:0000:0000:0000:1111" },
+            { name: "www.example.com.", type: 5, data: "edge.example.net." },
+            { name: "edge.example.net.", type, data: type === 1 ? "8.8.8.8" : "2606:4700:4700::1111" },
+            ...(type === 1 ? [{ name: "edge.example.net.", type: 1, data: "192.168.1.1" }] : []),
+            { name: "unrelated.example.org.", type, data: type === 1 ? "9.9.9.9" : "2001:4860:4860::8888" },
+          ],
+        });
+      }
+      if (url.origin === "https://ipwho.is") {
+        const ip = url.pathname.slice(1);
+        return Response.json({ success: true, ip, country: ip === "8.8.8.8" ? "IPv4 归属" : "IPv6 归属" });
+      }
+      return responseFor(input);
+    });
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<App />);
+    const lookup = within(screen.getByRole("region", { name: "IP 查询" }));
+    await user.type(lookup.getByRole("textbox"), "www.example.com");
+    await user.keyboard("{Enter}");
+    expect(await lookup.findByText("IPv4 归属")).toBeInTheDocument();
+    expect(lookup.getAllByRole("button", { name: "8.8.8.8" })).toHaveLength(1);
+    expect(lookup.getAllByRole("button", { name: "2606:4700:4700::1111" })).toHaveLength(1);
+    expect(within(lookup.getByRole("group", { name: "IPv6 解析地址" })).getAllByRole("button")).toHaveLength(1);
+    expect(lookup.queryByRole("button", { name: "9.9.9.9" })).not.toBeInTheDocument();
+    expect(lookup.queryByText("2001:4860:4860::8888")).not.toBeInTheDocument();
+    expect(fetcher.mock.calls.filter(([url]) => String(url).startsWith("https://ipwho.is/"))).toHaveLength(1);
+    await user.click(lookup.getByRole("button", { name: "2606:4700:4700::1111" }));
+    expect(await lookup.findByText("IPv6 归属")).toBeInTheDocument();
+    expect(lookup.getByRole("button", { name: "2606:4700:4700::1111" })).toHaveAttribute("aria-pressed", "true");
+    await user.click(lookup.getByRole("button", { name: "192.168.1.1" }));
+    expect(lookup.getByRole("status")).toHaveTextContent("内网地址，无公网归属地");
+    expect(fetcher.mock.calls.some(([url]) => String(url).includes("ipwho.is/192.168"))).toBe(false);
+    await user.click(lookup.getByRole("button", { name: "8.8.8.8" }));
+    expect(await lookup.findByText("IPv4 归属")).toBeInTheDocument();
+    expect(fetcher.mock.calls.filter(([url]) => String(url).startsWith("https://ipwho.is/"))).toHaveLength(2);
+  });
+
+  it("一类解析等待或失败时另一类可先选择，重试解析也不提交尚未提交的编辑内容", async () => {
+    let finishIpv4!: (response: Response) => void;
+    let attempts = 0;
+    const fetcher = vi.fn<typeof fetch>(async (input) => {
+      const url = new URL(String(input), window.location.href);
+      if (url.origin === "https://cloudflare-dns.com") {
+        const type = url.searchParams.get("type") as "A" | "AAAA";
+        if (type === "A" && attempts++ === 0) return new Promise<Response>((resolve) => { finishIpv4 = resolve; });
+        return dnsResponse("example.com", type, type === "A" ? ["8.8.8.8"] : ["2606:4700:4700::1111"]);
+      }
+      if (url.origin === "https://ipwho.is") {
+        const ip = url.pathname.slice(1);
+        return Response.json({ success: true, ip, country: ip.includes(":") ? "IPv6 先到" : "IPv4 重试成功" });
+      }
+      return responseFor(input);
+    });
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<App />);
+    const lookup = within(screen.getByRole("region", { name: "IP 查询" }));
+    const input = lookup.getByRole("textbox");
+    await user.type(input, "example.com");
+    await user.keyboard("{Enter}");
+    const ipv6 = await lookup.findByRole("button", { name: "2606:4700:4700::1111" });
+    expect(lookup.getByText("正在解析 IPv4…")).toBeInTheDocument();
+    expect(fetcher.mock.calls.some(([url]) => String(url).startsWith("https://ipwho.is/"))).toBe(false);
+    await user.click(ipv6);
+    expect(await lookup.findByText("IPv6 先到")).toBeInTheDocument();
+    await act(async () => { finishIpv4(new Response(null, { status: 503 })); });
+    expect(lookup.getByRole("alert")).toHaveTextContent("DNS 解析服务暂不可用");
+    expect(lookup.getByText(/本轮解析结果可能不完整/)).toBeInTheDocument();
+    expect(ipv6).toHaveAttribute("aria-pressed", "true");
+    await user.clear(input);
+    await user.type(input, "do-not-submit.example");
+    expect(lookup.getByRole("heading", { name: "example.com" })).toBeInTheDocument();
+    await user.click(lookup.getByRole("button", { name: "重新解析" }));
+    expect(await lookup.findByText("IPv4 重试成功")).toBeInTheDocument();
+    expect(lookup.queryByRole("alert")).not.toBeInTheDocument();
+    expect(fetcher.mock.calls.filter(([url]) => String(url).includes("cloudflare-dns.com"))).toHaveLength(4);
+    expect(fetcher.mock.calls.some(([url]) => String(url).includes("do-not-submit"))).toBe(false);
+  });
+
+  it.each([
+    ["域名不存在", () => dnsResponse("example.com", "A", [], 3), "域名不存在。"],
+    ["DNS 失败", () => dnsResponse("example.com", "A", [], 2), "DNS 解析失败，请重试。"],
+    ["HTTP 失败", () => new Response(null, { status: 503 }), "DNS 解析服务暂不可用，请重试。"],
+    ["限流", () => new Response(null, { status: 429 }), "DNS 解析请求已达服务限额，请稍后重试。"],
+    ["网络失败", () => Promise.reject(new TypeError("Failed to fetch")), "DNS 网络请求失败，请检查连接后重试。"],
+    ["JSON 无效", () => new Response("{"), "DNS 解析服务返回的数据无效，请重试。"],
+    ["查询目标不符", () => dnsResponse("wrong.example", "A", ["8.8.8.8"]), "DNS 解析服务返回的数据无效，请重试。"],
+    ["查询类型不符", () => dnsResponse("example.com", "AAAA", ["2606:4700:4700::1111"]), "DNS 解析服务返回的数据无效，请重试。"],
+    ["缺失查询目标", () => Response.json({ Status: 0, Answer: [] }), "DNS 解析服务返回的数据无效，请重试。"],
+    ["地址格式无效", () => dnsResponse("example.com", "A", ["999.1.1.1"]), "DNS 解析服务返回的数据无效，请重试。"],
+    ["地址家族不符", () => dnsResponse("example.com", "A", ["2606:4700:4700::1111"]), "DNS 解析服务返回的数据无效，请重试。"],
+    ["截断回答", () => Response.json({ Status: 0, TC: true, Question: [{ name: "example.com.", type: 1 }], Answer: [] }), "DNS 解析服务返回的数据无效，请重试。"],
+    ["CNAME 循环", () => Response.json({ Status: 0, Question: [{ name: "example.com.", type: 1 }], Answer: [
+      { name: "example.com.", type: 5, data: "edge.example.com." },
+      { name: "edge.example.com.", type: 5, data: "example.com." },
+    ] }), "DNS 解析服务返回的数据无效，请重试。"],
+    ["CNAME 冲突", () => Response.json({ Status: 0, Question: [{ name: "example.com.", type: 1 }], Answer: [
+      { name: "example.com.", type: 5, data: "edge1.example.com." },
+      { name: "example.com.", type: 5, data: "edge2.example.com." },
+    ] }), "DNS 解析服务返回的数据无效，请重试。"],
+  ] as const)("DNS %s 显示准确原因，且可重新解析", async (_label, failure, message) => {
+    let shouldFail = true;
+    const fetcher = vi.fn<typeof fetch>(async (input) => {
+      const url = new URL(String(input), window.location.href);
+      if (url.origin === "https://cloudflare-dns.com") {
+        const type = url.searchParams.get("type") as "A" | "AAAA";
+        if (type === "A" && shouldFail) return failure();
+        return dnsResponse("example.com", type, type === "A" ? ["8.8.8.8"] : []);
+      }
+      if (url.origin === "https://ipwho.is") return Response.json({ success: true, ip: "8.8.8.8", country: "恢复成功" });
+      return responseFor(input);
+    });
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<App />);
+    const lookup = within(screen.getByRole("region", { name: "IP 查询" }));
+    await user.type(lookup.getByRole("textbox"), "example.com");
+    await user.keyboard("{Enter}");
+    expect(await lookup.findByRole("alert")).toHaveTextContent(message);
+    expect(lookup.getByRole("heading", { name: "example.com" })).toBeInTheDocument();
+    expect(fetcher.mock.calls.some(([url]) => String(url).startsWith("https://ipwho.is/"))).toBe(false);
+    shouldFail = false;
+    await user.click(lookup.getByRole("button", { name: "重新解析" }));
+    expect(await lookup.findByText("恢复成功")).toBeInTheDocument();
+    expect(lookup.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it.each(["请求未完成", "响应体未完成"])("DNS %s 时 6 秒超时，保留另一类并隔离迟到结果", async (mode) => {
+    let releaseOld!: (value: Response) => void;
+    let releaseBody!: (value: unknown) => void;
+    let oldSignal: AbortSignal | null | undefined;
+    let attempts = 0;
+    const fetcher = vi.fn<typeof fetch>(async (input, init) => {
+      const url = new URL(String(input), window.location.href);
+      if (url.origin === "https://cloudflare-dns.com") {
+        const type = url.searchParams.get("type") as "A" | "AAAA";
+        if (type === "A" && attempts++ === 0) {
+          oldSignal = init?.signal;
+          if (mode === "请求未完成") return new Promise<Response>((resolve) => { releaseOld = resolve; });
+          const response = dnsResponse("example.com", "A", ["8.8.8.8"]);
+          vi.spyOn(response, "json").mockImplementation(() => new Promise((resolve) => { releaseBody = resolve; }));
+          return response;
+        }
+        return dnsResponse("example.com", type, type === "AAAA" ? ["2606:4700:4700::1111"] : ["1.1.1.1"]);
+      }
+      if (url.origin === "https://ipwho.is") return Response.json({ success: true, ip: url.pathname.slice(1), country: "可用归属" });
+      return responseFor(input);
+    });
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<App />);
+    await screen.findByText("观察到出口差异");
+    const lookup = within(screen.getByRole("region", { name: "IP 查询" }));
+    const input = lookup.getByRole("textbox");
+    await user.type(input, "example.com");
+    vi.useFakeTimers();
+    fireEvent.submit(input.closest("form")!);
+    await act(async () => { await vi.advanceTimersByTimeAsync(5999); });
+    expect(lookup.getByText("正在解析 IPv4…")).toBeInTheDocument();
+    expect(lookup.getByRole("button", { name: "2606:4700:4700::1111" })).toBeInTheDocument();
+    await act(async () => { await vi.advanceTimersByTimeAsync(1); });
+    expect(lookup.getByRole("alert")).toHaveTextContent("DNS 解析超时，请重试。");
+    expect(oldSignal?.aborted).toBe(true);
+    expect(lookup.getByText("可用归属")).toBeInTheDocument();
+    vi.useRealTimers();
+    await user.click(lookup.getByRole("button", { name: "重新解析" }));
+    expect(await lookup.findByRole("button", { name: "1.1.1.1" })).toHaveAttribute("aria-pressed", "true");
+    await act(async () => {
+      if (mode === "请求未完成") releaseOld(dnsResponse("example.com", "A", ["8.8.8.8"]));
+      else releaseBody(await dnsResponse("example.com", "A", ["8.8.8.8"]).json());
+    });
+    expect(lookup.queryByRole("button", { name: "8.8.8.8" })).not.toBeInTheDocument();
+    expect(lookup.getByRole("button", { name: "1.1.1.1" })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("查询中可提交新域名，取消两类旧解析并阻止旧响应覆盖新结果", async () => {
+    const old: { signal?: AbortSignal | null; finish: (response: Response) => void }[] = [];
+    const fetcher = vi.fn<typeof fetch>(async (input, init) => {
+      const url = new URL(String(input), window.location.href);
+      if (url.origin === "https://cloudflare-dns.com") {
+        if (url.searchParams.get("name") === "old.example") {
+          return new Promise<Response>((finish) => { old.push({ signal: init?.signal, finish }); });
+        }
+        const type = url.searchParams.get("type") as "A" | "AAAA";
+        return dnsResponse("new.example", type, type === "A" ? ["1.1.1.1"] : []);
+      }
+      if (url.origin === "https://ipwho.is") return Response.json({ success: true, ip: "1.1.1.1", country: "新目标归属" });
+      return responseFor(input);
+    });
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<App />);
+    const lookup = within(screen.getByRole("region", { name: "IP 查询" }));
+    const input = lookup.getByRole("textbox");
+    await user.type(input, "old.example");
+    await user.keyboard("{Enter}");
+    expect(lookup.getByText("正在解析 IPv4…")).toBeInTheDocument();
+    await user.clear(input);
+    await user.type(input, "https://new.example/path?secret=hidden");
+    expect(lookup.getByRole("heading", { name: "old.example" })).toBeInTheDocument();
+    await user.click(lookup.getByRole("button", { name: "查询" }));
+    expect(await lookup.findByText("新目标归属")).toBeInTheDocument();
+    expect(old).toHaveLength(2);
+    expect(old.every((request) => request.signal?.aborted)).toBe(true);
+    await act(async () => {
+      old[0]!.finish(dnsResponse("old.example", "A", ["8.8.8.8"]));
+      old[1]!.finish(new Response(null, { status: 503 }));
+    });
+    expect(lookup.getByRole("heading", { name: "new.example" })).toBeInTheDocument();
+    expect(lookup.queryByRole("button", { name: "8.8.8.8" })).not.toBeInTheDocument();
+    expect(lookup.queryByRole("alert")).not.toBeInTheDocument();
+    expect(fetcher.mock.calls.some(([url]) => String(url).includes("ipwho.is/8.8.8.8"))).toBe(false);
+  });
+
+  it("切换 IP 取消旧归属请求；归属失败保留列表，可重试并不被迟到响应覆盖", async () => {
+    let releaseOld!: (response: Response) => void;
+    let oldSignal: AbortSignal | null | undefined;
+    let failed = true;
+    const fetcher = vi.fn<typeof fetch>(async (input, init) => {
+      const url = new URL(String(input), window.location.href);
+      if (url.origin === "https://cloudflare-dns.com") {
+        const type = url.searchParams.get("type") as "A" | "AAAA";
+        return dnsResponse("example.com", type, type === "A" ? ["8.8.8.8", "1.1.1.1"] : []);
+      }
+      if (url.origin === "https://ipwho.is") {
+        if (url.pathname === "/8.8.8.8") {
+          oldSignal = init?.signal;
+          return new Promise<Response>((resolve) => { releaseOld = resolve; });
+        }
+        if (failed) return new Response(null, { status: 503 });
+        return Response.json({ success: true, ip: "1.1.1.1", country: "当前地址归属" });
+      }
+      return responseFor(input);
+    });
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<App />);
+    const lookup = within(screen.getByRole("region", { name: "IP 查询" }));
+    await user.type(lookup.getByRole("textbox"), "example.com");
+    await user.keyboard("{Enter}");
+    expect(await lookup.findByText("正在查询 8.8.8.8…")).toBeInTheDocument();
+    await user.click(lookup.getByRole("button", { name: "1.1.1.1" }));
+    expect(oldSignal?.aborted).toBe(true);
+    expect(await lookup.findByRole("alert")).toHaveTextContent("查询服务暂不可用");
+    expect(lookup.getByRole("heading", { name: "example.com" })).toBeInTheDocument();
+    expect(lookup.getByRole("button", { name: "1.1.1.1" })).toHaveAttribute("aria-pressed", "true");
+    failed = false;
+    await user.click(lookup.getByRole("button", { name: "重试归属查询" }));
+    expect(await lookup.findByText("当前地址归属")).toBeInTheDocument();
+    await act(async () => { releaseOld(Response.json({ success: true, ip: "8.8.8.8", country: "过期归属" })); });
+    expect(lookup.queryByText("过期归属")).not.toBeInTheDocument();
+    expect(lookup.getByText("当前地址归属")).toBeInTheDocument();
+  });
+
+  it.each([
+    [[], ["2606:4700:4700::1111"], "2606:4700:4700::1111"],
+    [[], [], null],
+  ] as const)("没有 IPv4 时正常处理 IPv6 与空答案：%s / %s", async (ipv4, ipv6, expected) => {
+    const fetcher = vi.fn<typeof fetch>(async (input) => {
+      const url = new URL(String(input), window.location.href);
+      if (url.origin === "https://cloudflare-dns.com") {
+        const type = url.searchParams.get("type") as "A" | "AAAA";
+        return dnsResponse("example.com", type, [...(type === "A" ? ipv4 : ipv6)]);
+      }
+      if (url.origin === "https://ipwho.is") return Response.json({ success: true, ip: expected, country: "IPv6 默认归属" });
+      return responseFor(input);
+    });
+    vi.stubGlobal("fetch", fetcher);
+    const user = userEvent.setup();
+    render(<App />);
+    const lookup = within(screen.getByRole("region", { name: "IP 查询" }));
+    await user.type(lookup.getByRole("textbox"), "example.com");
+    await user.keyboard("{Enter}");
+    expect(await lookup.findByText("无 IPv4 地址记录")).toBeInTheDocument();
+    if (expected) expect(await lookup.findByText("IPv6 默认归属")).toBeInTheDocument();
+    else {
+      expect(lookup.getByText("无 IPv6 地址记录")).toBeInTheDocument();
+      expect(fetcher.mock.calls.some(([url]) => String(url).startsWith("https://ipwho.is/"))).toBe(false);
+    }
+    expect(lookup.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("离开页面取消所有 DNS 请求，重新进入不恢复输入或结果", async () => {
+    const requests: { signal?: AbortSignal | null; finish: (response: Response) => void }[] = [];
+    vi.stubGlobal("fetch", vi.fn<typeof fetch>(async (input, init) => {
+      if (String(input).startsWith("https://cloudflare-dns.com/")) {
+        return new Promise<Response>((finish) => { requests.push({ signal: init?.signal, finish }); });
+      }
+      return responseFor(input);
+    }));
+    const user = userEvent.setup();
+    const rendered = render(<StrictMode><App /></StrictMode>);
+    const lookup = within(screen.getByRole("region", { name: "IP 查询" }));
+    await user.type(lookup.getByRole("textbox"), "example.com");
+    await user.keyboard("{Enter}");
+    rendered.unmount();
+    expect(requests).toHaveLength(2);
+    expect(requests.every((request) => request.signal?.aborted)).toBe(true);
+    await act(async () => { requests.forEach((request) => request.finish(dnsResponse("example.com", "A", ["8.8.8.8"]))); });
+    render(<App />);
+    const refreshed = within(screen.getByRole("region", { name: "IP 查询" }));
+    expect(refreshed.getByRole("textbox")).toHaveValue("");
+    expect(refreshed.queryByText("example.com")).not.toBeInTheDocument();
+  });
+
   it("在首页提交指定 IPv4，原地展示归属信息及实际来源", async () => {
     const fetcher = vi.fn<typeof fetch>(async (input) => {
       if (String(input) === "https://ipwho.is/8.8.8.8?lang=zh-CN") {
@@ -110,7 +536,7 @@ describe("App", () => {
     render(<App />);
 
     const lookup = within(screen.getByRole("region", { name: "IP 查询" }));
-    await user.type(lookup.getByRole("textbox", { name: "IP 地址" }), "8.8.8.8");
+    await user.type(lookup.getByRole("textbox", { name: "IP、域名或网址" }), "8.8.8.8");
     await user.click(lookup.getByRole("button", { name: "查询" }));
 
     expect(await lookup.findByText("Google LLC")).toBeInTheDocument();
@@ -125,21 +551,21 @@ describe("App", () => {
   });
 
   it.each([
-    "", "not-an-ip", "8.8.8", "256.1.1.1", "008.8.8.8", "0x08080808",
-    "example.com", "https://8.8.8.8", "8.8.8.0/24", "8.8.8.8:53",
+    "", "bad_domain.com", "8.8.8", "256.1.1.1", "008.8.8.8", "0x08080808",
+    "ftp://example.com", "https://user:secret@example.com", "*.example.com", "mailto:user@example.com", "https://0x08080808", "https://008.8.8.8", "https://8.8.8", "8.8.8.0/24", "8.8.8.8:53",
     "2606:::1111", "fe80::1%en0", "[2606:4700::1111]:443", "8.8.8.8 1.1.1.1",
-  ])("拒绝非单个完整 IP 的输入：%s", async (value) => {
+  ])("拒绝不支持的查询输入：%s", async (value) => {
     const fetcher = vi.fn<typeof fetch>(async (input) => responseFor(input));
     vi.stubGlobal("fetch", fetcher);
     const user = userEvent.setup();
     render(<App />);
     const lookup = within(screen.getByRole("region", { name: "IP 查询" }));
-    const input = lookup.getByRole("textbox", { name: "IP 地址" });
+    const input = lookup.getByRole("textbox", { name: "IP、域名或网址" });
     await user.click(input);
     if (value) await user.paste(value);
     await user.click(lookup.getByRole("button", { name: "查询" }));
 
-    expect(lookup.getByRole("alert")).toHaveTextContent("请输入一个完整的 IPv4 或 IPv6 地址");
+    expect(lookup.getByRole("alert")).toHaveTextContent("请输入一个完整的 IPv4、IPv6、域名或 HTTP/HTTPS 网址");
     expect(input).toHaveAttribute("aria-invalid", "true");
     expect(fetcher.mock.calls.some(([url]) => String(url).startsWith("https://ipwho.is/"))).toBe(false);
   });
@@ -162,7 +588,7 @@ describe("App", () => {
     const user = userEvent.setup();
     render(<App />);
     const lookup = within(screen.getByRole("region", { name: "IP 查询" }));
-    await user.type(lookup.getByRole("textbox", { name: "IP 地址" }), ip);
+    await user.type(lookup.getByRole("textbox", { name: "IP、域名或网址" }), ip);
     await user.click(lookup.getByRole("button", { name: "查询" }));
 
     expect(lookup.getByRole("status")).toHaveTextContent(type);
@@ -188,7 +614,7 @@ describe("App", () => {
     const user = userEvent.setup();
     render(<App />);
     const lookup = within(screen.getByRole("region", { name: "IP 查询" }));
-    await user.click(lookup.getByRole("textbox", { name: "IP 地址" }));
+    await user.click(lookup.getByRole("textbox", { name: "IP、域名或网址" }));
     await user.paste(value);
     expect(fetcher.mock.calls.some(([url]) => String(url).startsWith("https://ipwho.is/"))).toBe(false);
     await user.keyboard("{Enter}");
@@ -223,7 +649,7 @@ describe("App", () => {
     const user = userEvent.setup();
     render(<App />);
     const lookup = within(screen.getByRole("region", { name: "IP 查询" }));
-    await user.type(lookup.getByRole("textbox", { name: "IP 地址" }), "8.8.8.8");
+    await user.type(lookup.getByRole("textbox", { name: "IP、域名或网址" }), "8.8.8.8");
     await user.click(lookup.getByRole("button", { name: "查询" }));
     expect(await lookup.findByRole("alert")).toHaveTextContent(message);
     expect(lookup.getByText("8.8.8.8")).toBeInTheDocument();
@@ -255,13 +681,12 @@ describe("App", () => {
     render(<App />);
     await screen.findByText("观察到出口差异");
     const lookup = within(screen.getByRole("region", { name: "IP 查询" }));
-    const input = lookup.getByRole("textbox", { name: "IP 地址" });
+    const input = lookup.getByRole("textbox", { name: "IP、域名或网址" });
     await user.type(input, "8.8.8.8");
     vi.useFakeTimers();
     fireEvent.click(lookup.getByRole("button", { name: "查询" }));
-    expect(lookup.getByRole("button", { name: "查询中…" })).toBeDisabled();
+    expect(lookup.getByRole("button", { name: "查询" })).toBeEnabled();
     expect(lookup.getByRole("status")).toHaveTextContent("正在查询 8.8.8.8");
-    fireEvent.submit(input.closest("form")!);
     expect(fetcher.mock.calls.filter(([url]) => String(url).startsWith("https://ipwho.is/"))).toHaveLength(1);
 
     await act(async () => { await vi.advanceTimersByTimeAsync(6000); });
@@ -290,14 +715,18 @@ describe("App", () => {
       const user = userEvent.setup();
       render(<App />);
       const lookup = within(screen.getByRole("region", { name: "IP 查询" }));
-      await user.type(lookup.getByRole("textbox", { name: "IP 地址" }), ip);
+      await user.type(lookup.getByRole("textbox", { name: "IP、域名或网址" }), ip);
       await user.click(lookup.getByRole("button", { name: "查询" }));
       expect(await lookup.findByText("公开归属资料")).toBeInTheDocument();
     },
   );
 
-  it("手动查询独立于出口检测，不写入网址、持久存储或匿名事件，刷新后为空", async () => {
+  it.each(["8.8.8.8", "https://example.com/private?secret=hidden#fragment"])("手动查询 %s 独立于出口检测，不写入网址、持久存储或匿名事件，刷新后为空", async (value) => {
     const fetcher = vi.fn<typeof fetch>(async (input) => {
+      if (String(input).startsWith("https://cloudflare-dns.com/")) {
+        const type = new URL(String(input)).searchParams.get("type") as "A" | "AAAA";
+        return dnsResponse("example.com", type, type === "A" ? ["8.8.8.8"] : []);
+      }
       if (String(input).startsWith("https://ipwho.is/")) {
         return Response.json({ success: true, ip: "8.8.8.8", country: "美国" });
       }
@@ -312,23 +741,30 @@ describe("App", () => {
     const rendered = render(<StrictMode><App /></StrictMode>);
     await screen.findByText("观察到出口差异");
     const lookup = within(screen.getByRole("region", { name: "IP 查询" }));
-    await user.type(lookup.getByRole("textbox", { name: "IP 地址" }), "8.8.8.8");
+    await user.type(lookup.getByRole("textbox", { name: "IP、域名或网址" }), value);
     await user.click(lookup.getByRole("button", { name: "查询" }));
     expect(await lookup.findByText("美国")).toBeInTheDocument();
     expect(lookup.getByText(/目标 IP 会提交给 IPWhois/)).toBeInTheDocument();
     expect(lookup.getByText(/不代表设备的精确物理位置/)).toBeInTheDocument();
     expect(window.location.href).toBe(originalUrl);
     expect(JSON.stringify([storage.mock.calls, pushState.mock.calls, replaceState.mock.calls])).not.toContain("8.8.8.8");
+    expect(JSON.stringify([storage.mock.calls, pushState.mock.calls, replaceState.mock.calls])).not.toContain("example.com");
     const analytics = fetcher.mock.calls.filter(([input]) => input === "/api/analytics");
     expect(analytics).toHaveLength(2);
     expect(JSON.stringify(analytics)).not.toContain("8.8.8.8");
+    expect(JSON.stringify(analytics)).not.toContain("example.com");
     expect(fetcher.mock.calls.filter(([input]) => input === "/api/observe")).toHaveLength(1);
     expect(screen.getByText("112.10.247.224")).toBeInTheDocument();
+    if (value.startsWith("https://")) {
+      await user.click(lookup.getByRole("button", { name: "查询" }));
+      expect(await lookup.findByText("美国")).toBeInTheDocument();
+      expect(fetcher.mock.calls.filter(([input]) => String(input).startsWith("https://cloudflare-dns.com/"))).toHaveLength(4);
+    }
 
     rendered.unmount();
     render(<App />);
     const refreshed = within(screen.getByRole("region", { name: "IP 查询" }));
-    expect(refreshed.getByRole("textbox", { name: "IP 地址" })).toHaveValue("");
+    expect(refreshed.getByRole("textbox", { name: "IP、域名或网址" })).toHaveValue("");
     expect(refreshed.queryByText("8.8.8.8")).not.toBeInTheDocument();
     expect(fetcher.mock.calls.filter(([input]) => String(input).startsWith("https://ipwho.is/"))).toHaveLength(1);
   });
@@ -351,7 +787,7 @@ describe("App", () => {
     const user = userEvent.setup();
     const rendered = render(<App />);
     const lookup = within(screen.getByRole("region", { name: "IP 查询" }));
-    await user.type(lookup.getByRole("textbox", { name: "IP 地址" }), "8.8.8.8");
+    await user.type(lookup.getByRole("textbox", { name: "IP、域名或网址" }), "8.8.8.8");
     await user.click(lookup.getByRole("button", { name: "查询" }));
     rendered.unmount();
     expect(oldSignal?.aborted).toBe(true);
@@ -359,7 +795,7 @@ describe("App", () => {
 
     render(<App />);
     const refreshed = within(screen.getByRole("region", { name: "IP 查询" }));
-    await user.type(refreshed.getByRole("textbox", { name: "IP 地址" }), "8.8.8.8");
+    await user.type(refreshed.getByRole("textbox", { name: "IP、域名或网址" }), "8.8.8.8");
     await user.click(refreshed.getByRole("button", { name: "查询" }));
     expect(await refreshed.findByText("新查询资料")).toBeInTheDocument();
     expect(refreshed.queryByText("旧查询资料")).not.toBeInTheDocument();

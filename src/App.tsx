@@ -289,7 +289,7 @@ const HomePage = ({ networkAdapters }: AppProps) => {
                   <ArrowDownIcon />
                 </a>
                 <a className="inline-flex min-h-11 items-center px-1 text-sm font-medium text-body underline-offset-4 hover:text-ink hover:underline" href="#ip-query">
-                  查询指定 IP
+                  查询 IP 或域名
                 </a>
               </div>
             </div>
@@ -456,7 +456,7 @@ const HomePage = ({ networkAdapters }: AppProps) => {
                 也不代表设备全部网络流量。
               </p>
               <p className="mt-4 max-w-[610px] text-sm leading-6 text-[#bdbdbd]">
-                手动 IP 查询和 WebRTC 公网地址的归属查询会向 IPWhois 提交目标 IP。本站不保存查询历史，不将目标写入网址或匿名优化事件。
+                手动查询域名或网址时，仅主机名提交给 Cloudflare DNS；所选公网 IP 与 WebRTC 公网地址的归属查询提交给 IPWhois。本站不保存查询历史，不将目标写入网址或匿名优化事件。
               </p>
             </div>
             <dl className="border-t border-white/16">
