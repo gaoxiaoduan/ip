@@ -1,11 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { clearIpGeoCache, fetchIpGeoInfo, getFlagEmoji } from "@/lib/ip-lookup";
+
 import {
   CONNECTIVITY_TARGETS,
   createBrowserConnectivityAdapter,
-  clearIpGeoCache,
-  fetchIpGeoInfo,
-  getFlagEmoji,
   getBandwidthEquivalent,
   SPEED_PROFILES,
   WEBRTC_SERVERS,
@@ -225,6 +224,7 @@ describe("网络工具 runner", () => {
     const fetcher = vi.fn(async () =>
       Response.json({
         success: true,
+        ip: "183.158.4.83",
         country: "中国",
         country_code: "CN",
         region: "浙江",

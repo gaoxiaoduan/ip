@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { DetectionCard } from "@/components/detection-card";
+import { IpLookupPanel } from "@/components/ip-lookup-panel";
 import { HeroMesh } from "@/components/hero-mesh";
 import { MonoLabel } from "@/components/mono-label";
 import {
@@ -287,6 +288,9 @@ const HomePage = ({ networkAdapters }: AppProps) => {
                   查看本次结果
                   <ArrowDownIcon />
                 </a>
+                <a className="inline-flex min-h-11 items-center px-1 text-sm font-medium text-body underline-offset-4 hover:text-ink hover:underline" href="#ip-query">
+                  查询指定 IP
+                </a>
               </div>
             </div>
 
@@ -347,6 +351,8 @@ const HomePage = ({ networkAdapters }: AppProps) => {
           </div>
         </section>
 
+        <IpLookupPanel />
+
         <NetworkToolDesk adapters={networkAdapters} />
 
         <section
@@ -358,7 +364,7 @@ const HomePage = ({ networkAdapters }: AppProps) => {
               label="说明与边界"
               title="从一次观测，走到可核对的理解。"
               titleId="guides-title"
-              lede="四个说明页只解释这项工具的观测边界：不提供网络配置诊断，也不扩展为泛 IP 查询。"
+              lede="四个说明页解释出口观测的方法与边界；指定 IP 的归属查询不用于诊断网络配置。"
               className="mb-10 sm:mb-12"
             />
             <div className="grid grid-cols-1 overflow-hidden rounded-2xl border border-hairline sm:grid-cols-2 sm:divide-x sm:divide-hairline">
@@ -448,6 +454,9 @@ const HomePage = ({ networkAdapters }: AppProps) => {
               <p className="mt-6 max-w-[610px] text-[15px] leading-[25px] text-[#bdbdbd]">
                 出口归属地来自各检测端点自己的 IP 地理数据库，可能存在差异。它不代表设备的精确物理位置，
                 也不代表设备全部网络流量。
+              </p>
+              <p className="mt-4 max-w-[610px] text-sm leading-6 text-[#bdbdbd]">
+                手动 IP 查询和 WebRTC 公网地址的归属查询会向 IPWhois 提交目标 IP。本站不保存查询历史，不将目标写入网址或匿名优化事件。
               </p>
             </div>
             <dl className="border-t border-white/16">

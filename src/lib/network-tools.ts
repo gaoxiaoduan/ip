@@ -1,3 +1,5 @@
+import { fetchIpGeoInfo, type IpGeoInfo } from "@/lib/ip-lookup";
+
 export type ToolObservationStatus = "observed" | "unobserved" | "undetermined";
 export type ToolRunStatus = "complete" | "stopped" | "undetermined";
 
@@ -343,122 +345,6 @@ export interface WebRtcCandidateEvidence {
   readonly serverIds: readonly string[];
 }
 
-export interface WebRtcIpGeoInfo {
-  readonly ip: string;
-  readonly country: string;
-  readonly countryCode?: string;
-  readonly flagEmoji?: string;
-  readonly region?: string;
-  readonly city?: string;
-  readonly isp?: string;
-  readonly network?: string;
-}
-
-export const getFlagEmoji = (countryCode?: string): string => {
-  if (!countryCode || countryCode.length !== 2) {
-    return "";
-  }
-  const code = countryCode.toUpperCase();
-  const codePoints = code
-    .split("")
-    .map((char) => 127397 + char.charCodeAt(0));
-  return String.fromCodePoint(...codePoints);
-};
-
-const geoCache = new Map<string, Promise<WebRtcIpGeoInfo | null>>();
-
-export function clearIpGeoCache(): void {
-  geoCache.clear();
-}
-
-export async function fetchIpGeoInfo(
-  ip: string,
-  fetcher: typeof fetch = globalThis.fetch,
-  signal?: AbortSignal,
-): Promise<WebRtcIpGeoInfo | null> {
-  const trimmed = ip.trim();
-  if (!trimmed || !isIpv4Address(trimmed)) {
-    return null;
-  }
-  if (geoCache.has(trimmed)) {
-    return geoCache.get(trimmed)!;
-  }
-
-  const queryPromise = (async () => {
-    try {
-      const response = await fetcher(`https://ipwho.is/${trimmed}?lang=zh-CN`, {
-        cache: "no-store",
-        referrerPolicy: "no-referrer",
-        signal,
-      });
-      if (response.ok) {
-        const data = (await response.json()) as {
-          success?: boolean;
-          country?: string;
-          country_code?: string;
-          region?: string;
-          city?: string;
-          connection?: { isp?: string; org?: string; asn?: number };
-          flag?: { emoji?: string };
-        };
-        if (data.success !== false && data.country) {
-          const countryCode = data.country_code;
-          return {
-            ip: trimmed,
-            country: data.country,
-            countryCode,
-            flagEmoji: data.flag?.emoji || getFlagEmoji(countryCode),
-            region: data.region,
-            city: data.city,
-            isp: data.connection?.isp || data.connection?.org,
-            network: data.connection?.asn ? `AS${data.connection.asn}` : undefined,
-          };
-        }
-      }
-    } catch {
-      // Fallback to secondary geo service
-    }
-
-    try {
-      const fallbackResp = await fetcher(`https://api.ip.sb/geoip/${trimmed}`, {
-        cache: "no-store",
-        referrerPolicy: "no-referrer",
-        signal,
-      });
-      if (fallbackResp.ok) {
-        const data = (await fallbackResp.json()) as {
-          country?: string;
-          country_code?: string;
-          region?: string;
-          city?: string;
-          organization?: string;
-          asn?: number;
-        };
-        if (data.country) {
-          const countryCode = data.country_code;
-          return {
-            ip: trimmed,
-            country: data.country,
-            countryCode,
-            flagEmoji: getFlagEmoji(countryCode),
-            region: data.region,
-            city: data.city,
-            isp: data.organization,
-            network: data.asn ? `AS${data.asn}` : undefined,
-          };
-        }
-      }
-    } catch {
-      // Ignore
-    }
-
-    return null;
-  })();
-
-  geoCache.set(trimmed, queryPromise);
-  return queryPromise;
-}
-
 export interface WebRtcServerResult {
   readonly server: WebRtcServer;
   readonly status: ToolObservationStatus;
@@ -515,7 +401,7 @@ export interface WebRtcAdapter {
   readonly fetchIpGeo?: (
     ip: string,
     signal?: AbortSignal,
-  ) => Promise<WebRtcIpGeoInfo | null>;
+  ) => Promise<IpGeoInfo | null>;
 }
 
 export interface WebRtcRunOptions {
@@ -810,7 +696,7 @@ const runWebRtcProbe = async (
     const publicIp = extractPublicIp(uniqueCandidates);
     const natType = inferNatType(uniqueCandidates, false);
 
-    let geoInfo: WebRtcIpGeoInfo | null = null;
+    let geoInfo: IpGeoInfo | null = null;
     if (publicIp) {
       try {
         const geoFetcher = adapter.fetchIpGeo ?? ((ip, sig) => fetchIpGeoInfo(ip, globalThis.fetch, sig));

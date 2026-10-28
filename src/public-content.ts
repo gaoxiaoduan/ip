@@ -1,5 +1,5 @@
 export const SITE_ORIGIN = "https://ip.33338888.xyz";
-export const PUBLIC_CONTENT_UPDATED_AT = "2026-07-29";
+export const PUBLIC_CONTENT_UPDATED_AT = "2026-10-28";
 
 type Source = {
   label: string;
@@ -163,6 +163,14 @@ export const PUBLIC_PAGES: readonly PublicPage[] = [
         ],
       },
       {
+        title: "手动 IP 查询与第三方数据",
+        paragraphs: [
+          "首页支持主动输入单个完整 IPv4 或 IPv6，点击查询或按回车后，由浏览器向已接入的 IPWhois 提交目标地址，显示国家/地区、省州/城市、运营商或组织、ASN 与实际来源。内网、回环及保留地址在本地说明类型和无公网归属地，不提交给第三方。",
+          "手动 IP 查询和 WebRTC 公网地址的归属查询复用同一查询能力。这些归属资料来自 IP 地理数据库，不是三条检测路径的出口结果，也不是设备的精确物理位置。出口检测仍直接采用各端点返回的归属地，不另交数据库统一。",
+          "本站不保存手动输入或查询历史，不生成指定 IP 的分享链接，不把目标 IP 写入页面网址或匿名优化事件；刷新或关闭后清空。第三方服务的留存政策由其自身规定。服务限流、超时或不可用时，页面会说明失败，不把失败解释为目标地址不存在。",
+        ],
+      },
+      {
         title: "匿名优化事件",
         paragraphs: [
           "为了判断说明页是否促成自然发现完成检测，项目仅聚合检测开始和检测完成事件。完成事件只在三条路径的主/备用尝试全部结束后产生，并只区分可比较或数据不足。",
@@ -179,6 +187,10 @@ export const PUBLIC_PAGES: readonly PublicPage[] = [
       },
     ],
     sources: [
+      {
+        label: "IPWhois：指定 IP 查询与额度说明",
+        href: "https://ipwhois.io/documentation",
+      },
       {
         label: "Cloudflare：Web Analytics",
         href: "https://developers.cloudflare.com/web-analytics/",
@@ -359,7 +371,7 @@ const jsonLd = (page: PublicPage) =>
   }).replace(/</g, "\\u003c");
 
 const footer = () =>
-  `<footer class="public-footer"><div class="public-footer-inner"><a class="public-footer-brand" href="/" aria-label="IP 出口检测首页"><span class="brand-mark" aria-hidden="true"><span></span></span><span>IP 出口检测</span></a><div class="public-footer-meta"><span>只比较当前页面的出口观测</span><span class="public-footer-divider">·</span><a class="public-footer-link" href="https://github.com/gaoxiaoduan/ip/issues/new" target="_blank" rel="noreferrer">通过 GitHub Issue 纠正内容</a></div><a class="public-back-top" href="#top">回到顶部 ↑</a></div></footer>`;
+  `<footer class="public-footer"><div class="public-footer-inner"><a class="public-footer-brand" href="/" aria-label="IP 出口检测首页"><span class="brand-mark" aria-hidden="true"><span></span></span><span>IP 出口检测</span></a><div class="public-footer-meta"><span>出口观测与单 IP 归属查询</span><span class="public-footer-divider">·</span><a class="public-footer-link" href="https://github.com/gaoxiaoduan/ip/issues/new" target="_blank" rel="noreferrer">通过 GitHub Issue 纠正内容</a></div><a class="public-back-top" href="#top">回到顶部 ↑</a></div></footer>`;
 
 const INTERACTIVE_PUBLIC_PATHS = new Set<string>([
   "/connectivity",
@@ -488,6 +500,7 @@ const homeJsonLd = JSON.stringify({
       isAccessibleForFree: true,
       featureList: [
         "国内、普通海外与受限海外路径的出口观测",
+        "单个 IPv4 / IPv6 的手动归属查询",
         "网络连通性检查",
         "WebRTC 泄漏测试",
         "下载、上传、延迟与抖动测试",
@@ -508,6 +521,7 @@ export const renderHomeFallback = () => `<div class="public-shell vbg-report">
     <article class="public-article">
       <section class="public-section" id="results"><h2>三条路径，一次对照</h2><div class="public-section-content"><p>浏览器直接访问不同目的网络类别的检测端点。每张路径卡片都会标明本次实际采用的数据来源和返回时间。</p><p>国内网站路径用于观察访问中国大陆常见网站时的出口结果；普通海外网站路径用于观察一般跨境访问；受限海外服务路径只提供可能受访问策略影响的代表性观测，不等同于任何指定服务。</p></div></section>
       <section class="public-section"><h2>结果如何比较</h2><div class="public-section-content"><p>至少两条成功路径才可以比较。若成功路径观察到不同的公网 IP 或出口归属地，页面会显示出口差异；成功路径不足两条时，页面会显示数据不足。</p><p>每条路径只会在主检测端点失败后尝试备用端点。不可达不证明没有公网出口，也不证明服务被封锁。</p></div></section>
+      <section class="public-section" id="ip-query"><h2>IP 查询</h2><div class="public-section-content"><p>首页支持主动输入单个完整 IPv4 或 IPv6，查询国家/地区、省州/城市、运营商或组织、ASN 与数据来源。启用 JavaScript 后可直接输入并查询，结果在当前页面展示。</p><p>查询时目标 IP 会提交给 IPWhois；内网、回环及保留地址在本地说明类型和无公网归属地。归属信息来自数据库，不是设备的精确物理位置。本站不保存查询历史、不生成分享链接，刷新后清空。</p></div></section>
       <section class="public-section"><h2>网络工具台</h2><div class="public-section-content"><p>首页下方提供三种可直接操作的新工具，默认等待，不会自动启动 WebRTC 或消耗测速流量。</p><p><a href="/connectivity">网络连通性</a>显示八个固定网站的资源请求；<a href="/webrtc">WebRTC 泄漏测试</a>展示四个 STUN 服务的连接证据；<a href="/speed-test">网速测试</a>测量下载、上传、延迟和抖动。</p></div></section>
       <section class="public-section"><h2>把观测和判断分开</h2><div class="public-section-content"><p>浏览器直连：出口结果来自检测端点，本站不会代替访客转发请求。检测会话只停留在当前页面，刷新或关闭后结果消失，不形成账户历史。</p><p>出口差异不是诊断结论。页面只比较各检测端点看到的出口结果，不据此判断代理配置正常、异常或是否生效。</p></div></section>
       <section class="public-section"><h2>隐私边界</h2><div class="public-section-content"><p>出口归属地来自各检测端点自己的 IP 地理数据库，可能存在差异。它不代表设备的精确物理位置，也不代表设备全部网络流量。</p><p>项目不需要账户、不保存个人检测结果，也不请求额外定位。</p></div></section>

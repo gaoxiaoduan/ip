@@ -71,7 +71,7 @@ for (const [relativePath, heading, pathname] of publicPages) {
   assert.match(html, new RegExp(heading));
   assert.match(html, /rel="canonical"/);
   assert.match(html, /application\/ld\+json/);
-  assert.match(html, /只比较当前页面的出口观测/);
+  assert.match(html, /出口观测与单 IP 归属查询/);
   assert.doesNotMatch(html, /更新于 2026-07-29/);
   assert.doesNotMatch(html, /<style>/);
 
@@ -104,6 +104,9 @@ const publicContentCss = await readBuiltFile("public-content.css");
 assert.match(publicContentCss, /\.public-hero/);
 
 const homePage = await readBuiltFile("index.html");
+assert.match(homePage, /id="ip-query"/);
+assert.match(homePage, /目标 IP 会提交给 IPWhois/);
+assert.match(homePage, /无公网归属地/);
 assert.match(homePage, /<title>IP\.33338888\.xyz｜IP 出口检测<\/title>/);
 assert.match(homePage, /<meta name="application-name" content="IP\.33338888\.xyz"/);
 assert.match(homePage, /property="og:site_name" content="IP\.33338888\.xyz"/);
