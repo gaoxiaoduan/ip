@@ -1,97 +1,63 @@
-> **Additional context needed**: quality bar and shipping constraints.
+# Refine an existing interface
 
-Polish is refinement, never concealed redesign. Preserve the incumbent visual world, content, behavior, and everything outside scope. If the concept itself is wrong, say so and recommend redesign or `bolder` instead of smuggling in a replacement.
+Polish improves the interface that exists; it does not conceal a redesign. Preserve the incumbent visual language, content, behavior, factual claims, and everything outside the user's scope. If the concept needs replacement, explain why and recommend a separate redesign rather than smuggling one into refinement.
 
-A detector result is defect evidence, not proof of quality. Inspect the rendered experience and real interaction path.
+## Establish the system and evidence
 
-## 1. Establish the system
+Read the project's design guidance, tokens, shared components, and neighboring flows. If no formal system exists, follow coherent project conventions. Identify the intended quality bar, shipping constraints, primary task, supported sizes, and deliberately unfinished work from the brief and implementation; ask only when a binding decision cannot be inferred.
 
-Read DESIGN.md and representative tokens, shared components, patterns, and neighboring flows. If no formal system exists, use coherent project conventions.
+Classify drift before fixing it:
 
-Classify each drift before fixing it:
+- **Missing token:** a genuinely reusable value is absent from the system.
+- **One-off implementation:** an existing shared component or pattern should be reused.
+- **Conceptual mismatch:** flow, hierarchy, or information architecture differs from comparable product areas.
+- **Local defect:** the implementation is incomplete or inconsistent.
 
-- **missing token:** the system needs a reusable value;
-- **one-off implementation:** an existing shared component or pattern should replace it;
-- **conceptual mismatch:** the flow, information architecture, or hierarchy differs from comparable product areas;
-- **local defect:** the implementation is simply incomplete or inconsistent.
+Fix the cause at the narrowest correct level. Do not create a system abstraction for one local exception.
 
-Fix the cause at the narrowest correct level. Ask when a binding system principle cannot be inferred.
+Run the interface and walk the real task with available host tools. Inspect mobile, intermediate, and wide web layouts, or the native device classes and supported orientations in [iOS](ios.md). Use real copy and representative long, missing, localized, slow, offline, or permission-limited content where those states can occur. A source review, automated scan, or attractive screenshot alone does not prove a working path.
 
-## 2. Gather the evidence
+If an existing critique is supplied, record the exact artifact and target/revision it concerns. Reproduce relevant high-impact findings against the current interface; a stale or different-target critique is context, not an active defect list. Perform an independent pass either way. Report which findings were actually resolved without claiming to update an unavailable critique store or closing a newer, unrelated review.
 
-Use the feature yourself at the surface's representative sizes: desktop and mobile on the web; on a native platform (`ios` / `android` / `adaptive`), the shipped device classes on the simulator, emulator, or hardware, captured per the platform reference's Verifying the build section. Determine:
+## Set a constrained visual target
 
-- whether the path is functionally complete;
-- the intended quality bar and time available;
-- known constraints or deliberately unfinished work;
-- the states, content lengths, roles, and input methods users will actually encounter.
+Follow the [Uizze image-first → 1:1 policy](../references/uizze-image-to-ui.md) without turning refinement into a redesign. Inspect and reuse any supplied/approved target; do not replace it or reopen its direction. For meaningful visual changes without one, retain a valid incumbent screenshot with its actual dimensions, state and configuration, and identify exactly what may change. A constrained baseline plus approved changes can guide local refinement. If a new visual proposal is needed and the host has an authorized image tool, generate that constrained target before writing the changed UI code, using real copy, controls, assets and existing-system rules.
 
-If a prior critique exists, use it as one input:
+Inspect the proposed target for legibility, truthful capabilities, usable controls, accessibility and native safe areas before implementation. Save the chosen target's actual dimensions and keep it stable. Do not use this step to introduce a new provider, request a fresh approval ritual for settled changes, or demand concept images for audits, backend work, one-line fixes or small technical defects. When generation is unavailable, use the supplied target or incumbent baseline and conventions, disclose the limitation and continue; no invented target or 1:1 claim.
 
-```bash
-node scripts/critique-storage.mjs latest "<resolved target>"
-```
+## Triage the whole path
 
-Exit 0 returns the latest snapshot; incorporate relevant P0/P1 findings and name the snapshot read. Exit 2 means none exists. Perform an independent pass either way.
+Separate functional defects from cosmetic ones, then work in this order:
 
-## 3. Triage
+1. Broken or blocked tasks, data loss, misleading state, and inaccessible paths.
+2. Missing loading, empty, error, success, disabled, permission, and recovery feedback where applicable.
+3. Flow, hierarchy, responsive behavior, and design-system drift.
+4. Visual, content, and motion inconsistencies.
+5. Cleanup made necessary by this refinement.
 
-Separate functional defects from cosmetic ones and fix in this order:
+Do not perfect one corner while leaving the rest of the requested path below the same quality bar. Leave working areas outside scope alone.
 
-1. broken or blocked tasks, data loss, misleading state, and inaccessible paths;
-2. missing loading, empty, error, success, disabled, and permission states;
-3. flow, hierarchy, responsive, and design-system drift;
-4. visual and motion inconsistencies;
-5. code and asset cleanup.
+## Inspect and refine actual surfaces
 
-Do not perfect one corner while leaving the rest below the same quality bar.
+- **Flow:** match neighboring terminology, navigation, disclosure, save behavior, and state conventions. Connect arrival, transition, empty, and recovery paths; make the primary task and current state obvious.
+- **Layout and type:** align to the project's grid and spacing scale, including optical alignment. Keep same-role typography consistent. Check font loading, zoom, large text, localization expansion, wrapping, image aspect ratios, and layout shift.
+- **Visible content:** inspect the surface users actually see, including scroll regions, sticky bars, menus, popovers, dialogs, and their open/closed states. Source presence is not visibility. Look for clipped labels, occluded actions, off-screen errors, unsafe overflow, and content hidden behind overlays. Distinguish intentional truncation or disclosure from required information that cannot be reached.
+- **Contrast:** check text, controls, and focus on their actual rendered backgrounds in relevant themes and states. Resolve transparent layers, inherited colors, overlays, gradients, and image backgrounds rather than comparing token names or assuming white. Hidden content is not a visible contrast failure; reveal it in its real state before judging it. If the effective background cannot be established, record the uncertainty instead of inventing a ratio.
+- **Icons and media:** preserve a coherent family, stroke/weight, sizing, and optical alignment. Keep meaningful image descriptions and stable image dimensions; do not replace approved assets just to make the pass look different.
+- **Interaction:** exercise applicable default, hover, focus, active, selected, expanded, disabled, loading, error, and success states. Keep visible keyboard focus, logical order, accessible names, and platform-appropriate targets. Check touch gestures where relevant; a narrow viewport alone does not test touch.
+- **Motion:** keep feedback coherent, interruptible, and responsive. Honor reduced motion with an equally usable path that preserves essential state changes; do not add choreography to advertise polish.
+- **Content and implementation:** retain factual claims unless the user approves changes. Keep terminology, capitalization, and punctuation consistent. Reuse shared patterns and remove obsolete local code or duplication caused by the refinement, not unrelated code.
 
-## 4. Polish the whole path
+Implement the constrained target at its original viewport first, matching the approved layout, type, text, spacing, colors, icons and crops without changing untouched regions. Use semantic components and real working controls, not a flattened screenshot. Preserve data/auth/backend contracts and native behavior; report unavailable fonts/assets and resolve material target conflicts explicitly instead of silently substituting or sacrificing accessibility.
 
-### Flow and hierarchy
+For technical defects, use [audit](audit.md) on web or [native audit](audit.native.md) for native iOS. Neither a clean scan nor an empty result replaces rendered and interaction inspection.
 
-- Match neighboring mental models, terminology, disclosure, routing, save behavior, and optimistic or pessimistic patterns.
-- Make the primary task and current state obvious without flattening every element to equal weight.
-- Ensure arrival, transition, empty, and recovery paths connect instead of behaving as isolated screens.
+## Reinspect and finish
 
-### Layout and type
+Make one coherent correction pass, then run and inspect the affected path again with the applicable mouse, keyboard, and touch inputs. Use one targeted follow-up pass for remaining observed defects rather than an open-ended cosmetic loop.
 
-- Align to the project's grid and spacing scale; fix optical as well as mathematical alignment.
-- Group related content tightly and separate distinct groups generously.
-- Keep same-role typography consistent; test measure, wrapping, localization expansion, zoom, and font loading.
-- Verify every supported viewport rather than correcting only the current screenshot.
+Recheck changed states and representative supported sizes, themes, zoom/text scaling, focus, semantics, and accessible names. Inspect console/runtime errors, image loading, layout shift, and interaction latency with the host tools actually available. For native work, use native simulator/device evidence; distinguish it from browser previews and physical-device performance checks.
 
-### Color, imagery, and icons
+After fonts/images load and motion settles, capture the same screen/state/scroll position at the target's actual dimensions (and recorded native device/scale/chrome where applicable). Compare side by side or with an overlay: check approved changes against the target/change list and untouched regions against the incumbent baseline. Correct layout/proportions before typography, spacing, color and crops; recapture and compare affected states after fixes. Invalid or half-loaded captures are not evidence, and later visual edits invalidate affected comparisons.
 
-- Use semantic tokens and stable color meanings across themes.
-- Verify text, control, and focus contrast in every state.
-- Keep icon families, stroke/weight, sizing, and optical alignment coherent.
-- Prevent image layout shift; use correct aspect ratios, responsive sources, and useful alt text.
-
-### Interaction and state
-
-- Every control needs appropriate default, hover, focus, active, disabled, loading, error, and success behavior.
-- Preserve visible keyboard focus, logical tab order, labels, and platform-appropriate touch targets.
-- Keep motion coherent, interruptible, and performant. Do not add animation merely to make polish visible.
-- Validate long, missing, localized, offline, slow, and permission-limited content where the product can encounter it.
-
-### Content and code
-
-- Keep terminology, capitalization, punctuation, and factual copy consistent. Ask before changing claims.
-- Remove debug output, dead code, unused imports, obsolete styles, and polish-created duplication.
-- Replace custom implementations with shared components where the system owns the pattern.
-- Promote genuinely reusable values to tokens; do not create a system abstraction for one local exception.
-
-## 5. Verify and finish
-
-Walk the complete path again with mouse, keyboard, and touch where applicable. Check:
-
-- mobile, intermediate, and wide layouts on the web; phone and tablet size classes in both supported orientations on native;
-- loading, empty, error, success, disabled, long-content, and missing-content states;
-- zoom, contrast, focus, semantics, and screen-reader names;
-- console errors, layout shift, interaction latency, and image loading everywhere; supported browsers on the web; supported OS versions, runtime warnings, and dropped frames on native;
-- agreement with DESIGN.md, neighboring features, and the user's scope.
-
-Follow the quality guidance supplied by `context.mjs` and hooks, then run any other relevant QA commands. Context requests a manual scan only when no automatic detector is active; never add another detector pass. Fix real defects and document only narrow intentional exceptions. A clean scan does not replace visual judgment.
-
-Finish with a source diff: remove accidental churn, orphaned code, redundant values, and temporary artifacts. Ship only when the feature is functionally complete and consistently finished across the path.
+Report the changes, target/baseline and actual dimensions, capture environment and comparison method, paths/states actually exercised, resolved and remaining findings, missing assets and unavailable or partial checks. Claim 1:1 fidelity only to a real target in an inspected same-size render with no unresolved visible mismatch in the claimed scope; a baseline/change list alone does not prove a pixel-perfect new target. Without rendering/comparison, the visual match is unverified. Do not claim release readiness, accessibility conformance or a complete device matrix from source inspection alone. Unresolved blockers remain blockers; explain the exact missing prerequisite instead of hiding them behind “polished.”

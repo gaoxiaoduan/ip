@@ -1,51 +1,35 @@
-# iOS platform
+# Native iOS interfaces
 
-For native iOS / iPadOS apps: SwiftUI, UIKit, React Native, Expo, Flutter shipping to Apple hardware.
+Follow the product's existing iOS conventions first, then Apple platform conventions. A native interface should feel predictable before it feels distinctive.
 
-On native, the visitor mode narrows what expression may override. HIG conformance governs structure, navigation, and interaction in every mode; brand expresses through the layer the platform leaves open (tint, type, motion, content).
+## Choose a native visual target
 
-## The iOS slop test
+Follow the [Uizze image-first → 1:1 policy](../references/uizze-image-to-ui.md). Read the real task, existing screens/components, assets and data/auth contracts before choosing a direction. Reuse and inspect a supplied/approved image instead of regenerating it or reopening settled direction. For new visual work or an approved redesign, use an available authorized image tool before writing UI code to make a straight-on, realistic native screen with real copy, controls and the product's visual language—not a tilted device mockup or web UI in an iPhone frame.
 
-Would a fluent iPhone user trust this app, or pause at off-spec controls? The tell is "ported from a website": reinvented navigation bars, custom back gestures, web-shaped buttons, hover-dependent affordances. Default to the platform's components; depart only for a reason the user would thank you for.
+Inspect and correct unreadable labels, false capabilities, impossible controls and unsafe layouts before implementation. Save the stable target and actual pixel dimensions, device class, orientation, scale, safe areas, content viewport and system chrome. Avoid duplicate status/navigation chrome. A scoped refinement can use an incumbent capture plus approved changes; generate a constrained proposal only when needed and available. Audits, backend work and small technical fixes need no new concept image. Without image generation, use a supplied image or disclose the limitation and follow existing conventions; do not install a provider or block on paid resources.
 
-## Layout & structure
+## Structure and controls
 
-- **Safe area.** Lay out inside the safe-area insets. No controls under the notch, Dynamic Island, home indicator, or rounded corners. <!-- rule:ios-layout-safe-area -->
-- **System navigation.** Tab bar for 2–5 top-level sections (sections, never actions), navigation stack for hierarchy, sheet for self-contained tasks. No custom global nav, no mixed metaphors. <!-- rule:ios-layout-standard-navigation -->
-- **Edge-swipe back stays alive.** The left-edge back gesture is muscle memory; never disable or overlay it. <!-- rule:ios-layout-edge-swipe-back -->
-- **Large titles** on top-level screens, collapsing to inline on scroll. Deep detail screens stay inline. <!-- rule:ios-layout-large-titles -->
+- Use a navigation stack for hierarchy, a tab bar for a small set of top-level destinations, and sheets for self-contained tasks.
+- Preserve the edge-swipe back gesture and safe-area behavior.
+- Prefer native controls, materials, menus, alerts, sheets, pickers, and text behavior unless the product already has a coherent custom system.
+- Keep touch targets comfortable, text scalable, labels accessible, and focus order sensible.
+- Account for the keyboard, long content, dynamic type, reduced motion, dark mode, and device insets.
 
-## Touch targets
+## Implement the target with native behavior
 
-- **44×44 pt minimum** for every tappable control, with breathing room between adjacent targets. <!-- rule:ios-touch-target-44pt -->
+At the recorded device configuration, match layout/proportions, typography, text wrapping, spacing, colors, icons and crops. Use real native components and working controls, never a flattened screenshot. Preserve real navigation, data/auth/backend contracts, gestures and accessibility. A picture does not specify unseen interactions or authorize new capabilities. Resolve conflicts with safe areas, Dynamic Type, contrast or usable targets explicitly rather than copying an unsafe target or silently redesigning it. Identify missing fonts/assets and rights limitations; do not substitute and claim exact fidelity. Then adapt to other requested device classes and states without changing the visual identity.
 
-## Typography
+## States
 
-- **Dynamic Type.** Use the system text styles (Large Title through Caption) so text follows the user's reading size. No hard-coded point sizes. <!-- rule:ios-typo-dynamic-type -->
-- **San Francisco carries the UI.** Body, labels, and controls stay on SF Pro / SF Compact; a brand face may appear in display moments. <!-- rule:ios-typo-system-font -->
-- **11 pt floor**; Body is 17 pt. <!-- rule:ios-typo-minimum-size -->
+Include the states the task requires: loading, empty, error, success, permission denied, offline, disabled, and recovery where applicable. Feedback should be immediate and should not depend on color alone.
 
-## Color & materials
+## Render, compare and verify
 
-- **Semantic system colors** (label, secondaryLabel, systemBackground, separator, tint). They adapt to Dark Mode and increased contrast automatically; raw hex breaks there. <!-- rule:ios-color-semantic-system -->
-- **Dark Mode is a first-class appearance.** Design and test both. <!-- rule:ios-color-dark-mode -->
-- **One tint color** drives interactive elements; decoration is not its job. <!-- rule:ios-color-single-tint -->
-- **System materials** for blur and translucency behind bars and sheets; no hand-rolled glassmorphism. <!-- rule:ios-color-system-materials -->
+When a simulator or runnable build is available, capture the intended screen/state at the saved target dimensions and recorded device/scale/chrome configuration after fonts/images load and motion settles. Compare side by side or with an overlay, including full context and detail crops. Fix layout/proportions first, then typography, spacing, colors and assets; recapture and compare after corrections. For refinement, also check unchanged areas against the incumbent baseline.
 
-## Components & controls
+Inspect relevant device classes and exercise navigation, back gestures, keyboard, controls, Dynamic Type and Reduce Motion. Fix observable clipping, overlap, unsafe-area violations, unreadable text or inaccessible controls, and recheck affected states. A matched still does not verify native interaction or physical-device performance.
 
-- **Platform controls.** Switch, segmented control, stepper, system pickers, action sheets, alerts, context menus, swipe actions. Reinventing these for flavor is the most common native slop. <!-- rule:ios-components-native-controls -->
-- **SF Symbols** for iconography: baseline-aligned, Dynamic Type-aware, weight and scale variants. Don't mix in a web icon set. <!-- rule:ios-components-sf-symbols -->
-- **Deliberate modality.** Sheet for a focused dismissible sub-task, full-screen cover for immersion. Clear Cancel/Done; honor swipe-to-dismiss unless data loss requires a guard. <!-- rule:ios-components-modality -->
-- **Grouped/inset lists** for settings-shaped content; no bespoke card stacks. <!-- rule:ios-components-grouped-lists -->
+Report the target and dimensions, simulator/device configuration, comparison method, states and interactions actually checked, missing assets and remaining mismatches. Claim 1:1 only with a real target and inspected same-size native render with no unresolved visible mismatch in the claimed scope; a browser preview is not native evidence. If the environment cannot run or compare the UI, disclose that visual/device verification remains incomplete instead of requiring unavailable tooling or claiming a pass.
 
-## Motion
-
-- **System transitions.** Push slides, sheets rise, dismiss reverses the entrance. Custom transitions that fight the navigation model disorient. <!-- rule:ios-motion-system-transitions -->
-- **Honor Reduce Motion.** Crossfade instead of parallax and large slides. <!-- rule:ios-motion-reduce-motion -->
-
-## Verifying the build
-
-- **Screenshots come from the Simulator, never a browser.** Build and run, then capture with `xcrun simctl io booted screenshot <path>` (with several running, replace `booted` with the target's UDID from `xcrun simctl list devices booted`; display names can collide, the UDID never does). Capture every device class the app ships to, at least one iPhone and, when iPad is a target, one iPad, and write the files where the review flow expects them. <!-- rule:ios-verify-simulator-capture -->
-- **Dark Mode and Dynamic Type belong in the pass.** `xcrun simctl ui booted appearance dark` flips appearance, reusing the capture's UDID when several are booted; a check at a large Dynamic Type size catches the truncation a fixed layout hides. <!-- rule:ios-verify-appearance-and-type -->
-- **Simulators give breadth; posture, gestures, and performance need hardware.** Say which one produced the evidence. <!-- rule:ios-verify-hardware-honesty -->
+For an explicit Uizze Overdrive request, combine this guidance with [Overdrive](overdrive.md). Use native continuity and responsive feedback, not web-only effects or novelty that interferes with platform navigation. Respect Reduce Motion and preserve an equally usable non-animated path.

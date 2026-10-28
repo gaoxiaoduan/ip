@@ -1,61 +1,37 @@
-# Operate mode depth (and Read notes)
+# Product and dashboard interfaces
 
-When design SERVES the product: app UIs, admin dashboards, settings panels, data tables, tools, authenticated surfaces, anything where the user is in a task. The essentials live in SKILL.md's modes and [craft-floor.md](craft-floor.md); this file is extended depth, written for Operate surfaces. Read surfaces (docs, guides, long-form) take SKILL.md's Read mode plus this file's typography and consistency rules; their prose measure and navigation matter more than component density.
+Product UI should disappear into the task. Familiarity is a feature when users need to move quickly and trust the controls.
 
-## The product slop test
+## Set the task and visual target
 
-Familiarity is often a feature here. The test is whether a category-fluent user can trust the interface immediately or must pause at every subtly-off component.
+Follow the [Uizze image-first → 1:1 policy](../references/uizze-image-to-ui.md). Read the real workflow, components, assets and data/auth contracts; preserve the established shell and identity unless redesign is approved. Choose a coherent direction around the primary task, navigation, content density and real controls, not a decorative dashboard.
 
-Product UI's failure mode isn't flatness, it's strangeness without purpose: over-decorated buttons, mismatched form controls, gratuitous motion, display fonts where labels should be, invented affordances for standard tasks. The bar is earned familiarity. The tool should disappear into the task.
+Inspect and use a supplied/approved target without regenerating it. For new visual work or an approved redesign, an available authorized image tool should produce a straight-on, realistic UI target before UI code: include actual copy, controls, assets and viewport. Inspect and correct false capabilities, illegible labels, impossible states and inaccessible arrangements, then save one stable target with its actual dimensions. For scoped refinements, constrain the target to an incumbent screenshot and approved changes. Small technical fixes, audits and backend work need no new concept image.
 
-## Typography
+Without image generation, use a supplied target; if none exists, disclose the limitation and build from the brief and incumbent conventions. Do not install a provider or make paid references a prerequisite.
 
-- **One family is often right.** Product UIs don't need display/body pairing. A well-tuned sans carries headings, buttons, labels, body, data. <!-- rule:product-typo-one-family -->
-- **Fixed rem scale, not fluid.** Clamp-sized headings don't serve product UI. Users view at consistent DPI, and a fluid h1 that shrinks in a sidebar looks worse, not better. <!-- rule:product-typo-fixed-rem-scale -->
-- **Tighter scale ratio.** 1.125–1.2 between steps is typical. More type elements here than on brand surfaces; exaggerated contrast creates noise. <!-- rule:product-typo-tighter-ratio -->
-- **Line length still applies for prose** (65–75ch). Data and compact UI can run denser; tables at 120ch+ are fine. <!-- rule:product-typo-line-length -->
+## Structure
 
-## Color
+- Make the current location, primary task, and next action obvious.
+- Match information density to the work. Dense tables and compact controls are appropriate when users need them; decorative containers are not.
+- Prefer standard navigation, forms, tables, tabs, menus, and dialogs over novel replacements.
+- Use spacing and alignment for grouping before adding borders, cards, or backgrounds.
+- Keep one component vocabulary across the surface.
 
-Product defaults to Restrained. A single surface can earn Committed (a dashboard where one category color carries a report, an onboarding flow with a drenched welcome screen), but Restrained is the floor. <!-- rule:product-color-restrained-default -->
+## Build the target, not a new interpretation
 
-- State-rich semantic vocabulary: hover, focus, active, disabled, selected, loading, error, warning, success, info. Standardize these. <!-- rule:product-color-state-vocab -->
-- Accent color used for primary actions, current selection, and state indicators only, not decoration. <!-- rule:product-color-accent-only -->
-- A second neutral layer for sidebars, toolbars, and panels (slightly cooler or warmer than the content surface). <!-- rule:product-color-second-neutral -->
+Match the approved target at its original viewport: work regions, proportions, hierarchy, typography, text wrapping, spacing, colors, icons and crops. Reuse semantic components and real layout primitives; never flatten the image into UI or silently replace missing fonts/assets and claim an exact match. Preserve real routes, data, auth and backend behavior: a generated control does not create a capability. Resolve target conflicts with accessibility or product truth explicitly, without aesthetic drift. After matching the original size, adapt the structure to requested widths and reachable states while retaining its identity.
 
-## Layout
+## States and behavior
 
-- Responsive behavior is structural (collapse sidebar, responsive table, breakpoint-driven columns), not fluid typography. <!-- rule:product-layout-responsive-structural -->
+- Cover the states the product can reach: loading, empty, error, success, disabled, selected, expanded, and recovery where relevant.
+- Keep focus visible, controls labelled, contrast readable, and targets usable.
+- Prevent overlays and menus from being clipped by scroll or overflow containers.
+- Use quick motion only for state changes and feedback. Do not choreograph routine page loads.
+- Make responsive changes structural: collapse navigation, reflow groups, and preserve access to important actions.
 
-## Components
+## Finish
 
-Every interactive component has: default, hover, focus, active, disabled, loading, error. Don't ship with half of these. <!-- rule:product-components-all-states -->
+Run the interface at representative sizes and exercise actual tasks, controls, focus and reachable states. Capture the target screen/state at its saved dimensions after fonts/images load and motion settles. Compare full context and details side by side or with an overlay; fix layout/proportions first, then type, spacing, color and assets, and recapture after corrections. Check untouched regions against the incumbent baseline for refinement. Do not redesign working areas outside scope.
 
-- Skeleton states for loading, not spinners in the middle of content. <!-- rule:product-components-skeleton-loading -->
-- Empty states that teach the interface, not "nothing here." <!-- rule:product-components-empty-states -->
-- Consistent affordances across the surface. Same button shape. Same form-control vocabulary. Same icon style. <!-- rule:product-components-consistent-affordances -->
-- Overlays escape their container. An absolutely positioned dropdown inside an `overflow: hidden` or `overflow: auto` ancestor gets clipped; reach for `<dialog>`, the popover API, `position: fixed`, or a portal. <!-- rule:skill-interaction-dropdown-clipping -->
-
-## Motion
-
-- 150–250 ms on most transitions. Users are in flow; don't make them wait for choreography. <!-- rule:product-motion-quick-transitions -->
-- Motion conveys state, not decoration. State change, feedback, loading, reveal: nothing else. <!-- rule:product-motion-state-not-decoration -->
-- No orchestrated page-load sequences. Product loads into a task; users don't want to watch it load. <!-- rule:product-motion-no-page-load-sequence -->
-
-## Product constraints
-
-- Decorative motion that doesn't convey state. <!-- rule:product-ban-decorative-motion -->
-- Inconsistent component vocabulary across screens. If the "save" button looks different in two places, one is wrong. <!-- rule:product-ban-inconsistent-components -->
-- Display fonts in UI labels, buttons, data. <!-- rule:product-ban-display-fonts-ui -->
-- Reinventing standard affordances for flavor (custom scrollbars, weird form controls, non-standard modals). <!-- rule:product-ban-reinvented-affordances -->
-- Heavy color or full-saturation accents on inactive states. <!-- rule:product-ban-heavy-inactive-color -->
-- Modal as first thought. Modals are usually laziness. Exhaust inline / progressive alternatives first. <!-- rule:product-ban-modal-first-thought -->
-
-## Product permissions
-
-Product can afford things brand surfaces can't.
-
-- System fonts and familiar sans defaults.
-- Standard navigation patterns: top bar + side nav, breadcrumbs, tabs, command palettes.
-- Density. Tables with many rows, panels with many labels, dense information when users need it.
-- Consistency over surprise. The same visual vocabulary screen to screen is a virtue; delight is saved for moments, not pages.
+Report the target/dimensions, capture environment, comparison method, exercised paths and remaining mismatches or unavailable assets/tools. A 1:1 claim requires a real target and inspected same-size render with no unresolved visible mismatch in that scope; without rendering/comparison, visual matching is unverified. A clean build or source review does not establish that the product works.
