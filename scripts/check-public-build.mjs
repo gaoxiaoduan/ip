@@ -31,6 +31,7 @@ const publicPages = [
   ["connectivity/index.html", "网络连通性：固定网站资源请求", "/connectivity"],
   ["webrtc/index.html", "WebRTC 泄漏测试：检测真实 IP 与 NAT 类型", "/webrtc"],
   ["speed-test/index.html", "网速测试：下载、上传与延迟", "/speed-test"],
+  ["ping/index.html", "多地 Ping：网络延迟与丢包测试", "/ping"],
 ];
 
 const builtHeaders = await readBuiltFile("_headers");
@@ -79,7 +80,7 @@ for (const [relativePath, heading, pathname] of publicPages) {
     assert.match(html, /<link rel="stylesheet" href="\/public-content\.css" \/>/);
   }
 
-  if (["/connectivity", "/webrtc", "/speed-test"].includes(pathname)) {
+  if (["/connectivity", "/webrtc", "/speed-test", "/ping"].includes(pathname)) {
     assert.match(html, /<script type="module" src="\/assets\//);
   }
 
@@ -111,6 +112,12 @@ assert.match(homePage, /公开域名或 HTTP\/HTTPS 网址/);
 assert.match(homePage, /Cloudflare DNS/);
 assert.match(homePage, /不访问网页或跟随跳转/);
 assert.match(contentSecurityPolicy, /connect-src[^;]*https:\/\/cloudflare-dns\.com(?: |;)/);
+assert.match(contentSecurityPolicy, /connect-src[^;]*https:\/\/api\.globalping\.io(?: |;)/);
+const pingPage = await readBuiltFile("ping/index.html");
+assert.match(pingPage, /测量目标和结果公开/);
+assert.match(pingPage, /最多六个月/);
+assert.match(pingPage, /IPv6/);
+assert.match(homePage, /href="\/ping"/);
 assert.match(homePage, /<title>IP\.33338888\.xyz｜IP 出口检测<\/title>/);
 assert.match(homePage, /<meta name="application-name" content="IP\.33338888\.xyz"/);
 assert.match(homePage, /property="og:site_name" content="IP\.33338888\.xyz"/);

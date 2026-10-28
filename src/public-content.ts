@@ -14,7 +14,8 @@ export type PublicPage = {
     | "/methodology"
     | "/connectivity"
     | "/webrtc"
-    | "/speed-test";
+    | "/speed-test"
+    | "/ping";
   title: string;
   description: string;
   eyebrow: string;
@@ -170,6 +171,13 @@ export const PUBLIC_PAGES: readonly PublicPage[] = [
           "所选公网 IP 由浏览器向已接入的 IPWhois 提交，显示国家/地区、省州/城市、运营商或组织、ASN 与实际来源，缺失字段显示未知。内网、回环及保留地址在本地说明类型和无公网归属地，不提交归属服务。公共 DNS 结果可能与本机 DNS 不同，不保证等于浏览器最终连接地址；解析地址可能指向 CDN，并非网站源服务器或经营者的位置。",
           "手动 IP 查询和 WebRTC 公网地址的归属查询复用同一查询能力。这些归属资料来自 IP 地理数据库，不是三条检测路径的出口结果，也不是设备的精确物理位置。出口检测仍直接采用各端点返回的归属地，不另交数据库统一。",
           "本站不保存手动输入或查询历史，不生成查询分享链接，不把目标 IP、域名或输入网址写入页面网址、持久存储或匿名优化事件；刷新或关闭后清空。第三方服务的留存政策由其自身规定。服务限流、超时或不可用时，页面会说明失败，不把失败解释为目标地址不存在。",
+        ],
+      },
+      {
+        title: "多地 Ping 的公开测量边界",
+        paragraphs: [
+          "多地 Ping 在独立页面由浏览器匿名直连 Globalping，只有主动提交才创建测量。目标和结果公开，知道任务 ID 即可读取，数据可能被发现或发布，第三方通常保留最多六个月。本站只在当前页面展示，不建立历史，不把目标写入 URL、持久存储或匿名优化事件；关闭页面不会删除第三方的公开测量。",
+          "探针从各地网络向目标发送 ICMP 包，不是从访客本机测量。域名由探针分别解析，IPv6 为实验能力。节点覆盖和免费额度随服务商当前状态变化；无响应、无可用节点、解析失败和探针内部错误分别说明，Ping 未响应不等于网站无法访问。",
         ],
       },
       {
@@ -337,6 +345,23 @@ export const PUBLIC_PAGES: readonly PublicPage[] = [
       },
     ],
   },
+  {
+    path: "/ping",
+    title: "多地 Ping：网络延迟与丢包测试",
+    description: "使用 Globalping 免费远端探针，比较域名或公网 IP 在大陆三网及港澳台、海外的 ICMP 延迟和丢包，展示实际节点、地图与明细。",
+    eyebrow: "多地 Ping / ICMP / 免费探针",
+    intro: "从各地探针出发，比较同一目标的延迟与丢包。中国大陆三网优先，默认各最多 3 个节点；可选港澳台与海外，整轮最多 12 个节点，每节点发送 5 个 ICMP 包。",
+    sections: [
+      { title: "主动提交后单次测量", paragraphs: ["支持单个公网 IPv4、IPv6、公开域名或 HTTP/HTTPS 网址；网址仅提取主机名，端口、路径、参数和片段不提交。内部名称、内网、回环及保留 IP 在本地拦截。域名默认 IPv4，可选实验性 IPv6，各探针分别解析并展示实际响应 IP。", "启用 JavaScript 后可在本页发起单次测试或手动重测；不会自动持续测试，也不支持指定 DNS。"] },
+      { title: "实际覆盖与结果口径", paragraphs: ["探针由 Globalping 社区提供，地区与数量动态变化，不保证全国各省或每次三网齐全。页面显示请求、实际参与、已完成和有响应节点，未测地区留灰；节点不足不会暗中换网补齐。", "节点明细展示网络、ASN、响应 IP、实际发包及丢包、最低／平均／最高延迟。平均值按有效响应包加权，内部故障不计作目标丢包。Ping 未响应不等于网站无法访问，5 包只代表一次短时采样。"] },
+      { title: "测量目标和结果公开", paragraphs: ["浏览器匿名直连 Globalping。提交目标和测量参数后，第三方测量公开，知道任务 ID 的人即可读取，数据可能被发现或发布，通常保留最多六个月。本站只在当前页面展示，刷新或关闭后清空本站页面数据，不会删除第三方测量。", "本站不把目标或结果写入地址栏、持久存储、服务器历史或匿名优化事件。免费额度按访客公网出口共享，额度耗尽后等待恢复，不登录、不收费、不自动重测。"] },
+    ],
+    sources: [
+      { label: "Globalping：正式 API 与额度", href: "https://globalping.io/docs/api.globalping.io" },
+      { label: "Globalping：公开测量数据", href: "https://github.com/jsdelivr/globalping#things-to-keep-in-mind" },
+      { label: "Natural Earth：公共领域地图数据", href: "https://www.naturalearthdata.com/about/terms-of-use/" },
+    ],
+  },
 ];
 
 const sourceList = (sources: readonly Source[]) =>
@@ -387,6 +412,7 @@ const INTERACTIVE_PUBLIC_PATHS = new Set<string>([
   "/connectivity",
   "/webrtc",
   "/speed-test",
+  "/ping",
 ] as const);
 
 const renderPublicPageContent = (page: PublicPage) => `<div class="public-shell vbg-report">
@@ -532,7 +558,7 @@ export const renderHomeFallback = () => `<div class="public-shell vbg-report">
       <section class="public-section" id="results"><h2>三条路径，一次对照</h2><div class="public-section-content"><p>浏览器直接访问不同目的网络类别的检测端点。每张路径卡片都会标明本次实际采用的数据来源和返回时间。</p><p>国内网站路径用于观察访问中国大陆常见网站时的出口结果；普通海外网站路径用于观察一般跨境访问；受限海外服务路径只提供可能受访问策略影响的代表性观测，不等同于任何指定服务。</p></div></section>
       <section class="public-section"><h2>结果如何比较</h2><div class="public-section-content"><p>至少两条成功路径才可以比较。若成功路径观察到不同的公网 IP 或出口归属地，页面会显示出口差异；成功路径不足两条时，页面会显示数据不足。</p><p>每条路径只会在主检测端点失败后尝试备用端点。不可达不证明没有公网出口，也不证明服务被封锁。</p></div></section>
       <section class="public-section" id="ip-query"><h2>IP 查询</h2><div class="public-section-content"><p>首页支持主动输入单个完整 IPv4、IPv6、公开域名或 HTTP/HTTPS 网址，包括中文域名及带路径裸网址，查看国家/地区、省州/城市、运营商或组织、ASN 与数据来源。启用 JavaScript 后可直接输入并查询，结果在当前页面展示。</p><p>域名只将主机名提交给 Cloudflare DNS，网址的端口、路径、参数和片段不发送，也不访问网页或跟随跳转。A/AAAA 地址去重分组展示，默认查询首个 IPv4（没有则为首个 IPv6），其他地址按选择查询；每次提交重新解析，每类限时 6 秒，部分成功结果可保留并重试。</p><p>查询时目标 IP 会提交给 IPWhois；内部名称不提交公共 DNS，内网、回环及保留地址在本地说明类型和无公网归属地。公共 DNS 可能与本机 DNS 不同，地址可能指向 CDN，并非网站源服务器或经营者的位置；归属信息不是设备的精确物理位置。本站不保存查询历史、不生成分享链接，不将目标写入网址或匿名优化事件，刷新后清空。</p></div></section>
-      <section class="public-section"><h2>网络工具台</h2><div class="public-section-content"><p>首页下方提供三种可直接操作的新工具，默认等待，不会自动启动 WebRTC 或消耗测速流量。</p><p><a href="/connectivity">网络连通性</a>显示八个固定网站的资源请求；<a href="/webrtc">WebRTC 泄漏测试</a>展示四个 STUN 服务的连接证据；<a href="/speed-test">网速测试</a>测量下载、上传、延迟和抖动。</p></div></section>
+      <section class="public-section"><h2>网络工具台</h2><div class="public-section-content"><p>首页下方提供三种可直接操作的新工具，默认等待，不会自动启动 WebRTC 或消耗测速流量。</p><p><a href="/connectivity">网络连通性</a>显示八个固定网站的资源请求；<a href="/webrtc">WebRTC 泄漏测试</a>展示四个 STUN 服务的连接证据；<a href="/speed-test">网速测试</a>测量下载、上传、延迟和抖动。</p><p><a href="/ping">多地 Ping</a>在独立页面使用 Globalping 免费远端探针测量指定目标。目标和结果是第三方公开测量数据，通常保留最多六个月。</p></div></section>
       <section class="public-section"><h2>把观测和判断分开</h2><div class="public-section-content"><p>浏览器直连：出口结果来自检测端点，本站不会代替访客转发请求。检测会话只停留在当前页面，刷新或关闭后结果消失，不形成账户历史。</p><p>出口差异不是诊断结论。页面只比较各检测端点看到的出口结果，不据此判断代理配置正常、异常或是否生效。</p></div></section>
       <section class="public-section"><h2>隐私边界</h2><div class="public-section-content"><p>出口归属地来自各检测端点自己的 IP 地理数据库，可能存在差异。它不代表设备的精确物理位置，也不代表设备全部网络流量。</p><p>项目不需要账户、不保存个人检测结果，也不请求额外定位。</p></div></section>
       <section class="public-section"><h2>继续了解</h2><div class="public-section-content"><p><a href="/guides/ip-differences">为什么不同网站会看到不同的出口 IP？</a></p><p><a href="/guides/ip-mismatch">国内和海外看到的 IP 不一致，该怎么理解？</a></p><p><a href="/guides/traffic-split-observation">三条检测路径，观察的是什么？</a></p><p><a href="/methodology">检测方法与隐私边界</a></p></div></section>

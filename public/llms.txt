@@ -38,3 +38,7 @@ The public API and MCP server require no authentication. They observe only the r
 - [Methodology and privacy](https://ip.33338888.xyz/methodology)
 - [Sitemap](https://ip.33338888.xyz/sitemap.xml)
 - [MCP Apps extension](https://github.com/modelcontextprotocol/ext-apps)
+
+## 多地 Ping
+
+[多地 Ping 独立工具](https://ip.33338888.xyz/ping)由浏览器匿名直连 Globalping 进行 ICMP 单次测量。本站不持久保存输入和结果；Globalping 测量参数和结果公开，通常保留最多六个月。该能力不属于本站 MCP／A2A 接口。

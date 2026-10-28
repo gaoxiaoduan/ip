@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { DetectionCard } from "@/components/detection-card";
 import { IpLookupPanel } from "@/components/ip-lookup-panel";
@@ -12,6 +13,8 @@ import { useDetectionSession } from "@/hooks/use-detection-session";
 import { DETECTION_PATHS } from "@/lib/endpoints";
 import type { NetworkToolAdapterOverrides } from "@/lib/network-tool-session";
 import { cn } from "@/lib/utils";
+
+const PingPage = lazy(() => import("@/components/ping-page"));
 
 const PRINCIPLES = [
   {
@@ -355,6 +358,11 @@ const HomePage = ({ networkAdapters }: AppProps) => {
 
         <NetworkToolDesk adapters={networkAdapters} />
 
+        <div className="mx-auto w-[min(1200px,calc(100%-32px))] border-t border-hairline py-6 text-sm text-body">
+          <a href="/ping" className="font-medium text-ink underline underline-offset-4">多地 Ping ↗</a>
+          <span className="ml-3">从各地探针比较指定目标的延迟与丢包，在独立页面测试。</span>
+        </div>
+
         <section
           className="bg-canvas px-4 py-18 sm:px-6 sm:py-28"
           aria-labelledby="guides-title"
@@ -494,6 +502,9 @@ const HomePage = ({ networkAdapters }: AppProps) => {
 };
 
 export default function App({ networkAdapters }: AppProps = {}) {
+  if (typeof window !== "undefined" && window.location.pathname.replace(/\/+$/, "") === "/ping") {
+    return <Suspense fallback={<p role="status">正在加载多地 Ping…</p>}><PingPage /></Suspense>;
+  }
   const view = currentToolRoute();
 
   return view ? (
