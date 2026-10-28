@@ -553,7 +553,7 @@ const homeJsonLd = JSON.stringify({
 
 export const renderHomeFallback = () => `<div class="public-shell vbg-report">
   <main id="top">
-    <header class="public-hero"><div class="public-hero-inner"><div class="public-hero-badge"><span class="public-mono-label">IP.33338888.xyz · BROWSER-DIRECT / SESSION-ONLY</span></div><h1 class="public-hero-title">IP 出口检测：一次看清，网站看到你从哪里来。</h1><p class="public-hero-intro">IP.33338888.xyz 同时比较国内网站路径、普通海外网站路径与受限海外服务路径实际观察到的公网出口。只描述出口差异，不替你判断网络配置。</p><div class="public-actions"><a class="public-action public-action--primary" href="#results">开始本次检测</a></div></div></header>
+    <header class="public-hero"><div class="public-hero-inner"><div class="public-hero-badge"><span class="public-mono-label">IP.33338888.xyz · BROWSER-DIRECT / SESSION-ONLY</span></div><h1 class="public-hero-title">IP 出口检测：一次看清，网站看到你从哪里来。</h1><p class="public-hero-intro">IP.33338888.xyz 同时比较国内网站路径、普通海外网站路径与受限海外服务路径实际观察到的公网出口。只描述出口差异，不替你判断网络配置。</p><div class="public-actions"><a class="public-action public-action--primary" href="#results">开始本次检测</a><a class="public-action public-action--secondary" href="/ping">多地 Ping ↗</a></div></div></header>
     <article class="public-article">
       <section class="public-section" id="results"><h2>三条路径，一次对照</h2><div class="public-section-content"><p>浏览器直接访问不同目的网络类别的检测端点。每张路径卡片都会标明本次实际采用的数据来源和返回时间。</p><p>国内网站路径用于观察访问中国大陆常见网站时的出口结果；普通海外网站路径用于观察一般跨境访问；受限海外服务路径只提供可能受访问策略影响的代表性观测，不等同于任何指定服务。</p></div></section>
       <section class="public-section"><h2>结果如何比较</h2><div class="public-section-content"><p>至少两条成功路径才可以比较。若成功路径观察到不同的公网 IP 或出口归属地，页面会显示出口差异；成功路径不足两条时，页面会显示数据不足。</p><p>每条路径只会在主检测端点失败后尝试备用端点。不可达不证明没有公网出口，也不证明服务被封锁。</p></div></section>

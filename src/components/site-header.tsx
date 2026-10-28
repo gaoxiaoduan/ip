@@ -145,10 +145,10 @@ export function SiteHeader({
   }));
 
   return (
-    <header className="sticky top-0 z-30 grid h-[60px] grid-cols-[1fr_auto] items-center border-b border-hairline bg-canvas px-4 sm:h-16 sm:grid-cols-[1fr_auto_1fr] sm:px-6">
+    <header className="sticky top-0 z-30 grid h-[60px] grid-cols-[1fr_auto] items-center border-b border-hairline bg-canvas px-4 sm:h-16 sm:px-6 md:grid-cols-[1fr_auto_1fr]">
         <Brand homeHref={brandHref} />
         <nav
-          className="hidden items-center gap-1 sm:flex sm:justify-self-center"
+          className="hidden items-center gap-1 md:flex md:justify-self-center"
           aria-label="页面导航"
         >
           {navigation.map((item) => (
@@ -165,12 +165,18 @@ export function SiteHeader({
           ))}
         </nav>
         <div className="flex items-center gap-1 justify-self-end sm:gap-2">
+          <a
+            className="inline-flex min-h-9 items-center whitespace-nowrap rounded-lg border border-hairline px-2 text-xs font-medium text-ink transition-colors hover:bg-canvas-soft-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-link sm:px-3"
+            href="/ping"
+          >
+            多地 Ping
+          </a>
           <ThemeControl />
           <GithubLink />
           <a
             className={cn(
               navItemClassName,
-              "hidden items-center gap-2 font-mono text-xs text-ink md:inline-flex",
+              "hidden items-center gap-2 font-mono text-xs text-ink lg:inline-flex",
             )}
             href={`${homeHref}#results`}
           >
