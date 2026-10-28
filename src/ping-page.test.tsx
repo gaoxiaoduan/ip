@@ -455,11 +455,76 @@ describe("多地 Ping 独立页面", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("勾选港澳台和海外后兼顾两个范围，整轮最多十二个且大陆每网最多三个城市", async () => {
+  it("默认覆盖三网所有可用城市，同网同城只选一个且不混入云节点", async () => {
     const domestic = [4134, 4837, 9808].flatMap((asn) =>
-      ["Beijing", "Guangzhou", "Shanghai"].map((city) => ({
+      ["Beijing", "Guangzhou", "Shanghai", "Wuhan", "Xi'an", "Nanning"].map(
+        (city) => ({
+          ...probes[0],
+          location: location(city, asn, 113, 23),
+        }),
+      ),
+    );
+    const rows = domestic.map((probe) => ({
+      ...result(0),
+      probe: { ...probe.location, tags: probe.tags },
+    }));
+    const fetcher = installApi(
+      () => ({ ...measurement(rows), probesCount: 18 }),
+      [
+        ...domestic,
+        domestic[0],
+        { ...probes[0], location: location("Beijing", 4812, 113, 23) },
+        { ...probes[0], location: location("Chengdu", 45090, 113, 23) },
+      ],
+      () =>
+        Response.json({ id: "measurement-1", probesCount: 18 }, { status: 202 }),
+    );
+    openPage();
+    await screen.findByText(/18 个可选节点/);
+    expect(screen.getByText(/预计消耗 18 个节点额度/)).toBeInTheDocument();
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("checkbox", { name: /中国电信/ }));
+    expect(screen.getByText(/12 个可选节点/)).toBeInTheDocument();
+    await user.click(screen.getByRole("checkbox", { name: /中国电信/ }));
+    await submit();
+    await screen.findByText("本轮已完成");
+    const body = JSON.parse(
+      String(fetcher.mock.calls.find(([, init]) => init?.method === "POST")?.[1]?.body),
+    );
+    expect(body.locations).toHaveLength(18);
+    for (const asn of [4134, 4837, 9808]) {
+      const cities = body.locations.filter(
+        (node: { asn: number }) => node.asn === asn,
+      );
+      expect(cities).toHaveLength(6);
+      expect(new Set(cities.map((node: { city: string }) => node.city)).size).toBe(
+        6,
+      );
+    }
+    expect(
+      body.locations.some((node: { asn: number }) => node.asn === 45090),
+    ).toBe(false);
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "请求 18 / 参与 18 / 完成 18",
+    );
+    expect(
+      within(screen.getByRole("table", { name: "节点明细" })).getAllByRole("row"),
+    ).toHaveLength(19);
+  });
+
+  it.each([
+    { counts: [20, 20, 20], expected: [16, 16, 15] },
+    { counts: [60, 1, 1], expected: [45, 1, 1] },
+  ])("城市过多时轮流覆盖三网并保留补充地区，总计不超过五十个：$counts", async ({ counts, expected }) => {
+    const domestic = [4134, 4837, 9808].flatMap((asn, carrier) =>
+      Array.from({ length: counts[carrier]! }, (_, city) => ({
         ...probes[0],
-        location: location(city, asn, 113, 23),
+        location: location(
+          `City ${city.toString().padStart(2, "0")}`,
+          asn,
+          113,
+          23,
+        ),
       })),
     );
     const foreign = ["HK", "TW", "AU", "DE", "FR"].map((country) => ({
@@ -468,7 +533,7 @@ describe("多地 Ping 独立页面", () => {
     }));
     const fetcher = installApi(undefined, [...domestic, ...foreign]);
     openPage();
-    await screen.findByText(/9 个可选节点/);
+    await screen.findByText(/50 个可选节点/);
     const user = userEvent.setup();
     await user.click(screen.getByRole("checkbox", { name: "港澳台" }));
     await user.click(screen.getByRole("checkbox", { name: "海外" }));
@@ -480,24 +545,39 @@ describe("多地 Ping 独立页面", () => {
           ?.body,
       ),
     );
-    expect(body.locations).toHaveLength(12);
+    expect(body.locations).toHaveLength(50);
     expect(
       body.locations.filter((l: { country: string }) =>
         ["HK", "MO", "TW"].includes(l.country),
       ),
     ).toHaveLength(1);
+    expect(
+      body.locations.filter(
+        (l: { country: string }) => l.country !== "CN" && l.country !== "HK",
+      ),
+    ).toHaveLength(2);
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "请求 50 / 参与 3 / 完成 3",
+    );
     expect(body).not.toHaveProperty("limit");
-    for (const asn of [4134, 4837, 9808]) {
+    for (const [index, asn] of [4134, 4837, 9808].entries()) {
       expect(
         body.locations.filter((l: { asn: number }) => l.asn === asn),
-      ).toHaveLength(3);
+      ).toHaveLength(expected[index]!);
     }
   });
 
-  it("已知额度不足时在创建前阻止测量", async () => {
-    const fetcher = installApi(undefined, probes, undefined, 2);
+  it("扩大城市后按完整所选节点数检查额度，不足时在创建前阻止测量", async () => {
+    const online = probes.flatMap((probe) =>
+      Array.from({ length: 6 }, (_, index) => ({
+        ...probe,
+        location: { ...probe.location, city: `City ${index}` },
+      })),
+    );
+    const fetcher = installApi(undefined, online, undefined, 12);
     openPage();
-    await screen.findByText("免费节点额度 2 / 250");
+    await screen.findByText("免费节点额度 12 / 250");
+    expect(screen.getByText(/18 个可选节点/)).toBeInTheDocument();
     await submit();
     expect(
       await screen.findByText(/免费额度不足以完成所选节点/),

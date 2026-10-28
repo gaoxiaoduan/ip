@@ -6,6 +6,7 @@ import { groupPingRegions } from "@/lib/ping-geography";
 import { useMultiPing } from "@/hooks/use-multi-ping";
 import {
   CARRIERS,
+  MAX_PING_PROBES,
   carrierFor,
   pingRowState,
   selectPingLocations,
@@ -145,10 +146,13 @@ export default function PingPage() {
                     中国{carrier}
                     <span className="ping-option-count">
                       {
-                        session.probes.filter(
-                          (p) => carrierFor(p.location) === carrier,
-                        ).length
-                      }
+                        new Set(
+                          session.probes
+                            .filter((p) => carrierFor(p.location) === carrier)
+                            .map((p) => p.location.city),
+                        ).size
+                      }{" "}
+                      城市
                     </span>
                   </label>
                 ))}
@@ -200,7 +204,7 @@ export default function PingPage() {
             <span>
               {session.loading
                 ? "正在读取在线探针…"
-                : `${selected.length} 个可选节点 · 每节点 5 包`}
+                : `${selected.length} 个可选节点 · 每节点 5 包 · 预计消耗 ${selected.length} 个节点额度`}
             </span>
             <span>
               {session.limits
@@ -211,19 +215,24 @@ export default function PingPage() {
                 : ""}
             </span>
           </div>
+          <p className="ping-footnote">
+            大陆按三网轮流选取在线城市，同一运营商每城 1 个节点，每轮最多{" "}
+            {MAX_PING_PROBES} 个。
+            港澳台和海外合计最多 3 个；实际参与数以服务商返回为准。
+          </p>
           {!session.loading && selection.mainland ? (
             <div className="ping-coverage">
               {selection.carriers.map((carrier) => {
                 const count = selected.filter(
                   (node) => carrierFor(node) === carrier,
                 ).length;
-                return count < 3 ? (
+                return (
                   <span key={carrier}>
                     {count
-                      ? `${carrier}：本轮可选 ${count} / 3 个节点`
+                      ? `${carrier}：本轮可选 ${count} 个城市节点`
                       : `${carrier}：当前无可用节点`}
                   </span>
-                ) : null;
+                );
               })}
             </div>
           ) : null}

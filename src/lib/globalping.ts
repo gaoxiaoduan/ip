@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 const API = "https://api.globalping.io/v1";
+export const MAX_PING_PROBES = 50;
 const count = z.number().int().nonnegative();
 const rtt = z.number().nonnegative().nullable();
 const locationSchema = z.object({
@@ -46,7 +47,7 @@ const resultSchema = z.object({
 const measurementSchema = z.object({
   id: z.string(),
   status: z.enum(["in-progress", "finished"]),
-  probesCount: count.max(12),
+  probesCount: count.max(MAX_PING_PROBES),
   results: z.array(z.unknown()).transform((rows) =>
     rows.flatMap((row): z.infer<typeof resultSchema>[] => {
       const parsed = resultSchema.safeParse(row);
@@ -105,8 +106,8 @@ export function selectPingLocations(
   probes: readonly PingProbe[],
   selection: PingSelection,
 ) {
-  const selected: PingProbe[] = [];
-  const pick = (pool: PingProbe[], limit: number) => {
+  const pick = (pool: PingProbe[], limit = MAX_PING_PROBES) => {
+    const selected: PingProbe[] = [];
     const cities = new Set<string>();
     for (const probe of pool.toSorted((a, b) =>
       `${a.location.country}/${a.location.city}/${a.location.asn}`.localeCompare(
@@ -119,27 +120,45 @@ export function selectPingLocations(
       selected.push(probe);
       if (cities.size === limit) break;
     }
+    return selected;
   };
-  if (selection.mainland) {
-    for (const carrier of selection.carriers)
-      pick(
-        probes.filter((p) => carrierFor(p.location) === carrier),
-        3,
-      );
-  }
+  const supplemental: PingProbe[] = [];
   const regional = new Set(["HK", "MO", "TW"]);
   if (selection.regional)
-    pick(
-      probes.filter((p) => regional.has(p.location.country)),
-      selection.overseas ? 1 : 3,
+    supplemental.push(
+      ...pick(
+        probes.filter((p) => regional.has(p.location.country)),
+        selection.overseas ? 1 : 3,
+      ),
     );
   if (selection.overseas)
-    pick(
-      probes.filter(
-        (p) => p.location.country !== "CN" && !regional.has(p.location.country),
+    supplemental.push(
+      ...pick(
+        probes.filter(
+          (p) => p.location.country !== "CN" && !regional.has(p.location.country),
+        ),
+        selection.regional ? 2 : 3,
       ),
-      selection.regional ? 2 : 3,
     );
+  const selected: PingProbe[] = [];
+  if (selection.mainland) {
+    const pools = CARRIERS.filter((carrier) =>
+      selection.carriers.includes(carrier),
+    ).map((carrier) =>
+      pick(probes.filter((p) => carrierFor(p.location) === carrier)),
+    );
+    const maximum = MAX_PING_PROBES - supplemental.length;
+    // Take one city per carrier each round so a large network cannot crowd out others.
+    for (let index = 0; selected.length < maximum; index++) {
+      const round = pools.flatMap((pool) => {
+        const probe = pool[index];
+        return probe ? [probe] : [];
+      });
+      if (!round.length) break;
+      selected.push(...round.slice(0, maximum - selected.length));
+    }
+  }
+  selected.push(...supplemental);
   return selected.map(({ location }) => ({
     country: location.country,
     city: location.city,
@@ -221,7 +240,10 @@ export async function measurePing(
 ) {
   const created = await request(
     "/measurements",
-    z.object({ id: z.string().min(1).max(200), probesCount: count.max(12) }),
+    z.object({
+      id: z.string().min(1).max(200),
+      probesCount: count.max(MAX_PING_PROBES),
+    }),
     signal,
     {
       type: "ping",
