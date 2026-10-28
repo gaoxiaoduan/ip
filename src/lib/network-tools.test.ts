@@ -215,7 +215,7 @@ describe("网络工具 runner", () => {
     expect(result.candidates).toEqual([]);
   });
 
-  it("IP 地理与运营商解析能提取国旗 Emoji，并支持内存去重缓存", async () => {
+  it("IP 地理与运营商解析能提取国旗，并合并进行中与完成后的重复查询", async () => {
     clearIpGeoCache();
     expect(getFlagEmoji("CN")).toBe("🇨🇳");
     expect(getFlagEmoji("US")).toBe("🇺🇸");
@@ -233,7 +233,9 @@ describe("网络工具 runner", () => {
       }),
     );
 
-    const first = await fetchIpGeoInfo("183.158.4.83", fetcher as unknown as typeof fetch);
+    const [first] = await Promise.all(Array.from({ length: 4 }, () =>
+      fetchIpGeoInfo("183.158.4.83", fetcher as unknown as typeof fetch),
+    ));
     expect(first).toEqual({
       ip: "183.158.4.83",
       country: "中国",
@@ -250,6 +252,33 @@ describe("网络工具 runner", () => {
     const second = await fetchIpGeoInfo("183.158.4.83", fetcher as unknown as typeof fetch);
     expect(second).toEqual(first);
     expect(fetcher).toHaveBeenCalledTimes(1);
+  });
+
+  it("同 IP 查询共享请求，但一个调用取消不会中断另一个调用", async () => {
+    clearIpGeoCache();
+    const firstController = new AbortController();
+    const secondController = new AbortController();
+    let complete!: (response: Response) => void;
+    let transportSignal: AbortSignal | null | undefined;
+    const fetcher = vi.fn<typeof fetch>(async (_input, init) => {
+      transportSignal = init?.signal;
+      return new Promise<Response>((resolve) => { complete = resolve; });
+    });
+    const first = fetchIpGeoInfo("8.8.8.8", fetcher, firstController.signal);
+    const second = fetchIpGeoInfo("8.8.8.8", fetcher, secondController.signal);
+    try {
+      expect(fetcher).toHaveBeenCalledTimes(1);
+      const cancelled = expect(first).rejects.toMatchObject({ name: "AbortError" });
+      firstController.abort();
+      await cancelled;
+      expect(transportSignal?.aborted).toBe(false);
+      complete(Response.json({ success: true, ip: "8.8.8.8", country: "美国" }));
+      expect(await second).toMatchObject({ ip: "8.8.8.8", country: "美国" });
+    } finally {
+      firstController.abort();
+      secondController.abort();
+      await Promise.allSettled([first, second]);
+    }
   });
 
   it("测速使用明确的低流量/精测档位，计算吞吐量、延迟和抖动", async () => {

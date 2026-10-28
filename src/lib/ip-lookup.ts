@@ -71,6 +71,15 @@ export const getFlagEmoji = (countryCode?: string): string => {
 
 const geoCache = new Map<string, IpGeoInfo>();
 
+type PendingLookup = {
+  ip: string;
+  controller: AbortController;
+  promise: Promise<IpGeoInfo>;
+  waiters: number;
+};
+
+const pendingLookups = new Map<string, PendingLookup>();
+
 const failureMessages = {
   invalid: "请输入一个完整的 IPv4 或 IPv6 地址。",
   local: "无公网归属地。",
@@ -157,6 +166,62 @@ async function requestIpGeoInfo(
   return info;
 }
 
+function startIpGeoLookup(
+  ip: string,
+  fetcher: typeof fetch,
+): PendingLookup {
+  const controller = new AbortController();
+  const requestSignal = controller.signal;
+  let onAbort!: () => void;
+  const cancelled = new Promise<never>((_resolve, reject) => {
+    onAbort = () => reject(requestSignal.reason);
+    requestSignal.addEventListener("abort", onAbort, { once: true });
+  });
+  const timer = setTimeout(() => controller.abort(new IpLookupError("timeout")), 6000);
+  const promise = Promise.race([
+    requestIpGeoInfo(ip, fetcher, requestSignal),
+    cancelled,
+  ]).then((info) => {
+    requestSignal.throwIfAborted();
+    geoCache.set(ip, info);
+    return info;
+  }).finally(() => {
+    clearTimeout(timer);
+    requestSignal.removeEventListener("abort", onAbort);
+    if (pendingLookups.get(ip)?.controller === controller) pendingLookups.delete(ip);
+  });
+  return { ip, controller, promise, waiters: 0 };
+}
+
+function waitForLookup(pending: PendingLookup, signal?: AbortSignal): Promise<IpGeoInfo> {
+  pending.waiters += 1;
+  return new Promise((resolve, reject) => {
+    let finished = false;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+      signal?.removeEventListener("abort", onAbort);
+      pending.waiters -= 1;
+      if (pending.waiters === 0 && pendingLookups.get(pending.ip) === pending) {
+        pendingLookups.delete(pending.ip);
+        pending.controller.abort();
+      }
+    };
+    const onAbort = () => {
+      finish();
+      reject(signal?.reason);
+    };
+    signal?.addEventListener("abort", onAbort, { once: true });
+    pending.promise.then(
+      (info) => { finish(); resolve(info); },
+      (error: unknown) => { finish(); reject(error); },
+    );
+    if (signal?.aborted) {
+      onAbort();
+    }
+  });
+}
+
 export async function fetchIpGeoInfo(
   ip: string,
   fetcher: typeof fetch = globalThis.fetch,
@@ -169,25 +234,11 @@ export async function fetchIpGeoInfo(
   const cached = geoCache.get(address.ip);
   if (cached) return cached;
 
-  const controller = new AbortController();
-  const requestSignal = signal ? AbortSignal.any([signal, controller.signal]) : controller.signal;
-  let onAbort!: () => void;
-  const cancelled = new Promise<never>((_resolve, reject) => {
-    onAbort = () => reject(requestSignal.reason);
-    requestSignal.addEventListener("abort", onAbort, { once: true });
-  });
-  const timer = setTimeout(() => controller.abort(new IpLookupError("timeout")), 6000);
-  try {
-    const info = await Promise.race([
-      requestIpGeoInfo(address.ip, fetcher, requestSignal),
-      cancelled,
-    ]);
-    requestSignal.throwIfAborted();
-    geoCache.set(address.ip, info);
-    return info;
-  } finally {
-    clearTimeout(timer);
-    requestSignal.removeEventListener("abort", onAbort);
+  let pending = pendingLookups.get(address.ip);
+  if (!pending || pending.controller.signal.aborted) {
+    pending = startIpGeoLookup(address.ip, fetcher);
+    pendingLookups.set(address.ip, pending);
   }
+  return waitForLookup(pending, signal);
 }
 
