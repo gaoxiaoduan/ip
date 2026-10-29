@@ -21,6 +21,7 @@ import type {
   WebRtcToolState,
 } from "@/lib/network-tool-session";
 import { cn } from "@/lib/utils";
+import { TOOL_PAGES } from "@/tool-pages";
 
 export type NetworkToolView = "all" | "connectivity" | "webrtc" | "speed";
 
@@ -345,7 +346,7 @@ const ConnectivityTool = ({
       <ToolHeader
         icon={<ConnectivityIcon />}
         description="检查八个常用网站的资源请求是否成功，并显示每次请求的耗时。"
-        href="/connectivity"
+        href={TOOL_PAGES.connectivity.path}
         onStart={onStart}
         onStop={onStop}
         running={running}
@@ -639,7 +640,7 @@ const WebRtcTool = ({
       <ToolHeader
         icon={<WebRtcLeakIcon />}
         description="WebRTC 往往通过 UDP 直连进行建立，如果测试返回了真实 IP，则意味着你的代理设置没有覆盖这些连接。除了检测你连接 WebRTC 时所使用的 IP，我们还会检测你的 NAT 类型。然而，NAT 类型的检测并不是 100% 准确的，仅供参考。"
-        href="/webrtc"
+        href={TOOL_PAGES.webrtc.path}
         onStart={onStart}
         onStop={onStop}
         running={running}
@@ -940,7 +941,7 @@ const SpeedTool = ({
       <ToolHeader
         icon={<SpeedGaugeIcon />}
         description={`通过 Cloudflare edge 直接测量下载、上传、空闲延迟和抖动。测试会直接消耗流量，${SPEED_PROFILES[speed.profile].warning}`}
-        href="/speed-test"
+        href={TOOL_PAGES.speed.path}
         onStart={() => onStart(speed.profile)}
         onStop={onStop}
         running={running}

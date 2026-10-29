@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from "react";
+import { planPingCoverage, type PingSelection } from "@/lib/ping-probes";
+import { readPingResults } from "@/lib/ping-results";
 import { parseLookupTarget } from "@/lib/lookup-target";
 import {
   GlobalpingError,
   measurePing,
   readPingLimits,
   readPingProbes,
-  selectPingLocations,
   type PingLimits,
   type PingMeasurement,
   type PingProbe,
-  type PingSelection,
 } from "@/lib/globalping";
 
 export function useMultiPing() {
@@ -79,7 +79,7 @@ export function useMultiPing() {
       if (controller.signal.aborted) return;
       setProbes(nodes);
       setLimits(quota);
-      const locations = selectPingLocations(nodes, selection);
+      const locations = planPingCoverage(nodes, selection).locations;
       setRequested(locations.length);
       if (!locations.length)
         throw new GlobalpingError(
@@ -111,25 +111,6 @@ export function useMultiPing() {
             ? cause.message
             : "Globalping API 不可达或请求超时，无法判断；请手动重试。",
         );
-        setMeasurement((current) =>
-          current
-            ? {
-                ...current,
-                results: current.results.map((row) =>
-                  row.result.status === "in-progress"
-                    ? {
-                        probe: row.probe,
-                        result: {
-                          status: "failed",
-                          failureSource: "local-wait",
-                          resolvedAddress: row.result.resolvedAddress,
-                        },
-                      }
-                    : row,
-                ),
-              }
-            : null,
-        );
       }
     } finally {
       if (active.current === controller) {
@@ -144,7 +125,7 @@ export function useMultiPing() {
     loading,
     running,
     error,
-    measurement,
+    results: readPingResults(measurement, Boolean(error)),
     target,
     requested,
     start,

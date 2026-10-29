@@ -8,43 +8,38 @@ import {
   CARRIERS,
   MAX_PING_PROBES,
   carrierFor,
-  pingRowState,
-  selectPingLocations,
-  type PingRow,
+  planPingCoverage,
   type PingSelection,
-} from "@/lib/globalping";
-import { pingTime, summarizePing } from "@/lib/ping-results";
+} from "@/lib/ping-probes";
+import { pingTime, summarizePing, type PingSummary } from "@/lib/ping-results";
 import { parseLookupTarget } from "@/lib/lookup-target";
 import "./ping-page.css";
 
 const Summary = ({
   label,
-  rows,
-  unidentified = 0,
+  stats,
 }: {
   label: string;
-  rows: readonly PingRow[];
-  unidentified?: number;
+  stats: PingSummary;
 }) => {
-  const stats = summarizePing(rows);
   return (
     <tr>
       <th scope="row">{label}</th>
       <td>
-        {rows.length + unidentified} / {stats.responding}
+        {stats.nodes} / {stats.responding}
       </td>
       <td>
-        {pingTime(stats.fastest?.result.stats?.avg)}
+        {pingTime(stats.fastest?.packets?.avg)}
         <small>{stats.fastest?.probe.city ?? ""}</small>
       </td>
       <td>
-        {pingTime(stats.slowest?.result.stats?.avg)}
+        {pingTime(stats.slowest?.packets?.avg)}
         <small>{stats.slowest?.probe.city ?? ""}</small>
       </td>
       <td>{pingTime(stats.average)}</td>
       <td>{stats.loss === null ? "—" : `${stats.loss.toFixed(1)}%`}</td>
       <td>
-        {stats.unanswered} / {stats.unknown + unidentified}
+        {stats.unanswered} / {stats.unknown}
       </td>
     </tr>
   );
@@ -62,15 +57,9 @@ export default function PingPage() {
     regional: false,
     overseas: false,
   });
-  const selected = selectPingLocations(session.probes, selection);
-  const rows = session.measurement?.results ?? [];
-  const unidentified =
-    session.measurement?.status === "finished" || session.error
-      ? Math.max(0, (session.measurement?.probesCount ?? 0) - rows.length)
-      : 0;
-  const completed =
-    rows.filter((row) => row.result.status !== "in-progress").length +
-    unidentified;
+  const coverage = planPingCoverage(session.probes, selection);
+  const { results } = session;
+  const { rows, unidentified, completed } = results;
   return (
     <div className="site-report vbg-report ping-page min-h-screen bg-canvas-soft">
       <SiteHeader brandHref="/" homeHref="/" isDetecting={false} />
@@ -120,7 +109,7 @@ export default function PingPage() {
               >
                 {session.running
                   ? "测试中…"
-                  : session.measurement
+                  : results.hasMeasurement
                     ? "重新测试"
                     : "开始测试"}
                 <span aria-hidden="true"> ↗</span>
@@ -145,13 +134,7 @@ export default function PingPage() {
                     />
                     中国{carrier}
                     <span className="ping-option-count">
-                      {
-                        new Set(
-                          session.probes
-                            .filter((p) => carrierFor(p.location) === carrier)
-                            .map((p) => p.location.city),
-                        ).size
-                      }{" "}
+                      {coverage.carriers[carrier].available}{" "}
                       城市
                     </span>
                   </label>
@@ -204,7 +187,7 @@ export default function PingPage() {
             <span>
               {session.loading
                 ? "正在读取在线探针…"
-                : `${selected.length} 个可选节点 · 每节点 5 包 · 预计消耗 ${selected.length} 个节点额度`}
+                : `${coverage.locations.length} 个可选节点 · 每节点 5 包 · 预计消耗 ${coverage.locations.length} 个节点额度`}
             </span>
             <span>
               {session.limits
@@ -223,9 +206,7 @@ export default function PingPage() {
           {!session.loading && selection.mainland ? (
             <div className="ping-coverage">
               {selection.carriers.map((carrier) => {
-                const count = selected.filter(
-                  (node) => carrierFor(node) === carrier,
-                ).length;
+                const count = coverage.carriers[carrier].selected;
                 return (
                   <span key={carrier}>
                     {count
@@ -238,27 +219,13 @@ export default function PingPage() {
           ) : null}
           {!session.loading ? (
             <div className="ping-coverage">
-              {(
-                [
-                  ["regional", "港澳台", selection.overseas ? 1 : 3],
-                  ["overseas", "海外", selection.regional ? 2 : 3],
-                ] as const
-              ).map(([key, label, maximum]) => {
-                if (!selection[key]) return null;
-                const count = selected.filter((node) =>
-                  key === "regional"
-                    ? ["HK", "MO", "TW"].includes(node.country)
-                    : node.country !== "CN" &&
-                      !["HK", "MO", "TW"].includes(node.country),
-                ).length;
-                return count < maximum ? (
-                  <span key={key}>
-                    {count
-                      ? `${label}：本轮可选 ${count} / ${maximum} 个节点`
-                      : `${label}：当前无可用节点`}
-                  </span>
-                ) : null;
-              })}
+              {coverage.shortfalls.map(({ label, selected, maximum }) => (
+                <span key={label}>
+                  {selected
+                    ? `${label}：本轮可选 ${selected} / ${maximum} 个节点`
+                    : `${label}：当前无可用节点`}
+                </span>
+              ))}
             </div>
           ) : null}
         </section>
@@ -267,22 +234,22 @@ export default function PingPage() {
             {session.error ||
               (session.running
                 ? "正在测量，请等待节点返回…"
-                : session.measurement
+                : results.hasMeasurement
                   ? "本轮已完成"
                   : "等待开始测试")}
           </span>
           {session.target ? (
             <span className="font-mono">
               {session.target} · 请求 {session.requested} / 参与{" "}
-              {session.measurement?.probesCount ?? 0} / 完成 {completed}
+              {results.participants} / 完成 {completed}
             </span>
           ) : null}
         </div>
-        {session.measurement ? (
+        {results.hasMeasurement ? (
           <progress
             aria-label="节点测量进度"
             value={completed}
-            max={Math.max(1, session.measurement.probesCount)}
+            max={Math.max(1, results.participants)}
           />
         ) : null}
         <div className="ping-overview">
@@ -314,18 +281,17 @@ export default function PingPage() {
                 <tbody>
                   <Summary
                     label="全部节点"
-                    rows={rows}
-                    unidentified={unidentified}
+                    stats={results.summary}
                   />
                   {CARRIERS.map((carrier) => (
                     <Summary
                       key={carrier}
                       label={`中国${carrier}`}
-                      rows={rows.filter((r) => carrierFor(r.probe) === carrier)}
+                      stats={summarizePing(rows.filter((r) => carrierFor(r.probe) === carrier))}
                     />
                   ))}
                   {[...groupPingRegions(rows)].map(([label, grouped]) => (
-                    <Summary key={label} label={label} rows={grouped} />
+                    <Summary key={label} label={label} stats={summarizePing(grouped)} />
                   ))}
                 </tbody>
               </table>
@@ -380,30 +346,30 @@ export default function PingPage() {
                       <small>{row.probe.tags.join(" · ")}</small>
                     </th>
                     <td className="font-mono">
-                      {row.result.resolvedAddress ?? "—"}
+                      {row.address ?? "—"}
                     </td>
-                    <td>{pingRowState(row)}</td>
+                    <td>{row.label}</td>
                     <td>
-                      {row.result.stats
-                        ? `${row.result.stats.total} / ${row.result.stats.rcv} / ${row.result.stats.drop}`
+                      {row.packets
+                        ? `${row.packets.total} / ${row.packets.rcv} / ${row.packets.drop}`
                         : "—"}
                     </td>
                     <td>
-                      {row.result.stats ? `${row.result.stats.loss}%` : "—"}
+                      {row.packets ? `${row.packets.loss}%` : "—"}
                     </td>
                     <td>
                       {pingTime(
-                        row.result.stats?.rcv ? row.result.stats.min : null,
+                        row.packets?.rcv ? row.packets.min : null,
                       )}
                     </td>
                     <td>
                       {pingTime(
-                        row.result.stats?.rcv ? row.result.stats.avg : null,
+                        row.packets?.rcv ? row.packets.avg : null,
                       )}
                     </td>
                     <td>
                       {pingTime(
-                        row.result.stats?.rcv ? row.result.stats.max : null,
+                        row.packets?.rcv ? row.packets.max : null,
                       )}
                     </td>
                   </tr>

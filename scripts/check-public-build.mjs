@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { readFile } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import path from "node:path";
 
 const distPath = path.resolve(
@@ -94,6 +94,10 @@ for (const [relativePath, heading, pathname] of publicPages) {
         `${pathname} must load the shared app stylesheet ${stylesheet}`,
       );
     }
+  }
+
+  for (const [, assetPath] of html.matchAll(/(?:src|href)="(\/assets\/[^"?#]+\.(?:js|css))"/g)) {
+    await access(path.join(distPath, assetPath));
   }
 
   for (const script of html.matchAll(

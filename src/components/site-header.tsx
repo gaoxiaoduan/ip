@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { Tooltip } from "@/components/tooltip";
+import { TOOL_PAGES } from "@/tool-pages";
 import { cn } from "@/lib/utils";
 
 const NAVIGATION = [
@@ -167,7 +168,7 @@ export function SiteHeader({
         <div className="flex items-center gap-1 justify-self-end sm:gap-2">
           <a
             className="inline-flex min-h-9 items-center whitespace-nowrap rounded-lg border border-hairline px-2 text-xs font-medium text-ink transition-colors hover:bg-canvas-soft-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-link sm:px-3"
-            href="/ping"
+            href={TOOL_PAGES.ping.path}
           >
             多地 Ping
           </a>

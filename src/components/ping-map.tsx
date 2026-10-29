@@ -1,6 +1,6 @@
 import { PING_MAP_REGIONS, groupPingRegions } from "@/lib/ping-geography";
-import { summarizePing, pingTime } from "@/lib/ping-results";
-import type { PingRow } from "@/lib/globalping";
+import { summarizePing } from "@/lib/ping-results";
+import type { PingResultRow } from "@/lib/ping-results";
 
 const latencyBand = (average: number | null) =>
   average === null
@@ -13,7 +13,7 @@ const latencyBand = (average: number | null) =>
           ? "slow"
           : "high";
 
-export function PingMap({ rows }: { rows: readonly PingRow[] }) {
+export function PingMap({ rows }: { rows: readonly PingResultRow[] }) {
   const regions = groupPingRegions(rows);
   return (
     <figure className="ping-map">
@@ -25,13 +25,6 @@ export function PingMap({ rows }: { rows: readonly PingRow[] }) {
         {PING_MAP_REGIONS.map((region) => {
           const samples = regions.get(region.name) ?? [];
           const stats = summarizePing(samples);
-          const description = !samples.length
-            ? "未测，无数据"
-            : stats.average !== null
-              ? `${samples.length} 个节点，平均 ${pingTime(stats.average)}`
-              : stats.unanswered
-                ? `${samples.length} 个节点，目标未响应`
-                : `${samples.length} 个节点，无法判断`;
           const band = latencyBand(stats.average);
           return (
             <g key={region.id}>
@@ -40,7 +33,7 @@ export function PingMap({ rows }: { rows: readonly PingRow[] }) {
                 className={`ping-region ping-region--${band}`}
               >
                 <title>
-                  {region.name}：{description}
+                  {region.name}：{stats.description}
                 </title>
               </path>
               {samples.length ? (

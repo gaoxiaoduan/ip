@@ -4,14 +4,12 @@ import { DetectionCard } from "@/components/detection-card";
 import { IpLookupPanel } from "@/components/ip-lookup-panel";
 import { HeroMesh } from "@/components/hero-mesh";
 import { MonoLabel } from "@/components/mono-label";
-import {
-  NetworkToolDesk,
-  type NetworkToolView,
-} from "@/components/network-tool-desk";
+import { NetworkToolDesk } from "@/components/network-tool-desk";
 import { BRAND_CLASS, BrandMark, SiteHeader } from "@/components/site-header";
 import { useDetectionSession } from "@/hooks/use-detection-session";
 import { DETECTION_PATHS } from "@/lib/endpoints";
 import type { NetworkToolAdapterOverrides } from "@/lib/network-tool-session";
+import { findToolPage, TOOL_PAGES, type ToolPage as ToolPageDefinition } from "@/tool-pages";
 import { cn } from "@/lib/utils";
 
 const PingPage = lazy(() => import("@/components/ping-page"));
@@ -145,52 +143,10 @@ interface AppProps {
   readonly networkAdapters?: NetworkToolAdapterOverrides;
 }
 
-type IndependentToolView = Exclude<NetworkToolView, "all">;
-
-const TOOL_ROUTES: Readonly<Record<string, IndependentToolView>> = {
-  "/connectivity": "connectivity",
-  "/webrtc": "webrtc",
-  "/speed-test": "speed",
-};
-
-const currentToolRoute = (): IndependentToolView | null => {
-  if (typeof window === "undefined") {
-    return null;
-  }
-  const pathname = window.location.pathname.replace(/\/+$/, "") || "/";
-  return TOOL_ROUTES[pathname] ?? null;
-};
-
-const TOOL_PAGE_CONTENT: Record<
-  Exclude<NetworkToolView, "all">,
-  { title: string; description: string; note: string }
-> = {
-  connectivity: {
-    title: "网络连通性",
-    description:
-      "检查八个常用网站的资源请求是否成功，并显示每次请求的耗时。",
-    note: "网站清单固定，不提供临时添加的网站。",
-  },
-  webrtc: {
-    title: "WebRTC 泄漏测试",
-    description:
-      "建立四个独立 STUN 连接，检测浏览器 WebRTC 是否暴露真实公网 IP 及 NAT 类型。展示真实出口 IP、NAT 类型、运营商网络与所属地区，并保留 SDP 诊断日志。",
-    note: "WebRTC 往往通过 UDP 直连建立；若测试返回真实 IP 说明代理未覆盖此类连接。NAT 类型仅供参考。",
-  },
-  speed: {
-    title: "网速测试",
-    description:
-      "通过 Cloudflare edge 直接测量下载、上传、空闲延迟和抖动。开始前会明确提示流量消耗，结果只属于本轮页面会话。",
-    note: "低流量档约 15 MB，精测档约 65 MB；测速始终需要单独启动。",
-  },
-};
-
 const ToolPage = ({
   networkAdapters,
-  view,
-}: AppProps & { view: Exclude<NetworkToolView, "all"> }) => {
-  const content = TOOL_PAGE_CONTENT[view];
-
+  content,
+}: AppProps & { content: Exclude<ToolPageDefinition, { view: "ping" }> }) => {
   return (
     <div className="site-report vbg-report min-h-screen overflow-x-clip">
       <SiteHeader brandHref="/" homeHref="/" isDetecting={false} />
@@ -220,7 +176,7 @@ const ToolPage = ({
         </section>
         <section className="bg-canvas-soft px-4 py-12 sm:px-6 sm:py-20">
           <div className="mx-auto w-full max-w-[1200px]">
-            <NetworkToolDesk adapters={networkAdapters} view={view} />
+            <NetworkToolDesk adapters={networkAdapters} view={content.view} />
           </div>
         </section>
       </main>
@@ -359,7 +315,7 @@ const HomePage = ({ networkAdapters }: AppProps) => {
         <NetworkToolDesk adapters={networkAdapters} />
 
         <div className="mx-auto w-[min(1200px,calc(100%-32px))] border-t border-hairline py-6 text-sm text-body">
-          <a href="/ping" className="font-medium text-ink underline underline-offset-4">多地 Ping ↗</a>
+          <a href={TOOL_PAGES.ping.path} className="font-medium text-ink underline underline-offset-4">多地 Ping ↗</a>
           <span className="ml-3">从各地探针比较指定目标的延迟与丢包，在独立页面测试。</span>
         </div>
 
@@ -502,13 +458,12 @@ const HomePage = ({ networkAdapters }: AppProps) => {
 };
 
 export default function App({ networkAdapters }: AppProps = {}) {
-  if (typeof window !== "undefined" && window.location.pathname.replace(/\/+$/, "") === "/ping") {
+  const page = findToolPage(typeof window === "undefined" ? "/" : window.location.pathname);
+  if (page?.view === "ping") {
     return <Suspense fallback={<p role="status">正在加载多地 Ping…</p>}><PingPage /></Suspense>;
   }
-  const view = currentToolRoute();
-
-  return view ? (
-    <ToolPage networkAdapters={networkAdapters} view={view} />
+  return page ? (
+    <ToolPage networkAdapters={networkAdapters} content={page} />
   ) : (
     <HomePage networkAdapters={networkAdapters} />
   );

@@ -26,6 +26,13 @@
 
 地图使用随站点交付的 Natural Earth 公共领域数据，来源与处理见 [地图数据来源](./docs/third-party-data.md)。Ping 无响应不等于网站无法访问；短时采样不能判断长期网络质量。
 
+## 代码职责
+
+- `src/lib/globalping.ts` 负责 Globalping 传输与协议校验；`ping-results.ts` 集中本轮完成进度、无法判断和包加权统计，页面与地图消费同一份结果。
+- `src/lib/ping-probes.ts` 同时产生选取位置和覆盖依据；提交前重新读取在线探针，并按本次选取数量检查额度。
+- `src/tool-pages.ts` 定义独立工具页面的身份与入口，供浏览器挂载、导航和公开正文复用。`src/public-content.ts` 维护正文与页面更新时间，并生成站点地图。
+- `scripts/public-pages.ts` 负责开发预览与生产预渲染；生产脚本和 CSS 来自 Vite manifest，构建产物由 `pnpm run check:public-build` 独立核验。
+
 ## 本地开发
 
 需要 Node.js 20.19+ 或 22.12+，以及 pnpm 10。

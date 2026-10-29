@@ -1,3 +1,5 @@
+import { TOOL_PAGES, type ToolPage } from "./tool-pages";
+
 export const SITE_ORIGIN = "https://ip.33338888.xyz";
 export const PUBLIC_CONTENT_UPDATED_AT = "2026-10-28";
 
@@ -12,10 +14,9 @@ export type PublicPage = {
     | "/guides/ip-mismatch"
     | "/guides/traffic-split-observation"
     | "/methodology"
-    | "/connectivity"
-    | "/webrtc"
-    | "/speed-test"
-    | "/ping";
+    | ToolPage["path"];
+  view?: ToolPage["view"];
+  updatedAt: string;
   title: string;
   description: string;
   eyebrow: string;
@@ -30,6 +31,7 @@ export type PublicPage = {
 export const PUBLIC_PAGES: readonly PublicPage[] = [
   {
     path: "/guides/ip-differences",
+    updatedAt: "2026-07-29",
     title: "为什么不同网站会看到不同的出口 IP？",
     description: "解释不同目的网络可能观察到不同出口信息的边界，并说明一次检测能与不能证明什么。",
     eyebrow: "出口差异 / 观测边界",
@@ -71,6 +73,7 @@ export const PUBLIC_PAGES: readonly PublicPage[] = [
   },
   {
     path: "/guides/ip-mismatch",
+    updatedAt: "2026-07-29",
     title: "国内和海外看到的 IP 不一致，该怎么理解？",
     description: "说明国内网站路径与海外网站路径出现不同出口结果时，哪些解释是合理边界，哪些结论不能推出。",
     eyebrow: "国内 / 海外 / 谨慎解读",
@@ -111,6 +114,7 @@ export const PUBLIC_PAGES: readonly PublicPage[] = [
   },
   {
     path: "/guides/traffic-split-observation",
+    updatedAt: "2026-07-29",
     title: "三条检测路径，观察的是什么？",
     description: "介绍国内网站、普通海外网站和受限海外服务三类检测路径的观察范围、端点与备用规则。",
     eyebrow: "三条检测路径 / 方法说明",
@@ -150,6 +154,7 @@ export const PUBLIC_PAGES: readonly PublicPage[] = [
   },
   {
     path: "/methodology",
+    updatedAt: "2026-07-29",
     title: "检测方法与隐私边界",
     description: "公开检测路径、备用规则、匿名度量、爬虫政策和技术来源，说明本项目如何保持可复核。",
     eyebrow: "可复核方法 / 隐私边界",
@@ -228,7 +233,8 @@ export const PUBLIC_PAGES: readonly PublicPage[] = [
     ],
   },
   {
-    path: "/connectivity",
+    ...TOOL_PAGES.connectivity,
+    updatedAt: "2026-07-29",
     title: "网络连通性：固定网站资源请求",
     description:
       "通过浏览器直接请求微信、哔哩哔哩、抖音、Cloudflare、GitHub、ChatGPT、Google 和 YouTube 的资源，显示八个固定网站的请求状态与耗时。",
@@ -268,7 +274,8 @@ export const PUBLIC_PAGES: readonly PublicPage[] = [
     ],
   },
   {
-    path: "/webrtc",
+    ...TOOL_PAGES.webrtc,
+    updatedAt: "2026-07-29",
     title: "WebRTC 泄漏测试：检测真实 IP 与 NAT 类型",
     description:
       "通过四个独立 STUN 服务检测浏览器 WebRTC 是否暴露真实公网 IP 及 NAT 类型，展示真实出口 IP、NAT 类型、运营商网络与所属地区。",
@@ -307,7 +314,8 @@ export const PUBLIC_PAGES: readonly PublicPage[] = [
     ],
   },
   {
-    path: "/speed-test",
+    ...TOOL_PAGES.speed,
+    updatedAt: "2026-07-29",
     title: "网速测试：下载、上传与延迟",
     description:
       "使用 Cloudflare edge 直接测量下载速度、上传速度、空闲延迟、抖动和本轮耗时，并提供低流量与精测两种档位。",
@@ -346,7 +354,8 @@ export const PUBLIC_PAGES: readonly PublicPage[] = [
     ],
   },
   {
-    path: "/ping",
+    ...TOOL_PAGES.ping,
+    updatedAt: "2026-10-28",
     title: "多地 Ping：网络延迟与丢包测试",
     description: "使用 Globalping 免费远端探针，比较域名或公网 IP 在大陆三网及港澳台、海外的 ICMP 延迟和丢包，展示实际节点、地图与明细。",
     eyebrow: "多地 Ping / ICMP / 免费探针",
@@ -408,13 +417,6 @@ const jsonLd = (page: PublicPage) =>
 const footer = () =>
   `<footer class="public-footer"><div class="public-footer-inner"><a class="public-footer-brand" href="/" aria-label="IP 出口检测首页"><span class="brand-mark" aria-hidden="true"><span></span></span><span>IP 出口检测</span></a><div class="public-footer-meta"><span>出口观测与单 IP 归属查询</span><span class="public-footer-divider">·</span><a class="public-footer-link" href="https://github.com/gaoxiaoduan/ip/issues/new" target="_blank" rel="noreferrer">通过 GitHub Issue 纠正内容</a></div><a class="public-back-top" href="#top">回到顶部 ↑</a></div></footer>`;
 
-const INTERACTIVE_PUBLIC_PATHS = new Set<string>([
-  "/connectivity",
-  "/webrtc",
-  "/speed-test",
-  "/ping",
-] as const);
-
 const renderPublicPageContent = (page: PublicPage) => `<div class="public-shell vbg-report">
   <header class="public-header">
     <div class="public-header-inner">
@@ -469,10 +471,9 @@ const renderPublicPageContent = (page: PublicPage) => `<div class="public-shell 
 
 export const renderPublicPage = (
   page: PublicPage,
-  scriptSrc = "/src/main.tsx",
-  stylesheetHrefs: readonly string[] = [],
+  { scriptSrc, stylesheetHrefs }: { scriptSrc: string; stylesheetHrefs: readonly string[] },
 ) => {
-  const isInteractive = INTERACTIVE_PUBLIC_PATHS.has(page.path);
+  const isInteractive = page.view !== undefined;
   const appScript = isInteractive
     ? `<script type="module" src="${scriptSrc}"></script>`
     : "";
@@ -561,12 +562,12 @@ const homeJsonLd = JSON.stringify({
 
 export const renderHomeFallback = () => `<div class="public-shell vbg-report">
   <main id="top">
-    <header class="public-hero"><div class="public-hero-inner"><div class="public-hero-badge"><span class="public-mono-label">IP.33338888.xyz · BROWSER-DIRECT / SESSION-ONLY</span></div><h1 class="public-hero-title">IP 出口检测：一次看清，网站看到你从哪里来。</h1><p class="public-hero-intro">IP.33338888.xyz 同时比较国内网站路径、普通海外网站路径与受限海外服务路径实际观察到的公网出口。只描述出口差异，不替你判断网络配置。</p><div class="public-actions"><a class="public-action public-action--primary" href="#results">开始本次检测</a><a class="public-action public-action--secondary" href="/ping">多地 Ping ↗</a></div></div></header>
+    <header class="public-hero"><div class="public-hero-inner"><div class="public-hero-badge"><span class="public-mono-label">IP.33338888.xyz · BROWSER-DIRECT / SESSION-ONLY</span></div><h1 class="public-hero-title">IP 出口检测：一次看清，网站看到你从哪里来。</h1><p class="public-hero-intro">IP.33338888.xyz 同时比较国内网站路径、普通海外网站路径与受限海外服务路径实际观察到的公网出口。只描述出口差异，不替你判断网络配置。</p><div class="public-actions"><a class="public-action public-action--primary" href="#results">开始本次检测</a><a class="public-action public-action--secondary" href="${TOOL_PAGES.ping.path}">多地 Ping ↗</a></div></div></header>
     <article class="public-article">
       <section class="public-section" id="results"><h2>三条路径，一次对照</h2><div class="public-section-content"><p>浏览器直接访问不同目的网络类别的检测端点。每张路径卡片都会标明本次实际采用的数据来源和返回时间。</p><p>国内网站路径用于观察访问中国大陆常见网站时的出口结果；普通海外网站路径用于观察一般跨境访问；受限海外服务路径只提供可能受访问策略影响的代表性观测，不等同于任何指定服务。</p></div></section>
       <section class="public-section"><h2>结果如何比较</h2><div class="public-section-content"><p>至少两条成功路径才可以比较。若成功路径观察到不同的公网 IP 或出口归属地，页面会显示出口差异；成功路径不足两条时，页面会显示数据不足。</p><p>每条路径只会在主检测端点失败后尝试备用端点。不可达不证明没有公网出口，也不证明服务被封锁。</p></div></section>
       <section class="public-section" id="ip-query"><h2>IP 查询</h2><div class="public-section-content"><p>首页支持主动输入单个完整 IPv4、IPv6、公开域名或 HTTP/HTTPS 网址，包括中文域名及带路径裸网址，查看国家/地区、省州/城市、运营商或组织、ASN 与数据来源。启用 JavaScript 后可直接输入并查询，结果在当前页面展示。</p><p>域名只将主机名提交给 Cloudflare DNS，网址的端口、路径、参数和片段不发送，也不访问网页或跟随跳转。A/AAAA 地址去重分组展示，默认查询首个 IPv4（没有则为首个 IPv6），其他地址按选择查询；每次提交重新解析，每类限时 6 秒，部分成功结果可保留并重试。</p><p>查询时目标 IP 会提交给 IPWhois；内部名称不提交公共 DNS，内网、回环及保留地址在本地说明类型和无公网归属地。公共 DNS 可能与本机 DNS 不同，地址可能指向 CDN，并非网站源服务器或经营者的位置；归属信息不是设备的精确物理位置。本站不保存查询历史、不生成分享链接，不将目标写入网址或匿名优化事件，刷新后清空。</p></div></section>
-      <section class="public-section"><h2>网络工具台</h2><div class="public-section-content"><p>首页下方提供三种可直接操作的新工具，默认等待，不会自动启动 WebRTC 或消耗测速流量。</p><p><a href="/connectivity">网络连通性</a>显示八个固定网站的资源请求；<a href="/webrtc">WebRTC 泄漏测试</a>展示四个 STUN 服务的连接证据；<a href="/speed-test">网速测试</a>测量下载、上传、延迟和抖动。</p><p><a href="/ping">多地 Ping</a>在独立页面使用 Globalping 免费远端探针测量指定目标。目标和结果是第三方公开测量数据，通常保留最多六个月。</p></div></section>
+      <section class="public-section"><h2>网络工具台</h2><div class="public-section-content"><p>首页下方提供三种可直接操作的新工具，默认等待，不会自动启动 WebRTC 或消耗测速流量。</p><p><a href="${TOOL_PAGES.connectivity.path}">网络连通性</a>显示八个固定网站的资源请求；<a href="${TOOL_PAGES.webrtc.path}">WebRTC 泄漏测试</a>展示四个 STUN 服务的连接证据；<a href="${TOOL_PAGES.speed.path}">网速测试</a>测量下载、上传、延迟和抖动。</p><p><a href="${TOOL_PAGES.ping.path}">多地 Ping</a>在独立页面使用 Globalping 免费远端探针测量指定目标。目标和结果是第三方公开测量数据，通常保留最多六个月。</p></div></section>
       <section class="public-section"><h2>把观测和判断分开</h2><div class="public-section-content"><p>浏览器直连：出口结果来自检测端点，本站不会代替访客转发请求。检测会话只停留在当前页面，刷新或关闭后结果消失，不形成账户历史。</p><p>出口差异不是诊断结论。页面只比较各检测端点看到的出口结果，不据此判断代理配置正常、异常或是否生效。</p></div></section>
       <section class="public-section"><h2>隐私边界</h2><div class="public-section-content"><p>出口归属地来自各检测端点自己的 IP 地理数据库，可能存在差异。它不代表设备的精确物理位置，也不代表设备全部网络流量。</p><p>项目不需要账户、不保存个人检测结果，也不请求额外定位。</p></div></section>
       <section class="public-section"><h2>继续了解</h2><div class="public-section-content"><p><a href="/guides/ip-differences">为什么不同网站会看到不同的出口 IP？</a></p><p><a href="/guides/ip-mismatch">国内和海外看到的 IP 不一致，该怎么理解？</a></p><p><a href="/guides/traffic-split-observation">三条检测路径，观察的是什么？</a></p><p><a href="/methodology">检测方法与隐私边界</a></p></div></section>
@@ -576,3 +577,16 @@ export const renderHomeFallback = () => `<div class="public-shell vbg-report">
 </div>`;
 
 export const renderHomeJsonLd = () => homeJsonLd;
+
+export const renderSitemap = () => {
+  const pages = [
+    { path: "/", updatedAt: "2026-09-03" },
+    ...PUBLIC_PAGES,
+    { path: "/developers/", updatedAt: "2026-08-25" },
+  ];
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${pages.map((page) => `  <url><loc>${SITE_ORIGIN}${page.path}</loc><lastmod>${page.updatedAt}</lastmod></url>`).join("\n")}
+</urlset>
+`;
+};

@@ -1,7 +1,7 @@
 import { z } from "zod";
+import { MAX_PING_PROBES, type PingCoverage } from "@/lib/ping-probes";
 
 const API = "https://api.globalping.io/v1";
-export const MAX_PING_PROBES = 50;
 const count = z.number().int().nonnegative();
 const rtt = z.number().nonnegative().nullable();
 const locationSchema = z.object({
@@ -79,93 +79,6 @@ export type PingLimits = {
   limit: number;
   resetsAt: number | null;
 };
-export const CARRIERS = ["电信", "联通", "移动"] as const;
-export type Carrier = (typeof CARRIERS)[number];
-export type PingSelection = {
-  carriers: readonly Carrier[];
-  mainland: boolean;
-  regional: boolean;
-  overseas: boolean;
-};
-
-// Explicit access-network ASNs; CN cloud/education networks are not carrier samples.
-const CARRIER_ASNS: Record<Carrier, readonly number[]> = {
-  电信: [4134, 4812, 4809],
-  联通: [4837, 9929, 4808],
-  移动: [9808, 56041, 56046, 24445, 24400],
-};
-export const carrierFor = (
-  probe: Pick<PingRow["probe"], "country" | "asn">,
-): Carrier | null =>
-  probe.country === "CN"
-    ? (CARRIERS.find((carrier) => CARRIER_ASNS[carrier].includes(probe.asn)) ??
-      null)
-    : null;
-
-export function selectPingLocations(
-  probes: readonly PingProbe[],
-  selection: PingSelection,
-) {
-  const pick = (pool: PingProbe[], limit = MAX_PING_PROBES) => {
-    const selected: PingProbe[] = [];
-    const cities = new Set<string>();
-    for (const probe of pool.toSorted((a, b) =>
-      `${a.location.country}/${a.location.city}/${a.location.asn}`.localeCompare(
-        `${b.location.country}/${b.location.city}/${b.location.asn}`,
-      ),
-    )) {
-      const key = `${probe.location.country}/${probe.location.city}`;
-      if (cities.has(key)) continue;
-      cities.add(key);
-      selected.push(probe);
-      if (cities.size === limit) break;
-    }
-    return selected;
-  };
-  const supplemental: PingProbe[] = [];
-  const regional = new Set(["HK", "MO", "TW"]);
-  if (selection.regional)
-    supplemental.push(
-      ...pick(
-        probes.filter((p) => regional.has(p.location.country)),
-        selection.overseas ? 1 : 3,
-      ),
-    );
-  if (selection.overseas)
-    supplemental.push(
-      ...pick(
-        probes.filter(
-          (p) => p.location.country !== "CN" && !regional.has(p.location.country),
-        ),
-        selection.regional ? 2 : 3,
-      ),
-    );
-  const selected: PingProbe[] = [];
-  if (selection.mainland) {
-    const pools = CARRIERS.filter((carrier) =>
-      selection.carriers.includes(carrier),
-    ).map((carrier) =>
-      pick(probes.filter((p) => carrierFor(p.location) === carrier)),
-    );
-    const maximum = MAX_PING_PROBES - supplemental.length;
-    // Take one city per carrier each round so a large network cannot crowd out others.
-    for (let index = 0; selected.length < maximum; index++) {
-      const round = pools.flatMap((pool) => {
-        const probe = pool[index];
-        return probe ? [probe] : [];
-      });
-      if (!round.length) break;
-      selected.push(...round.slice(0, maximum - selected.length));
-    }
-  }
-  selected.push(...supplemental);
-  return selected.map(({ location }) => ({
-    country: location.country,
-    city: location.city,
-    asn: location.asn,
-    limit: 1,
-  }));
-}
 
 export class GlobalpingError extends Error {}
 
@@ -234,7 +147,7 @@ function pause(signal: AbortSignal) {
 export async function measurePing(
   target: string,
   ipVersion: 4 | 6 | null,
-  locations: ReturnType<typeof selectPingLocations>,
+  locations: PingCoverage["locations"],
   signal: AbortSignal,
   update: (result: PingMeasurement) => void,
 ) {
@@ -280,21 +193,4 @@ export async function measurePing(
       );
     await pause(signal);
   }
-}
-
-export function pingRowState(row: PingRow) {
-  if (row.result.status === "in-progress") return "等待结果";
-  if (row.result.status === "offline") return "探针离线";
-  if (row.result.status === "failed") {
-    if (row.result.failureSource === "local-wait") return "等待中断，无法判断";
-    if (row.result.failureSource === "invalid-data")
-      return "节点数据无效，无法判断";
-    if (row.result.failureSource === "resolver")
-      return "解析失败（服务商判断）";
-    if (row.result.failureSource === "internal") return "探针内部失败";
-    if (row.result.failureSource === "target")
-      return "目标或网络失败（服务商判断）";
-    return "测量失败，无法判断";
-  }
-  return row.result.stats?.rcv ? "已收到响应" : "目标未响应";
 }

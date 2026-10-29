@@ -15,7 +15,7 @@
     "build": "tsc -b && vite build",
     "check:public-build": "node scripts/check-public-build.mjs",
     "typecheck": "tsc -b",
-    "lint": "oxlint --deny-warnings src worker vite.config.ts vitest.config.ts vitest.worker.config.ts",
+    "lint": "oxlint --deny-warnings src worker scripts vite.config.ts vitest.config.ts vitest.worker.config.ts",
     "test": "pnpm run test:app && pnpm run test:worker",
     "test:app": "vitest run --config vitest.config.ts",
     "test:worker": "vitest run --config vitest.worker.config.ts",
